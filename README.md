@@ -1,0 +1,2 @@
+# mira
+MIRA sequence assembler
