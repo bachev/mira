@@ -1,0 +1,891 @@
+<?xml version="1.0" ?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.docbook.org/xml/4.5/docbookx.dtd">
+<chapter id="chap_seqtechdesc">
+  <chapterinfo>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="versionfile"/>
+    <author>
+      <firstname>Bastien</firstname>
+      <surname>Chevreux</surname>
+      <email>bach@chevreux.org</email>
+    </author>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="copyrightfile"/>
+  </chapterinfo>
+  <blockquote>
+    <attribution>Solomon Short</attribution>
+    <para>
+      <emphasis><quote>Opinions are like chili powder - best used in moderation.</quote></emphasis>
+    </para>
+  </blockquote>
+  <title>Description of sequencing technologies</title>
+  <sect1 id="sect_std_intro">
+    <title>
+      Introduction
+    </title>
+    <para>
+      <emphasis role="bold">Note:</emphasis> This section contains things I've
+      seen in the past and simply jotted down. These may be fundamentally
+      correct or correct only under circumstances or not correct at all with
+      your data. You may have different observations.
+    </para>
+    <para>
+      ...
+    </para>
+  </sect1>
+  <sect1 id="sect_std_sxa">
+    <title>
+      Illumina (formerly Solexa)
+    </title>
+    <sect2 id="sect_std_sxa_caveats_for_illumina">
+      <title>
+	Caveats for Illumina data
+      </title>
+      <note>
+	<para>
+	  Even if you can get bacteria sequenced with ridiculously high coverage
+	  like 500x or 1000x, this amount of data is simply not needed. Even
+	  more important - though counterintuitive - is the fact that due to
+	  non-random sequence dependent sequencing errors, a too high coverage
+	  may even make the assembly worse.
+	</para>
+	<para>
+	  Another rule of thumb: when having more than enough data, reduce the
+	  data set so as to have an average coverage of approximately 100x. In
+	  some rare cases (high GC content), perhaps 120x to 150x, but certainly
+	  not more.
+	</para>
+      </note>
+      <warning>
+	When reducing a data set, do <emphasis role="bold">NOT</emphasis>,
+	under no circumstances not, try fancy selection of reads by some
+	arbitrary quality or length criteria. This will introduce a terrible
+	bias in your assembly due to non-random sequence-dependent sequencing
+	errors and non-random sequence dependent base quality assignment. More
+	on this in the next section.
+      </warning>
+    </sect2>
+    <sect2 id="sect_std_sxa_highlights">
+      <title>
+	Illumina highlights
+      </title>
+      <sect3 id="sect_std_sxa_highlights_quality">
+	<title>
+	  Quality
+	</title>
+	<para>
+	  For current HiSeq 100bp reads I get - after MIRA clipping - about 90
+	  to 95% reads matching to a reference without a single error. MiSeq
+	  250bp reads contain a couple more errors, but nothing to be alarmed
+	  off.
+	</para>
+	<para>
+	  In short: Illumina is currently <emphasis>the</emphasis> technology
+	  to use if you want high quality reads.
+	</para>
+      </sect3>
+    </sect2>
+    <sect2 id="sect_std_std_sxa_lowlights">
+      <title>
+	Lowlights
+      </title>
+      <sect3 id="sect_std_sxa_lowlights_longhomopolymers">
+	<title>
+	  Long homopolymers
+	</title>
+	<para>
+	  Long homopolymers (stretches of identical bases in reads) can be a
+	  slight problem for Solexa. However, it must be noted that this is a
+	  problem of all sequencing technologies on the market so far (Sanger,
+	  Solexa, 454). Furthermore, the problem in much less pronounced in
+	  Solexa than in 454 data: in Solexa, first problem appear may appear
+	  in stretches of 9 to 10 bases, in Ion Torrent a stretch of 3 to 4
+	  bases may already start being problematic in some cases.
+	</para>
+      </sect3>
+      <sect3 id="sect_std_sxa_lowlights_GGCxG_motif">
+	<title>
+	  The GGCxG and GGC motifs
+	</title>
+	<para>
+	  <literal>GGCxG</literal> or even <literal>GGC</literal> motif in the
+	  5' to 3' direction of reads. This one is particularly annoying and
+	  it took me quite a while to circumvent in MIRA the problems it
+	  causes.
+	</para>
+	<para>
+	  Simply put: at some places in a genome, base calling after a
+	  <literal>GGCxG</literal> or <literal>GGC</literal> motif is
+	  particularly error prone, the number of reads without errors
+	  declines markedly. Repeated <literal>GGC</literal> motifs worsen
+	  the situation. The following screen shots of a mapping assembly
+	  illustrate this.
+	</para>
+	<para>
+	  The first example is a the <literal>GGCxG</literal> motif (in form
+	  of a <literal>GGCTG</literal>) occurring in approximately one third
+	  of the reads at the shown position. Note that all but one read
+	  with this problem are in the same (plus) direction.
+	</para>
+	<figure id="sxa_unsc_ggcxg2_lenski.png">
+	  <title>
+	    The Solexa GGCxG problem.
+	  </title>
+	  <mediaobject>
+	    <imageobject>
+	      <imagedata fileref="bookfigures/sxa_unsc_ggcxg2_lenski.png" width="90%"/>
+	    </imageobject>
+	  </mediaobject>
+	</figure>
+	<para>
+	  The next two screen shots show the <literal>GGC</literal>, once for
+	  forward direction and one with reverse direction reads:
+	</para>
+	<figure id="sxa_unsc_ggc1_lenski.png">
+	  <title>
+	    The Solexa GGC problem, forward example
+	  </title>
+	  <mediaobject>
+	    <imageobject>
+	      <imagedata fileref="bookfigures/sxa_unsc_ggc1_lenski.png" width="90%"/>
+	    </imageobject>
+	  </mediaobject>
+	</figure>
+	<figure id="sxa_unsc_ggc4_lenski.png">
+	  <title>
+	    The Solexa GGC problem, reverse example
+	  </title>
+	  <mediaobject>
+	    <imageobject>
+	      <imagedata fileref="bookfigures/sxa_unsc_ggc4_lenski.png" width="90%"/>
+	    </imageobject>
+	  </mediaobject>
+	</figure>
+	<para>
+	  Places in the genome that have <literal>GGCGGC.....GCCGCC</literal>
+	  (a motif, perhaps even repeated, then some bases and then an
+	  inverted motif) almost always have very, very low number of good
+	  reads. Especially when the motif is <literal>GGCxG</literal>.
+	</para>
+	<para>
+	  Things get especially difficult when these motifs occur at sites
+	  where users may have a genuine interest. The following example is a
+	  screen shot from the Lenski data (see walk-through below) where a
+	  simple mapping reveals an anomaly which -- in reality -- is an IS
+	  insertion (see <ulink
+	  url="http://www.nature.com/nature/journal/v461/n7268/fig_tab/nature08480_F1.html"/>)
+	  but could also look like a <literal>GGCxG</literal> motif in forward
+	  direction (<literal>GGCCG</literal>) and at the same time a
+	  <literal>GGC</literal> motif in reverse direction:
+	</para>
+	<figure id="sxa_xmastree_lenski2.png">
+	  <title>
+	    A genuine place of interest almost masked by the
+	    <literal>GGCxG</literal> problem.
+	  </title>
+	  <mediaobject>
+	    <imageobject>
+	      <imagedata fileref="bookfigures/sxa_xmastree_lenski2.png" width="90%"/>
+	    </imageobject>
+	  </mediaobject>
+	</figure>
+      </sect3>
+      <sect3 id="sect_std_sxa_lowlights_chimericreads">
+	<title>
+	  Chimeric reads
+	</title>
+	<para>
+	  I did not realise chimeric reads were a problem with Illumina data
+	  until Fall 2014 when I got reads &gt; 100bp for extremely well
+	  charactersided bacteria ... and because MIRA since ever used data
+	  cleaning methods which worked very well on either short reads &le;
+	  100bp or when chimeras occurred at a very low frequency.
+	</para>
+	<para>
+	  Chimeras are are artefacts reads from library preparation which
+	  contain parts of the sequence of interest which do not belong
+	  together. E.g., in DNA from a bacterial genome, there may be one
+	  read of 100 bp where the first 40 bp come from the genome position
+	  at 100kb and the last 60 bp come from a position at 1300kb ... more
+	  than one megabase apart.
+	</para>
+	<para>
+	  There is not much literature regarding chimeric sequences in
+	  Illumina data: most of it deals with 16S or amplicon sequencing
+	  where I always thought <emphasis>"that does not apply to my data
+	  sets."</emphasis> Well, tough luck ... it does. After some searching I
+	  found some papers which report quite varying levels depending on the
+	  protocols used.  Oyola et al. report between 0.24% and 2.3% of
+	  chimeras (<emphasis>Optimizing illumina next-generation sequencing
+	  library preparation for extremely at-biased genomes</emphasis>; BMC
+	  Genomics 2012, 13:1; doi:10.1186/1471-2164-13-1; <ulink
+	  url="http://www.biomedcentral.com/1471-2164/13/1"/>). Apparently, a
+	  paper from researchers at the Sanger Centre reported up to 5%
+	  chimeric reads (Bronner et al., <emphasis>Improved Protocols for
+	  Illumina Sequencing</emphasis>; Current Protocols in Human Genetics
+	  18:18.2:18.2.1–18.2.42; DOI: 10.1002/0471142905.hg1802s80; <ulink
+	  url="http://onlinelibrary.wiley.com/doi/10.1002/0471142905.hg1802s80/abstract"/>
+	  via <ulink
+	  url="http://www.sagescience.com/blog/sanger-reports-improved-prep-protocols-for-illumina-sequencing/"/>).
+	</para>
+	<para>
+	  I have now seen MiSeq 250bp and 300bp paired-end genomic data sets
+	  from different (trusted) sequencing providers for very well
+	  characterised, non-complex and non-GC-extreme bacterial genomes with
+	  up to 3% chimeric reads. To make things worse, some chimeras were
+	  represented by both reads of a read-pair, so one had the exact same
+	  chimeric sequence represented twice: once in forward and once in
+	  reverse complement direction.
+	</para>
+	<para>
+	  It turned out that MIRA versions &le; 4.9.3 have problems in
+	  filtering chimeras in Illumina data sets with reads &gt; 100bp as
+	  the chimera detection algorithms were designed to handle amounts
+	  much less than 1% of the total reads. This led to shorter contigs in
+	  genomic assemblies and to chimeric transcripts (when they are very
+	  low-coverage) in RNA assemblies.
+	</para>
+	<para>
+	  Note that projects using reads &le; 100 bp assembled fine with MIRA
+	  4.9.3 and before as the default algorithms for proposed-end-clip
+	  (<arg>-CL:pec</arg>) implicitly caught chimeras occurring near the
+	  read ends and the remaining chimeras were caught by the algorithms
+	  for low level chimeras.
+	</para>
+	<warning>
+	  MIRA 4.9.4 and higher eliminate all chimeras in Illumina reads of
+	  any length, you do not need to take any precautionary steps
+	  here. But if you use other assemblers and in light of the above, I
+	  highly recommend to apply very stringent filters to Illumina data.
+	  Especially for applications like metagenomics or RNA de-novo
+	  assembly where low coverage may be expected for parts of the
+	  results! Indeed, I now treat any assembly result with consensus data
+	  generated from a coverage of less than 3 Illumina reads as
+	  potentially junk data.
+	</warning>
+      </sect3>
+      <sect3 id="sect_std_sxa_lowlights_samplemix">
+	<title>
+	  Sample barcode misidentification
+	</title>
+	<para>
+	  Long story short: data from multiplexed samples contains "low"
+	  amounts of foreign samples from the same lane. Probably not a
+	  problem for high coverage assemblies, but can become a problem in
+	  multiplexed RNASeq or projects looking for "rare" variants.
+	</para>
+	<para>
+	  In essence, the barcoding used for multiplexing several samples into
+	  a single lane is not a 100% foolproof process. I found one paper
+	  quantifying this effect to 0.3% of misidentified reads: Kircher et
+	  al., <emphasis>Double indexing overcomes inaccuracies in multiplex
+	  sequencing on the Illumina platform</emphasis>; Nucleic Acids
+	  Res. Jan 2012; 40(1): e3. <ulink
+	  url="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3245947/"/>
+	</para>
+	<para>
+	  For example, I got some genome sequecing data for a bacterium where
+	  closer inspection of some small contigs coming out of the assembly
+	  process turned out to be highly expressed genes from a plant. The
+	  sequencing provider had multiplexed our bacterial sample with a
+	  RNASeq project of that plant.
+	</para>
+	<para>
+	  Another example involved RNASeq of two genomes where one of the
+	  organisms had been modified to contain additional genes under a
+	  strong promoter. In the data set we suddenly saw those inserted
+	  genes pop-up in the samples of the wild type organism. Which,
+	  clearly, could not be.
+	</para>
+      </sect3>
+      <sect3 id="sect_std_sxa_lowlights_nextera">
+	<title>
+	  Nextera library prep
+	</title>
+	<para>
+	  Opinions seem to be divided about Nextera: some people don't like it
+	  as it introduces sometimes terrible coverage bias in the data, other
+	  people say they're happy with the data.
+	</para>
+	<para>
+	  Someone told me (or wrote, I do not remember) that this divide may
+	  be due to the fact that some people use their sequencing data for
+	  de-novo assemblies, while others just do mappings and hunt for
+	  SNPs. In fact, this would explain a lot: for de-novo assemblies, I
+	  would never use Nextera. When on a hunt for SNPs, they may be OK.
+	</para>
+      </sect3>
+      <sect3 id="sect_std_sxa_lowlights_gcbias">
+	<title>
+	  Strong GC bias in some Solexa data (2nd half 2009 until advent of TruSeq kit at end of 2010)
+	</title>
+	<para>
+	  I'm recycling a few slides from a couple of talks I held in 2010.
+	</para>
+	<para>
+	  Things used to be so nice and easy with the early Solexa data I worked
+	  with (36 and 44mers) in late 2007 / early 2008. When sample taking was
+	  done right -- e.g. for bacteria: in stationary phase -- and the
+	  sequencing lab did a good job, the read coverage of the genome was
+	  almost even. I did see a few papers claiming to see non-trivial GC
+	  bias back then, but after having analysed the data I worked with I
+	  dismissed them as "not relevant for my use cases." Have a look at the
+	  following figure showing exemplarily the coverage of a 45% GC
+	  bacterium in 2008:
+	</para>
+	<figure id="sxa_gcbias_nobias2008.png">
+	  <titleabbrev>
+	    Example for no GC coverage bias in 2008 Solexa data.
+	  </titleabbrev>
+	  <title>
+	    Example for no GC coverage bias in 2008 Solexa data. Apart from a
+	    slight <emphasis>smile shape</emphasis> of the coverage --
+	    indicating the sample taking was not 100% in stationary phase of the
+	    bacterial culture -- everything looks pretty nice: the average
+	    coverage is at 27x, and when looking at potential genome
+	    duplications at twice the coverage (54x), there's nothing apart a
+	    single peak (which turned out to be a problem in a rRNA region).
+	  </title>
+	  <mediaobject>
+	    <imageobject>
+	      <imagedata fileref="bookfigures/sxa_gcbias_nobias2008.png" width="90%"/>
+	    </imageobject>
+	  </mediaobject>
+	</figure>
+	<para>
+	  Things changed starting sometime in Q3 2009, at least that's when I
+	  got some data which made me notice a problem. Have a look at the
+	  following figure which shows exactly the same organism as in the
+	  figure above (bacterium, 45% GC):
+	</para>
+	<figure id="sxa_gcbias_bias2009.png">
+	  <titleabbrev>
+	    Example for GC coverage bias starting Q3 2009 in Solexa data.
+	  </titleabbrev>
+	  <title>
+	    Example for GC coverage bias starting Q3 2009 in Solexa
+	    data. There's no <emphasis>smile shape</emphasis> anymore -- the
+	    people in the lab learned to pay attention to sample in 100%
+	    stationary phase -- but something else is extremely disconcerting:
+	    the average coverage is at 33x, and when looking at potential genome
+	    duplications at twice the coverage (66x), there are several dozen
+	    peaks crossing the 66x threshold over a several kilobases (in one
+	    case over 200 Kb) all over the genome. As if several small genome
+	    duplications happened.
+	  </title>
+	  <mediaobject>
+	    <imageobject>
+	      <imagedata fileref="bookfigures/sxa_gcbias_bias2009.png" width="90%"/>
+	    </imageobject>
+	  </mediaobject>
+	</figure>
+	<para>
+	  By the way, the figures above are just examples: I saw over a dozen
+	  sequencing projects in 2008 without GC bias and several dozen in 2009
+	  / 2010 with GC bias.
+	</para>
+	<para>
+	  Checking the potential genome duplication sites, they all looked
+	  "clean", i.e., the typical genome insertion markers are
+	  missing. Poking around at possible explanations, I looked at GC
+	  content of those parts in the genome ... and there was the
+	  explanation:
+	</para>
+	<figure id="sxa_gcbias_comp20082009.png">
+	  <titleabbrev>
+	    Example for GC coverage bias, direct comparison 2008 / 2010 data.
+	  </titleabbrev>
+	  <title>
+	    Example for GC coverage bias, direct comparison 2008 / 2010
+	    data. The bug has 45% average GC, areas with above average read
+	    coverage in 2010 data turn out to be lower GC: around 33 to 36%. The
+	    effect is also noticeable in the 2008 data, but barely so.
+	  </title>
+	  <mediaobject>
+	    <imageobject>
+	      <imagedata fileref="bookfigures/sxa_gcbias_comp20082009.png" width="90%"/>
+	    </imageobject>
+	  </mediaobject>
+	</figure>
+	<para>
+	  Now as to actually <emphasis>why</emphasis> the GC bias suddenly
+	  became so strong is unknown to me. The people in the lab use the same
+	  protocol since several years to extract the DNA and the sequencing
+	  providers claim to always use the Illumina standard protocols.
+	</para>
+	<para>
+	  But obviously something must have changed.
+	</para>
+	<para>
+	  It took Illumina some 18 months to resolve that problem for the
+	  broader public: since data I work on were done with the TruSeq kit,
+	  this problem has vanished.
+	</para>
+	<para>
+	  However, if you based some conclusions or wrote a paper with Illumina
+	  data which might be affected by the GC bias (Q3 2009 to Q4 2010), I
+	  suggest you rethink all the conclusion drawn. This should be
+	  especially the case for transcriptomics experiments where a difference
+	  in expression of 2x to 3x starts to get highly significant!
+	</para>
+      </sect3>
+    </sect2>
+  </sect1>
+  <sect1 id="sect_std_iontor">
+    <title>
+      Ion Torrent
+    </title>
+    <para>
+      As of January 2014, I would say Ion Torrent reads behave very much like
+      late data from the 454 technology (FLX / Titanium chemistry): reads are
+      on average are &gt; 300bp and the homopolymer problem is much less
+      pronounced than 2 years ago. The following figure shows what you can get
+      out of 100bp reads if you're lucky:
+    </para>
+    <figure id="chap_iontor::ion_dh10bgoodB13.png">
+      <title>
+	Example for good IonTorrent data (100bp reads). Note that only a
+	single sequencing error - shown by blue background - can be
+	seen. Except this, all homopolymers of size 3 and 4 in the area
+	shown are good.
+      </title>
+      <titleabbrev>
+	Example for good IonTorrent data (100bp reads)
+      </titleabbrev>
+      <mediaobject>
+	<imageobject>
+	  <imagedata fileref="bookfigures/ion_dh10bgoodB13.png" width="90%"/>
+	</imageobject>
+      </mediaobject>
+    </figure>
+    <para>
+      The "if you're lucky" part in the preceding sentence is not there by
+      accident: having so many clean reads is more of an exception rather a
+      rule. On the other hand, most sequencing errors in current IonTorrent
+      data are unproblematic ... if it were not for indels, which is going to
+      be explained on the next sections.
+    </para>
+    <sect2 id="sect_std_iontor_hpindels">
+      <title>
+	Homopolymer insertions / deletions
+      </title>
+      <para>
+	The main source of error in your data will be insertions / deletions
+	(indels) especially in homopolymer regions (but not only there, see
+	also next section). Starting with a base run of 4 to 6 bases, there
+	is a distinct tendency to have an increased occurrence of indel
+	errors.
+      </para>
+      <figure id="chap_iontor::iontor_indelhpexample.png">
+	<title>
+	  Example for problematic IonTorrent data (100bp reads).
+	</title>
+	<titleabbrev>
+	  Example for problematic IonTorrent data (100bp reads)
+	</titleabbrev>
+	<mediaobject>
+	  <imageobject>
+	    <imagedata fileref="bookfigures/iontor_indelhpexample.png" width="90%"/>
+	  </imageobject>
+	</mediaobject>
+      </figure>
+    </sect2>
+    <para>
+      The above figure contains a couple of particularly nasty indel
+      problems. While areas 2 (C-homopolymer length 3), 5 (A-homopolymer
+      length 4) and 6 (T-homopolymer length 3) are not a big problem as most
+      of the reads got the length right, the areas 1, 3 and 4 are nasty.
+    </para>
+    <para>
+      Area 1 is an A-homopolymer of length 7 and while many reads get that
+      length right (enough to tell MIRA what the true length is), it also
+      contains reads with a length of 6 and and others with a length of 8.
+    </para>
+    <para>
+      Area 2 is a "A-homopolymer" of length 2 where approximately half of the
+      reads get the length right, the other half not. See also the following
+      section.
+    </para>
+    <para>
+      Area 4 is a T-homopolymer of length 5 which also has approximately half
+      the reads with a wrong length of 4.
+    </para>
+    <sect2 id="sect_std_iontor_seqdirdepindels">
+      <title>
+	Sequencing direction dependent insertions / deletions
+      </title>
+      <para>
+	In the previous section, the screen shot showing indels had an indel
+	at a homopolymer of 2, which is something quite curious. Upon closer
+	investigation, one might notice a pattern in the gap/nogap
+	distribution: it is almost identical to the orientation of build
+	direction of reads!
+      </para>
+      <para>
+	I looked for other examples of this behaviour and found quite a
+	number of them, the following figure shows a very clear case of that
+	error behaviour:
+      </para>
+      <figure id="chap_iontor::ion_dh10bdirdepindel.png.png">
+	<title>
+	  Example for a sequencing direction dependent indel. Note how all
+	  but one of the reads in '+' direction miss a base while all reads
+	  built in in '-' direction have the correct number of bases.
+	</title>
+	<titleabbrev>
+	  Example for a sequencing direction dependent indel
+	</titleabbrev>
+	<mediaobject>
+	  <imageobject>
+	    <imagedata fileref="bookfigures/ion_dh10bdirdepindel.png" width="90%"/>
+	  </imageobject>
+	</mediaobject>
+      </figure>
+      <para>
+	This is quite astonishing: the problem occurs at a site without real
+	homopolymer (calling a 2-bases run a 'homopolymer' starts stretching
+	the definition a bit) and there are no major problematic homopolymer
+	sites near. In fact, this was more or less the case for all sites I
+	had a look at.
+      </para>
+      <para>
+	Neither did the cases which were investigated show common base
+	patterns, so unlike the Solexa GGCxG motif it does not look like
+	that error of IonTorrent is bound to a particular motif.
+      </para>
+      <para>
+	While I cannot prove the following statement, I somehow suspect that
+	there must be some kind of secondary structure forming which leads to
+	that kind of sequencing error. If anyone has a good explanation I'd be
+	happy to hear it: feel free to contact me at
+	<email>bach@chevreux.org</email>.
+      </para>
+    </sect2>
+    <sect2 id="sect_std_iontor_covvariance">
+      <title>
+	Coverage variance
+      </title>
+      <para>
+	The coverage variance with the old ~100bp reads was a bit on the
+	bad side for low coverage projects (10x to 15x): it varied wildly,
+	sometimes dropping to nearly zero, sometimes reaching approximately
+	double the coverage.
+      </para>
+      <para>
+	This has now improved and I have not seen pronounced coverage variance
+	in the data sets I have worked on.
+      </para>
+    </sect2>
+    <sect2 id="sect_std_iontor_gcbias">
+      <title>
+	GC bias
+      </title>
+      <para>
+	The GC bias seems to be small to non-existent, at least I could not
+	immediately make a correlation between GC content and coverage.
+      </para>
+    </sect2>
+    <sect2 id="sect_std_iontor_other_sources_of_error">
+      <title>
+	Other sources of error
+      </title>
+      <para>
+	You will want to keep an eye on the clipping of the data in the SFF
+	files from IonTorrent: while it is generally good enough, some data
+	sets of IonTorrent show that - for some error patterns - the clipping
+	is too lax and strange artefacts appear. MIRA will take care of these
+	- or at least of those it knows - but you should be aware of this
+	potential problem.
+      </para>
+    </sect2>
+    <sect2 id="sect_std_iontor_where_to_find_further_information">
+      <title>
+	Where to find further information
+      </title>
+      <para>
+	IonTorrent being pretty new, getting as much information on that
+	technology is quite important. So here are a couple of links I found
+	to be helpful:
+      </para>
+      <itemizedlist>
+	<listitem>
+	  <para>
+	    There is, of course, the TorrentDev site (<ulink
+	    url="http://lifetech-it.hosted.jivesoftware.com/community/torrent_dev"/>)
+	    at Life Technologies which will be helpful to get a couple of
+	    questions answered.
+	  </para>
+	  <para>
+	    Just be aware that some of the documents over there are sometimes
+	    painting an - how should I say it diplomatically? - overly
+	    optimistic view on the performance of the technology. On the
+	    other hand, so do documents released by the main competitors
+	    like 454/Roche, Illumina, PacBio etc. ... so no harm done there.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    I found Nick Loman's blog <ulink
+	    url="http://pathogenomics.bham.ac.uk/blog/">Pathogens: Genes and
+	    Genomes</ulink> to be my currently most valuable source of
+	    information on IonTorrent. While the group he works for won a
+	    sequencer from IonTorrent, he makes that fact very clear and still
+	    unsparingly dissects the data he gets from that machine.
+	  </para>
+	  <para>
+	    His posts got me going in getting MIRA grok IonTorrent.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    The blog of Lex Nederbragt <ulink
+	    url="http://flxlexblog.wordpress.com/">In between lines of
+	    code</ulink> is playing in the same league: very down to earth and
+	    he knows a bluff when he sees it ... and is not afraid to call it
+	    (be it from IonTorrent, PacBio or 454).
+	  </para>
+	  <para>
+	    The analysis he did on a couple of Ion data sets have saved me
+	    quite some time.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    Last, but not least, the board with <ulink
+	    url="http://seqanswers.com/forums/forumdisplay.php?f=40">IonTorrent-related-stuff</ulink>
+	    over at <ulink url="http://seqanswers.com/">SeqAnswers</ulink>,
+	    the first and foremost one-stop-shop ... erm ... discussion board
+	    for everything related to sequencing nowadays.
+	  </para>
+	</listitem>
+      </itemizedlist>
+    </sect2>
+  </sect1>
+  <sect1 id="sect_std_pacbio">
+    <title>
+      Pacific BioSciences
+    </title>
+    <para>
+      As of January 2014, PacBio should be seen as <emphasis>the</emphasis>
+      technology to go to for de-novo sequencing of bacteria and lower
+      eukaryotes. Period. Complement it with a bit of Illumina to get rid of
+      the last remaining errors and you'll have - for a couple of thousand
+      Euros - the best genome sequences money can buy.
+    </para>
+    <sect2 id="sect_std_pb_highlights">
+      <title>
+	Highlights
+      </title>
+      <sect3 id="sect_std_pb_hl_length">
+	<title>
+	  Sequence lengths
+	</title>
+	<para>
+	  Just one word: huge. At least compared to other currently existing
+	  technologies. It is not unusual to get average - usable - read lengths
+	  of more than 3 to 4 kb, some chemistries doubling that number (at
+	  the expense of accuracy). The largest - usable - reads I have seen
+	  were &gt; 25kb, though one needs to keep in mind that these are
+	  quite rare and one does not see many of them in a project.
+	</para>
+      </sect3>
+      <sect3 id="sect_std_pb_hl_gcbias">
+	<title>
+	  GC bias
+	</title>
+	<para>
+	  I have seen none in my projects so far, neither have I in public
+	  data. But these were certainly not as many projects as Sanger, 454,
+	  Illumina and Ion, so take this with a grain of salt.
+	</para>
+      </sect3>
+      <sect3 id="sect_std_pb_hl_acccorrected">
+	<title>
+	  Accuracy of corrected reads
+	</title>
+	<para>
+	  Once the raw PacBio data has been corrected (HGAP pipeline), the
+	  resulting reads have a pretty good accuracy. There still are
+	  occasional homopolymer errors remaining at non-random locations, but
+	  they are a minor problem.
+	</para>
+      </sect3>
+      <sect3 id="sect_std_pb_hl_qualassemblies">
+	<title>
+	  Assemblies of corrected reads
+	</title>
+	<para>
+	  The assemblies coming out of the HGAP pipeline are already
+	  astoundingly good. Of course you get long contigs, but also the
+	  number of miscalled consensus bases is not too bad: 1 error per 20
+	  kb. Once the program
+	  <command>Quiver</command> went through the assembly to do its magic
+	  in polishing, the quality improves further to into the range of 1
+	  error per 50kb to 1 error per 250kb.
+	</para>
+	<para>
+	  In my hands, I get even better assemblies with MIRA (longer contigs
+	  which span repeats unresolved by HGAP). When combining this with
+	  some low coverage Illumina data (say, 50x) to do cheap polishing,
+	  the error rates I get are lower than 1 error in 4 megabases.
+	</para>
+	<note>
+	  Take the above with a grain of salt as at the time of this writing,
+	  I analysed in-depth only on a couple of bacteria. For ploidal
+	  organisms I have just played a bit around with public data without
+	  really doing an in depth analysis there.
+	</note>
+      </sect3>
+    </sect2>
+    <sect2 id="sect_std_pb_lowlights">
+      <title>
+	Lowlights
+      </title>
+      <sect3 id="sect_std_pb_ll_namingconfusion">
+	<title>
+	  Naming confusion
+	</title>
+	<para>
+	  With PacBio, there are quite a number of read types being thrown
+	  around and which do confuse people: <emphasis>polymerase
+	  reads</emphasis>, <emphasis>quality clipped
+	  reads</emphasis>, <emphasis>subreads</emphasis>, <emphasis>corrected
+	  reads</emphasis> and maybe some more I currently forgot. Here's the
+	  total unofficial guide on how to keep those things apart:
+	</para>
+	<itemizedlist>
+	  <listitem>
+	    <para>
+	      <emphasis role="bold">polymerase reads</emphasis> are the rawest
+	      and most unedited stuff you may come into contact. You can see
+	      it as "data fresh from the machine" and the number of megabases
+	      there is usually the one sequencing providers sell to you.
+	    </para>
+	    <para>
+	      The sequencing technology PacBio employs uses special hairpin
+	      adaptors they have named SMRTBell, and these adaptors will be
+	      present in the polymerase reads together with the fragments of
+	      your DNA.
+	    </para>
+	    <para>
+	      In terms of regular expression look-alike, the data in
+	      polymerase reads has the following form:
+	    </para>
+	    <screen>(Adaptor + (forward fragment sequence + (Adaptor + (fragment sequence in reverse complement))))*</screen>
+	    <para>
+	      E.g., some of your <emphasis>polymerase reads</emphasis> will
+	      contain just the adaptor and (part of) a fragment sequence:
+	      Adap+FwdSeq. Others might contain: Adap+FwdSeq+Adap+RevSeq. And
+	      still others might contain: multiple copies of
+	      Adap+FwdSeq+Adap+RevSeq.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <emphasis role="bold">quality clipped reads</emphasis> are
+	    simply <emphasis>polymerase reads</emphasis> where some sort of
+	    first quality clipping has been done.
+	  </listitem>
+	  <listitem>
+	    <emphasis role="bold">subreads</emphasis> are <emphasis>quality
+	    clipped reads</emphasis> where the adaptors have been removed and
+	    the read split into forward fragment sequences and reverse
+	    fragment sequences. Hence, one quality clipped polymerase read can
+	    yield several subreads.
+	  </listitem>
+	  <listitem>
+	    <para>
+	      <emphasis role="bold">corrected (sub)reads</emphasis> are
+	      subreads where through the magic of lots of computational power
+	      and a very high coverage of subreads, the errors have been
+	      almost completely removed from the subreads.
+	    </para>
+	    <para>
+	      This is usually done only on a part of the subreads as it takes
+	      already long enough (several hundred hours CPU for a simple
+	      bacterium).
+	    </para>
+	  </listitem>
+	</itemizedlist>
+      </sect3>
+      <sect3 id="sect_std_pb_ll_revseq">
+	<title>
+	  Forward / reverse chimeric sequences
+	</title>
+	<para>
+	  The splitting of polymerase reads into subreads (see above) needs
+	  the SMRTBell adaptor to be recognised by motif searching
+	  programs. Unfortunately, it looks like as if some "low percentage"
+	  of reads have a self-looped end instead of an adaptor. Which in turn
+	  means that the subread splitting will not split those reads and you
+	  end up with a chimeric sequence.
+	</para>
+      </sect3>
+      <sect3 id="sect_std_pb_ll_rawreadaccuracy">
+	<title>
+	  Accuracy of uncorrected subreads
+	</title>
+	<para>
+	  You need to be brave now: the accuracy of the the unclipped
+	  polymerase reads is usually only about 50%. That is: on average
+	  every second base is wrong. And I have seen a project where this
+	  accuracy was only 14% (6 out of 7 bases are wrong).
+	</para>
+	<para>
+	  After clipping, the average accuracy of the polymerase reads should
+	  be anywhere between 80% and 85% (this depends a little bit on the
+	  chemistry used), which translates to: every 5th to every 7th base is
+	  wrong. The vast majority of errors being insertions or deletions, not
+	  base substitutions.
+	</para>
+	<para>
+	  80% to 85% accurracy with indels as primary error is unfortunately
+	  something assemblers cannot use very well. Read: not at all if you
+	  want good assemblies (at least I know no program which does
+	  that). Therefore, one needs to apply some sort of correction
+	  ... which needs quite a deal of CPU, see below.
+	</para>
+      </sect3>
+      <sect3 id="sect_std_pb_ll_cpu">
+	<title>
+	  Immense need for CPU power
+	</title>
+	<para>
+	  The above mentioned accuracies of 80% to 85% are too low for any
+	  existing assembler I know to be correctly assembled. Therefore,
+	  people came up with the idea of doing error correction on subreads
+	  to improve their quality.
+	</para>
+	<para>
+	  There are two major approaches: 1) correcting PacBio subreads with
+	  other technologies with shorter reads and 2) correcting long PacBio
+	  subreads with shorter PacBio subreads. Both approaches have been
+	  shown to work, though there seems to be a preference nowadays to use
+	  the second option as the "shorter" PacBio reads provide the benefit
+	  of being still longer than read from other technologies and hence
+	  provide a better repeat resolution.
+	</para>
+	<para>
+	  Anyway, the amount of CPU power needed for any method above is
+	  something to keep for: bacteria with 3 to 5 megabases at a 100x
+	  polymerase read coverage can take several hundred hours of CPU for
+	  the correction step.
+	</para>
+      </sect3>
+      <sect3 id="sect_std_pb_ll_dnaprep">
+	<title>
+	  Increased quality requirements for clean DNA sample prep
+	</title>
+	<para>
+	  This is a problem which cannot be really attributed to PacBio: one
+	  absolutely needs to check whether the protocols used "since ever"
+	  for DNA extraction yield results which are clean and long enough for
+	  PacBio. Often they are not.
+	</para>
+	<para>
+	  The reason for this being a problem is simple: PacBio can sequence
+	  really long fragments, but if your DNA extraction protocol smashed
+	  the DNA into small pieces, then no sequencing technology in this
+	  universe will be able to give you long reads for small fragments.
+	</para>
+      </sect3>
+    </sect2>
+  </sect1>
+</chapter>

@@ -1,0 +1,45 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE></TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.0-pre  (Linux)">
+	<META NAME="CREATED" CONTENT="20050724;23300600">
+	<META NAME="CHANGED" CONTENT="20050725;73200">
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1>Backbone assembly in MIRA</H1>
+<P>This document gives a short introduction into the possibilities of
+backbone assemblies and how to use them most effectively.</P>
+<P STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4>What
+are backbones?</FONT></FONT></P>
+<P>Backbones in the terminology of MIRA are sequences to which
+shotgun sequences are assembled to.</P>
+<P STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4>What
+sequences can be used as backbones?</FONT></FONT></P>
+<P STYLE="margin-bottom: 0cm">Any valid DNA/RNA sequence in CAF,
+FASTA, EXP or Genbank (gbk, gbf) format can be used. In genome
+assembly backbone sequences can be, for examples, partly finished
+results of previous assemblies or even completed genomes of a closely
+related strain or species. In EST assembly, validated full length
+cDNA sequences are often used as backbones. Note that when using CAF
+files, the structure of the backbones is kept, i.e., contigs in the
+CAF file remain contigs and do include all the read sequences that
+they are consisting of (single reads remain, of course, single
+reads).</P>
+<P STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=4>What
+ancillary information is loaded together with backbone sequences?</FONT></FONT></P>
+<P>Basically, everything which is present in the file type of the
+backbone sequences is loaded:</P>
+<UL>
+	<LI><P>for FASTA, this is of course, only the sequence itself.</P>
+	<LI><P>for Genbank, this is the sequence and additionally, all
+	features of the sequence (genes, CDSs, RNAs etc.) are translated
+	into Staden package and MIRA compatible tags.</P>
+	<LI><P>for EXP, everything is imported (sequence, quality values,
+	clippings</P>
+</UL>
+<P>Please note that no computational operation like clipping etc. is
+applied to loaded backbone sequences, they are used as is.</P>
+</BODY>
+</HTML>

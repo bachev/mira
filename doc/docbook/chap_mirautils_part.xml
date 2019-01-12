@@ -1,0 +1,1203 @@
+<?xml version="1.0" ?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.docbook.org/xml/4.5/docbookx.dtd">
+
+<chapter id="chap_mutils">
+  <chapterinfo>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="versionfile"/>
+    <author>
+      <firstname>Bastien</firstname>
+      <surname>Chevreux</surname>
+      <email>bach@chevreux.org</email>
+    </author>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="copyrightfile"/>
+  </chapterinfo>
+  <blockquote>
+    <attribution>Solomon Short</attribution>
+    <para>
+      <emphasis><quote>Ninety percent of success is just growing up.
+      </quote></emphasis>
+    </para>
+  </blockquote>
+  <title>Utilities in the MIRA package</title>
+  <sect1 id="sect_mutils_convpro">
+    <title>miraconvert</title>
+    <sect2 id="sect_mutils_cp_synopsis">
+      <title>
+	Synopsis
+      </title>
+      <cmdsynopsis>
+	<command>miraconvert</command>
+	<arg>options</arg>
+	<arg choice="req"><replaceable>input_file</replaceable></arg>
+	<arg choice="req"><replaceable>output_basename</replaceable></arg>
+      </cmdsynopsis>
+    </sect2>
+
+    <sect2 id="sect_mutils_cp_description">
+      <title>Description</title>
+      <para>
+	<command>miraconvert</command> is a tool to convert, extract and
+	sometimes recalculate all kinds of data related to sequence assembly
+	files.
+      </para>
+      <para>
+	More specifically, <command>miraconvert</command> can
+	<orderedlist>
+	  <listitem>
+	    <para>
+	      convert from multiple alignment files (CAF, MAF) to other multiple
+	      alignment files (CAF, MAF, ACE, SAM), and -- if wished -- selecting
+	      contigs by different criteria like name, length, coverage etc.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      extract the consensus from multiple alignments in CAF and MAF format,
+	      writing it to any supported output format (FASTA, FASTQ, plain text,
+	      HTML, etc.) and -- if wished -- recalculating the consensus using
+	      the MIRA consensus engine with MIRA parameters
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      extract read sequences (clipped or unclipped) from multiple
+	      alignments and save to any supported format
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      Much more, need to document this.
+	    </para>
+	  </listitem>
+	</orderedlist>
+      </para>
+      <para>&hellip;</para>
+    </sect2>
+
+    <sect2 id="sect_mutils_cp_options">
+      <title>Options</title>
+      <para>&hellip;</para>
+      <sect3 id="sect_mutils_cp_options_general">
+	<title>General options</title>
+	<variablelist>
+	  <!-- Use the variablelist.term.separator and the
+	       variablelist.term.break.after parameters to
+	       control the term elements. -->
+	  <varlistentry>
+	    <term>
+	      <option>-f
+	      <replaceable class="parameter">
+		<group choice="req">
+		  <arg choice="plain"><option>caf</option></arg>
+		  <arg choice="plain"><option>maf</option></arg>
+		  <arg choice="plain"><option>fasta</option></arg>
+		  <arg choice="plain"><option>fastq</option></arg>
+		  <arg choice="plain"><option>gbf</option></arg>
+		  <arg choice="plain"><option>phd</option></arg>
+		  <arg choice="plain"><option>fofnexp</option></arg>
+		</group>
+	      </replaceable>
+	      </option>
+	    </term>
+	    <listitem>
+	      <para>
+		<quote>From-type</quote>, the format of the input file. CAF and MAF
+		files can contain full assemblies and/or unassembled (single)
+		sequences while the other formats contain only unassembled
+		sequences.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term>
+	      <option>-t
+	      <replaceable class="parameter">
+		<group choice="req">
+		  <arg choice="plain"><option>ace</option></arg>
+		  <arg choice="plain"><option>asnp</option></arg>
+		  <arg choice="plain"><option>caf</option></arg>
+		  <arg choice="plain"><option>crlist</option></arg>
+		  <arg choice="plain"><option>cstats</option></arg>
+		  <arg choice="plain"><option>exp</option></arg>
+		  <arg choice="plain"><option>fasta</option></arg>
+		  <arg choice="plain"><option>fastq</option></arg>
+		  <arg choice="plain"><option>fcov</option></arg>
+		  <arg choice="plain"><option>gbf</option></arg>
+		  <arg choice="plain"><option>gff3</option></arg>
+		  <arg choice="plain"><option>hsnp</option></arg>
+		  <arg choice="plain"><option>html</option></arg>
+		  <arg choice="plain"><option>maf</option></arg>
+		  <arg choice="plain"><option>phd</option></arg>
+		  <arg choice="plain"><option>sam</option></arg>
+		  <arg choice="plain"><option>samnbb</option></arg>
+		  <arg choice="plain"><option>text</option></arg>
+		  <arg choice="plain"><option>tcs</option></arg>
+		  <arg choice="plain"><option>wig</option></arg>
+		</group>
+	      </replaceable>
+	      </option>
+	      <option>[ -t &hellip; ]</option>
+	    </term>
+	    <listitem>
+	      <para>
+		<quote>To-type</quote>, the format of the output file. Multiple
+		mentions of <arg>-t</arg> are allowed, in which case
+		<command>miraconvert</command> will convert to multiple types.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term><option>-a</option></term>
+	    <listitem>
+	      <para>
+		Append. Results of conversion are appended to existing files instead of overwriting them.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term><option>-A</option></term>
+	    <listitem>
+	      <para>
+		Do not adjust sequence case.
+	      </para>
+	      <para>
+		When reading formats which define clipping points (like CAF,
+		MAF or EXP), and saving to formats which do not have clipping
+		information, miraconvert normally adjusts the case of read
+		sequences: lower case for clipped parts, upper case for
+		unclipped parts of reads.  Use -A if you do not want this. See
+		also -C.
+	      </para>
+	      <note>
+		Applies only to files/formats which do not contain contigs.
+	      </note>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term><option>-b</option></term>
+	    <listitem>
+	      <para>
+		Blind data. Replace all bases in all reads / contigs with a 'c'.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term><option>-C</option></term>
+	    <listitem>
+	      <para>
+		Hard clip reads. When the input is a format which contains clipping
+		points in sequences and the requested output consists of sequences
+		of reads, only the unclipped parts of sequences will be saved as
+		results.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term><option>-d</option></term>
+	    <listitem>
+	      <para>
+		Delete gap only columns. When output is contigs: delete
+		columns that are entirely gaps (can occur after having deleted
+		reads during editing in gap4, consed or other). When output is
+		reads: delete gaps in reads.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term><option>-F</option></term>
+	    <listitem>
+	      <para>
+		Filter read groups to different files. Works only for input
+		files containing readgroups, i.e., CAF or MAF. 3 (or 4) files
+		are generated: one or two for paired, one for unpaired and one
+		for debris reads. Reads in paired file are interlaced by
+		default, use -F twice to create separate files.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term><option>-m</option></term>
+	    <listitem>
+	      <para>
+		Make contigs. Encase single reads as contig singlets into a CAF/MAF
+		file.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term><option>-n <replaceable class="file">namefile</replaceable></option></term>
+	    <listitem>
+	      <para>
+		Name select. Only contigs or reads are selected for output which
+		name appears in
+		<filename>namefile</filename>. <filename>namefile</filename> is a
+		simple text file having one name entry per line.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term><option>-i</option></term>
+	    <listitem>
+	      <para>
+		When -n is used, inverts the selection.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term><option>-o <replaceable>offset</replaceable></option></term>
+	    <listitem>
+	      <para>
+		Offset of quality values in FASTQ files. Only valid if -f is FASTQ.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term><option>-P <replaceable class="parameter">MIRA-PARAMETERSTRING</replaceable></option></term>
+	    <listitem>
+	      <para>
+		Additional MIRA parameters. Allows to initialise the underlying MIRA
+		routines with specific parameters. A use case can be, e.g., to
+		recalculate a consensus of an assembly in a slightly different way
+		(see also <arg>-r</arg>) than the one which is stored in assembly
+		files. Example: to tell the consensus algorithm to use a minimum
+		number of reads per group for 454 reads, use: "454_SETTINGS -CO:mrpg=4".
+	      </para>
+	      <para>
+		Consult the MIRA reference manual for a full list of MIRA
+		parameters.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term><option>-q quality_value</option></term>
+	    <listitem>
+	      <para>
+		When loading read data from files where sequence and quality
+		are split in several files (e.g. FASTA with .fasta and
+		.fasta.qual files), do not stop if the quality values for a
+		read are missing but set them to be the quality_value given.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term><option>-R <replaceable>namestring</replaceable></option></term>
+	    <listitem>
+	      <para>
+		Rename contigs/singlets/reads with given name string to which
+		a counter is added.
+	      </para>
+	      <para>
+		Known bug: will create duplicate names if input (CAF or
+		MAF) contains contigs/singlets as well as free reads, i.e.
+		reads not in contigs nor singlets.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term><option>-S <replaceable class="file">namescheme</replaceable></option></term>
+	    <listitem>
+	      <para>
+		Naming scheme for renaming reads, important for
+		paired-ends. Only 'solexa' is supported at the moment.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term><option>-Y <replaceable>integer</replaceable></option></term>
+	    <listitem>
+	      <para>
+		Yield. Defines the maximum number of (clipped/padded) bases to
+		convert. When used on reads: output will contain first reads
+		of file where length of clipped bases totals at least -Y.
+		When used on contigs: output will contain first contigs of
+		file where length of padded contigs totals at least -Y.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+	</variablelist>
+      </sect3>
+
+      <sect3 id="sect_mutils_cp_options_contigs">
+	<title>Options for input containing contig data</title>
+	<para>
+	  The following switches will work only if the input file contains
+	  contigs (i.e., CAF or MAF with contig data). Though infrequent, note
+	  that both CAF and MAF can contain single reads only.
+	</para>
+	<variablelist>
+	  <varlistentry>
+	    <term><option>-M</option></term>
+	    <listitem>
+	      <para>
+		Do not extract contigs (or their consensus), but the reads
+		they are composed of.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term><option>-N <replaceable class="file">namefile</replaceable></option></term>
+	    <listitem>
+	      <para>
+		Name select, sorted. Only contigs/reads are selected for
+		output which name appears in
+		<filename>namefile</filename>. Regardless of the order of
+		contigs/reads in the input, the output is sorted according to
+		the appearance of names in
+		<filename>namefile</filename>. <filename>namefile</filename>
+		is a simple text file having one name entry per line.
+	      </para>
+	      <para>
+		Note that for this function to work, all contigs/reads are
+		loaded into memory which may be straining your RAM for larger
+		projects.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term>
+	      <option>-r
+	      <replaceable class="parameter">
+		<group choice="req">
+		  <arg choice="plain"><option>c</option></arg>
+		  <arg choice="plain"><option>C</option></arg>
+		  <arg choice="plain"><option>q</option></arg>
+		  <arg choice="plain"><option>f</option></arg>
+		  <arg choice="plain"><option>r</option></arg>
+		</group>
+	      </replaceable>
+	      </option>
+	    </term>
+	    <listitem>
+	      <para>
+		Recalculate consensus and / or consensus quality values and /
+		or SNP / repeat feature tags of an assembly. This feature is
+		useful in case third party programs create own consensus
+		sequences without handling different sequencing technologies
+		(e.g. the combination of <command>gap4</command> and
+		<command>caf2gap</command>) or when the CAF/MAF files do not
+		contain consensus sequences at all.
+	      </para>
+	      <variablelist>
+		<varlistentry>
+		  <term><option>c</option></term>
+		  <listitem>
+		    recalculate consensus &amp; consensus qualities using IUPAC where necessary
+		  </listitem>
+		</varlistentry>
+		<varlistentry>
+		  <term><option>C</option></term>
+		  <listitem>
+		    recalculate consensus &amp; consensus qualities forcing ACGT calls and without IUPAC codes
+		  </listitem>
+		</varlistentry>
+		<varlistentry>
+		  <term><option>q</option></term>
+		  <listitem>
+		    recalculate consensus quality values only
+		  </listitem>
+		</varlistentry>
+		<varlistentry>
+		  <term><option>f</option></term>
+		  <listitem>
+		    recalculate SNP features (SROc, SAOc, SIOc)
+		  </listitem>
+		</varlistentry>
+		<varlistentry>
+		  <term><option>r</option></term>
+		  <listitem>
+		    recalculate repeat features (SRMc, WRMc)
+		  </listitem>
+		</varlistentry>
+	      </variablelist>
+	      <note>
+		Only the last of cCq is relevant, 'f' and 'r' work as a
+		switches and can be combined with the others (e.g. <quote>-r
+		Cfr</quote>).
+	      </note>
+	      <note>
+		If the CAF/MAF contains reads from multiple strains, recalculation
+		of consensus &amp; consensus qualities is forced, you can just
+		influence whether IUPACs are used or not. This is due to the fact
+		that CAF/MAF do not provide facilities to store consensus
+		sequences from multiple strains.
+	      </note>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term><option>-s</option></term>
+	    <listitem>
+	      <para>
+		Split. Split output into single files, one file per
+		contig. Files are named according to name of contig.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term><option>-u</option></term>
+	    <listitem>
+	      <para>
+		fillUp strain genomes. In assemblies made of multiple strains,
+		holes in the consensus of a strain (bases 'N' or '@') can be
+		filled up with the consensus of the other strains. Takes effect
+		only when '-r' is active.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term><option>-Q <replaceable>quality_value</replaceable></option></term>
+	    <listitem>
+	      <para>
+		Defines minimum quality a consensus base of a strain
+		must have, consensus bases below this will be set to 'N'.
+		Only used when -r is active.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term><option>-V <replaceable>coverage_value</replaceable></option></term>
+	    <listitem>
+	      <para>
+		Defines minimum coverage a consensus base of a strain must
+		have, consensus bases below this coverage will be set to 'N'.
+		Only used when -r is active.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term><option>-v</option></term>
+	    <listitem>
+	      <para>
+		Print version number and exit.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term><option>-x <replaceable>length</replaceable></option></term>
+	    <listitem>
+	      <para>
+		Minimum length a contig (in full assemblies) or read (in single
+		sequence files) must have. All contigs / reads with a
+		length less than this value are discarded. Default: 0 (=switched
+		off).
+	      </para>
+	      <para>
+		Note: this is of course not applied to reads in contigs! Contigs passing
+		the <arg>-x</arg> length criterion and stored as complete
+		assembly (CAF, MAF, ACE, etc.) still contain all their reads.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term><option>-X <replaceable>length</replaceable></option></term>
+	    <listitem>
+	      <para>
+		Similar to <arg>-x</arg>, but applies only to clipped reads
+		(input file format must have clipping points set to be
+		effective).
+	      </para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term><option>-y <replaceable>contig_coverage</replaceable></option></term>
+	    <listitem>
+	      <para>
+		Minimum average contig coverage. Contigs with an average
+		coverage less than this value are discarded.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term><option>-z <replaceable>min_reads</replaceable></option></term>
+	    <listitem>
+	      <para>
+		Minimum number of reads in contig. Contigs with less
+		reads than this value are discarded.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term><option>-l <replaceable>line_length</replaceable></option></term>
+	    <listitem>
+	      <para>
+		On output of assemblies as text or HTML: number of bases shown in
+		one alignment line. Default: 60.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term><option>-c <replaceable>endgap_character</replaceable></option></term>
+	    <listitem>
+	      <para>
+		On output of assemblies as text or HTML: character used to pad
+		endgaps. Default: ' ' (a blank)
+	      </para>
+	    </listitem>
+	  </varlistentry>
+	</variablelist>
+      </sect3>
+    </sect2>
+    <sect2 id="sect_mutils_cp_examples">
+      <title>Examples</title>
+      <para>
+	In the following examples, the CAF and MAF files used are expected to
+	contain full assembly data like the files created by MIRA during an
+	assembly or by the gap2caf program. CAF and MAF could be used
+	interchangeably in these examples, depending on which format currently
+	is available. In general though, MAF is faster to process and smaller
+	on disk.
+      </para>
+      <variablelist>
+	<!-- Use the variablelist.term.separator and the
+	     variablelist.term.break.after parameters to
+	     control the term elements. -->
+	<varlistentry>
+	  <term>
+	    Simple conversion: a MIRA MAF file to a SAM file
+	  </term>
+	  <listitem>
+	    <screen>
+<userinput>miraconvert source.maf destination.sam</userinput></screen>
+            <note>
+	      <para>
+		Previous versions of miraconvert had a slightly different
+		syntax, which however is still supported:
+	      </para>
+	      <screen>
+<userinput>miraconvert source.maf destination.sam</userinput></screen>
+            </note>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>
+	    Simple conversion: the consensus of an assembly to FASTA, at the
+	    same time coverage data for contigs to WIG and furthermore
+	    translate the CAF to ACE:
+	  </term>
+	  <listitem>
+	    <screen>
+<userinput>miraconvert source.caf destination.fasta wig ace</userinput></screen>
+            <note>
+	      <para>
+		Previous versions of miraconvert had a slightly different
+		syntax, which however is still supported:
+	      </para>
+	      <screen>
+<userinput>miraconvert -f caf -t fasta -t wig -t ace source.caf destination</userinput></screen>
+            </note>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>
+	    Filtering an assembly for contigs of length &ge;2000 and an
+	    average coverage &ge; 10, while translating from MAF to CAF:
+	  </term>
+	  <listitem>
+	    <screen>
+<userinput>miraconvert -x 2000 -y 10 source.caf destination.caf</userinput></screen>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>
+	    Filtering a FASTQ file for reads &ge; 55 base pairs, rename the
+	    selected reads with a string starting <quote>newname</quote> and
+	    save them back to FASTQ. Note how <arg>-t fastq</arg> was left out
+	    as the default behaviour of <command>miraconvert</command> is
+	    to use the same "to" type as the input type (<arg>-f</arg>).
+	  </term>
+	  <listitem>
+	    <screen>
+<userinput>miraconvert -x 55 -R newname source.fastq destination.fastq</userinput></screen>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>
+	    Filtering and reordering contigs of an assembly according to external contig name list.
+	  </term>
+	  <listitem>
+	    <para>
+	      This example will fetch the contigs named bchoc_c14, ...3, ...5
+	      and ...13 and save the result in exactly that order to a new
+	      file:
+	    </para>
+      <screen><prompt>arcadia:/path/to/myProject$</prompt> <userinput>ls -l</userinput>
+-rw-r--r-- 1 bach users  231698898 2007-10-21 15:16 bchoc_out.caf
+-rw-r--r-- 1 bach users         38 2007-10-21 15:16 contigs.lst
+<prompt>arcadia:/path/to/myProject$</prompt> <userinput>cat contigs.lst</userinput>
+bchoc_c14
+bchoc_c3
+bchoc_c5
+bchoc_c13
+<prompt>arcadia:/path/to/myProject$</prompt> <userinput>miraconvert -N contigs.lst bchoc_out.caf myfilteredresult.caf</userinput>
+[...]
+<prompt>arcadia:/path/to/myProject$</prompt> <userinput>ls -l</userinput>
+-rw-r--r-- 1 bach users  231698898 2007-10-21 15:16 bchoc_out.caf
+-rw-r--r-- 1 bach users         38 2007-10-21 15:16 contigs.lst
+-rw-r--r-- 1 bach users     828726 2007-10-21 15:24 myfilteredresult.caf</screen>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+    </sect2>
+  </sect1>
+  <sect1 id="sect_mutils_bait">
+    <title>mirabait - a "grep" like tool to select reads with kmers up to 256 bases</title>
+    <sect2 id="sect_mutils_bait_synopsis">
+      <title>
+	Synopsis
+      </title>
+      <cmdsynopsis>
+	<command>mirabait</command>
+	<arg>options</arg>
+	<arg choice="req">-b <replaceable>baitfile</replaceable><arg>-b ...</arg> | -B <replaceable>file</replaceable></arg>
+	<arg>-p <replaceable>file1 file2</replaceable> | -P <replaceable>file3</replaceable></arg>*
+	<arg choice="opt"><replaceable>file4 ...</replaceable></arg>
+      </cmdsynopsis>
+      <note>
+	The above command line, especially with mandatory <arg>-b</arg> format
+	appeared only in MIRA 4.9.0 and represents a major change to 4.0.x!
+      </note>
+    </sect2>
+    <sect2 id="sect_mutils_bait_description">
+      <title>Description</title>
+      <para>
+	<command>mirabait</command> selects reads from a read collection which
+	are partly similar or equal to sequences defined as target
+	baits. Similarity is defined by finding a user-adjustable number of
+	common k-mers (sequences of k consecutive bases) which are the same in
+	the bait sequences and the screened sequences to be selected, either in forward
+	or reverse complement direction.
+      </para>
+      <para>
+	When used on paired files (-p or -P), selects read pairs where at least
+	one read matches.
+      </para>
+      <para>
+	One can use <command>mirabait</command> to do targeted assembly by
+	fishing out reads belonging to a gene and just assemble these; or to
+	clean out rRNA sequences from data sets; or to fish out and
+	iteratively reconstruct mitochondria from metagenomic data; or, or, or
+	... whenever one has to take in or take out subsets of reads based on
+	kmer equality, this tool should come in quite handy.
+      </para>
+      <note>
+	The search performed is exact, that is, sequences selected are
+	guaranteed to have the required number of matching k-mers to the bait
+	sequences while sequences not selected are guaranteed not have these.
+      </note>
+    </sect2>
+    <sect2 id="sect_mutils_bait_options">
+      <title>Options</title>
+      <sect3 id="sect_mutils_bait_mainoptions">
+	<title>Main options</title>
+	<variablelist>
+	  <!-- Use the variablelist.term.separator and the
+	       variablelist.term.break.after parameters to
+	       control the term elements. -->
+	  <varlistentry>
+	    <term><option>-b <replaceable>file</replaceable></option></term>
+	    <listitem>
+	      <para>
+		A file containing sequences to be used as bait. The file can
+		be in any of the following types: FASTQ, FASTA, GenBank (.gbf,
+		.gbk, .gbff), CAF, MAF or Staden EXP.
+	      </para>
+	      <para>
+		If the the file extension is non-standard
+		(e.g. <filename>file.dat</filename>, you can force a file type
+		by using the double colon type specification like in
+		EMBOSS. E.g.: <filename>fastq::file.dat</filename>
+	      </para>
+	      <para>
+		Using multiple -b for loading bait sequences from multiple
+		files is allowed.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term><option>-B <replaceable>file</replaceable></option></term>
+	    <listitem>
+	      <para>
+		Load bait from an existing kmer statistics file, not from
+		sequence files. Only one -B allowed, cannot be combined with
+		-b. See -K on how to create such a file.
+	      </para>
+	      <para>
+		This option comes in handy when you always want to bait
+		against a given set of sequences, e.g., rRNA sequences or the
+		human genome, and where the statistics computation itself may
+		be quite time and resource intensive. Once computed and saved
+		via <arg>-K</arg>, a baiting process loading the statistics
+		via <arg>-B</arg> can start much faster.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term><option>-j <replaceable>job</replaceable></option></term>
+	    <listitem>
+	      <para>
+		Set option for predefined job from supplied MIRA library. Currently available jobs:
+	      </para>
+	      <itemizedlist>
+		<listitem>
+		  <para>
+		    'rrna': Bait rRNA/rDNA sequences. Locked options: <arg>-b,
+		    -B, -k, -K, -n</arg>. In the current version mirabait will
+		    use a hash statistics file with 21mers derived from a
+		    subset of the RFAM 12 rRNA database to bait rRNA/rDNA
+		    reads. The supplied subset should catch all but the most
+		    uncommon rRNA data, if needed one could albeit increase
+		    the sensitivity by decreasing <arg>-n</arg>.
+		  </para>
+		</listitem>
+	      </itemizedlist>
+	      <para>
+		Note that <arg>-j</arg> will hardwire a number of options to
+		be optimal for the chosen job. Note that it is not advisable
+		to change the 'locked' options as this either breaks the
+		functionality or worse, it could lead to undefined results.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term><option>-p <replaceable>file_1 file_2</replaceable></option></term>
+	    <listitem>
+	      <para>
+		Instructs to load sequences to be baited from files
+		<filename>file_1</filename> and
+		<filename>file_2</filename>. The sequences are treated as
+		pairs, where a read in one file is paired with a read in the
+		second file. The files can be in any of the following types:
+		FASTQ, FASTA, GenBank (.gbf, .gbk, .gbff), CAF, MAF or Staden
+		EXP.
+	      </para>
+	      <para>
+		If the the file extension is non-standard
+		(e.g. <filename>file.dat</filename>, you can force a file type
+		by using the double colon type specification like in
+		EMBOSS. E.g.: <filename>fastq::file.dat</filename>
+	      </para>
+	      <para>
+		Using multiple -p for baiting sequences from multiple file
+		pairs is allowed.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term><option>-P <replaceable>file</replaceable></option></term>
+	    <listitem>
+	      <para>
+		Instructs to load sequences to be baited from file
+		<filename>file</filename>. The sequences are treated as pairs,
+		where a read in the file is immediately followed by its paired
+		read. The file can be in any of the following types: FASTQ,
+		FASTA, GenBank (.gbf, .gbk, .gbff), CAF, MAF or Staden
+		EXP.
+	      </para>
+	      <para>
+		If the the file extension is non-standard
+		(e.g. <filename>file.dat</filename>, you can force a file type
+		by using the double colon type specification like in
+		EMBOSS. E.g.: <filename>fastq::file.dat</filename>
+	      </para>
+	      <para>
+		Using multiple -P for baiting sequences from multiple files is
+		allowed.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term><option>-k <replaceable>kmer-length</replaceable></option></term>
+	    <listitem>
+	      <para>
+		k-mer, length of bait in bases (&le;256, default=31)
+	      </para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term><option>-n <replaceable>integer</replaceable></option></term>
+	    <listitem>
+	      <para>
+		Default value: 1.
+	      </para>
+	      <para>
+		If the integer given is &gt; 0: minimum number of kmers needed
+		for a sequence to be selected.
+	      </para>
+	      <para>
+		If the integer given is &le; 0: maximum number of missed kmers
+		allowed over sequence length for a sequence to be selected.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term><option>-d</option></term>
+	    <listitem>
+	      <para>
+		Do not use kmers with microrepeats (DUST-like). Standard
+		length for microrepeats is 67% of kmer length, see
+		<arg>-D</arg> to change this.
+	      </para>
+	      <para>
+		Microrepeats are defined as repeats of a 1, 2, 3 or 4 base
+		motif at either end (not in the middle) of a kmer. E.g.: a
+		kmer of 17 will have a microrepeat length of 12 bases, so
+		that, all kmers having 12 A, C, G, T at either end will be
+		filtered away. E.g.: AAAAAAAAAAAAnnnnn as well as
+		nnnnnAAAAAAAAAAAA will be filtered.
+	      </para>
+	      <para>
+		E.g. for repeats of 2 bases: AGAGAGAGAGAGnnnnn or CACACACACACAnnnnn.
+	      </para>
+	      <para>
+		E.g. for repeats of 3 bases: ACGACGACGACGnnnnn.
+	      </para>
+	      <para>
+		E.g. for repeats of 4 bases: ACGTACGTACGTnnnnn.
+	      </para>
+	      <para>
+		Microrepeat motifs will truncate at the end of allocated
+		microrepeat length. E.g. kmer length 20 with microrepeat
+		length of 13 and 4 base repeat: ACGTACGTACGTAnnnnnnn.
+	      </para>
+	      <note>
+		<para>
+		  When saving the kmer statistics via <arg>-K</arg>, having
+		  <arg>-d</arg> will save kmer statistics where kmers with
+		  microrepeats have already been removed. Use this when you
+		  always want to have microrepeats removed from a given bait
+		  data as <arg>-d</arg> will not be needed when using via
+		  <arg>-B</arg> that set in later loads (which saves time).
+		</para>
+		<para>
+		  If you want to be able to bait from precomputed kmer
+		  statistics both with and without microrepeats, use
+		  <arg>-d</arg> only when loading the statistics file with
+		  <arg>-B</arg>, not when creating it with <arg>-K</arg>.
+		</para>
+	      </note>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term><option>-D <replaceable>integer</replaceable></option></term>
+	    <listitem>
+	      <para>
+		Set length of microrepeats in kmers to discard from bait.
+	      </para>
+	      <para>
+	      int &gt; 0: microrepeat length in percentage of kmer length.
+	      E.g.: -k 17 -D 67 --&gt; 67% of 17 bases = 11.39 bases --&gt; 12 bases.
+	      </para>
+	      <para>
+		int &lt;: 0 microrepeat length in bases.
+	      </para>
+	      <para>
+		int != 0 implies -d, int=0 turns DUST filter off
+	      </para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term><option>-i</option></term>
+	    <listitem>
+	      <para>
+		Inverse selection: selects only sequence that do not meet the
+		-k and -n criteria.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term><option>-I</option></term>
+	    <listitem>
+	      <para>
+		Filters and writes sequences which hit to one file and
+		sequences which do not hit to a second file.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term><option>-r</option></term>
+	    <listitem>
+	      <para>
+		Does not check for hits in reverse complement direction.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term><option>-t <replaceable>integer</replaceable></option></term>
+	    <listitem>
+	      <para>
+		Number of threads to use. The default value of 0 is configured
+		to automatically use up to 4 CPU cores (if present). Numbers
+		higher than 4 (or maybe 8) will probably not make much sense
+		because of diminishing returns.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+	</variablelist>
+      </sect3>
+      <sect3 id="sect_mutils_bait_outputdef">
+	<title>File type options</title>
+	<para>
+	  Normally, mirabait writes separate result files (named
+	  <filename>bait_match_*</filename> and
+	  <filename>bait_miss_*</filename>) for each input to the current
+	  directory. For changing this behaviour, and others relating to
+	  output, use these options:
+	</para>
+	<variablelist>
+	  <!-- Use the variablelist.term.separator and the
+	       variablelist.term.break.after parameters to
+	       control the term elements. -->
+	  <varlistentry>
+	    <term><option>-c <replaceable>character</replaceable></option></term>
+	    <listitem>
+	      <para>
+		Normally, mirabait will change the case of the sequences it
+		loads to denote kmers which hit a bait in upper case and kmers
+		which did not hit a bait in lower case. Using this option, one
+		can instead mask those bases with the given character.
+	      </para>
+	      <para>
+		Use a blank (-c ' ') to neither mask nor lowercase hits.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term><option>-l <replaceable>integer</replaceable></option></term>
+	    <listitem>
+	      <para>
+		Set length of sequence line in FASTA output.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term><option>-K <replaceable>filename</replaceable></option></term>
+	    <listitem>
+	      <para>
+		Save kmer statistics (for baits loaded via <arg>-b</arg>) to
+		<filename>filename</filename>.
+	      </para>
+	      <para>
+		As the calculation of kmers can take quite some time for
+		larger sequences (e.g., human genome), this option is
+		extremely useful if you want to perform the same baiting
+		operation more than once. Once calculated, the kmer statistics
+		is saved and can be reloaded for a later baiting operation via
+		<arg>-B</arg>.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term><option>-N <replaceable>name</replaceable></option></term>
+	    <listitem>
+	      <para>
+		Change the file prefix <filename>bait</filename> to
+		<filename>name</filename>. Has no effect if -o/-O is used and
+		targets are not directories.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term><option>-o <replaceable>path</replaceable></option></term>
+	    <listitem>
+	      <para>
+		Save sequences matching a bait to
+		<filename>path</filename>. If <filename>path</filename> is a
+		directory, write separate files into this directory. If not,
+		combine all matching sequences from the input file(s) into a
+		single file specified by the path.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term><option>-O <replaceable>path</replaceable></option></term>
+	    <listitem>
+	      <para>
+		Like -o, but for sequences not matching.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+	</variablelist>
+      </sect3>
+      <sect3 id="sect_mutils_bait_other">
+	<title>Other options</title>
+	<variablelist>
+	  <varlistentry>
+	    <term><option>-T <replaceable>dir</replaceable></option></term>
+	    <listitem>
+	      <para>
+		Use <filename>dir</filename> as directory for temporary files
+		instead of the current working directory.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term><option>-m <replaceable>integer</replaceable></option></term>
+	    <listitem>
+	      <para>
+		Default is <emphasis role="underline">75</emphasis>. Defines
+		the memory MIRA can use to compute kmer statistics. Therefore
+		does not apply when using <arg>-B</arg>.
+	      </para>
+	      <para>
+		A value of <emphasis role="underline">&gt;100</emphasis> is
+		interpreted as absolute value in megabyte. E.g., 16384 = 16384
+		megabyte = 16 gigabyte.
+	      </para>
+	      <para>
+		A value of <emphasis role="underline">0 &le; x &le;100</emphasis> is
+		interpreted as relative value of free memory at the time of
+		computation. E.g.: for a value of 75% and 10 gigabyte of free
+		memory, it will use 7.5 gigabyte.
+	      </para>
+	      <note>
+		The minimum amount of memory this algorithm will use is 512 MiB
+		on 32 bit systems and 2 GiB on 64 bit systems.
+	      </note>
+	    </listitem>
+	  </varlistentry>
+	</variablelist>
+      </sect3>
+    </sect2>
+    <sect2 id="sect_mutils_bait_examples">
+      <title>Usage examples</title>
+      <note>
+	The examples below, together with the manual above, should be enough to get
+	you going. If there's a typical use case you are missing, feel free to
+	suggest it on the MIRA talk mailing list.
+      </note>
+      <para>Baiting unpaired sequences, bait sequences in FASTA, sequences in FASTQ:</para>
+      <screen><userinput>mirabait -b b.fasta file.fastq</userinput></screen>
+      <para>Same as above, but baits in two files (FASTA and GenBank):</para>
+      <screen><userinput>mirabait -b b1.fasta -b b2.gbk file.fastq</userinput></screen>
+      <para>Baiting paired sequences, read pairs are in two files:</para>
+      <screen><userinput>mirabait -b b.fasta -p file_1.fastq file_2.fastq</userinput></screen>
+      <para>Baiting paired sequences, pairs are interleaved in one file:</para>
+      <screen><userinput>mirabait -b b.fasta -P file.fastq</userinput></screen>
+      <para>Like above, but selecting sequences which do not match the baits:</para>
+      <screen><userinput>mirabait -i -b b.fasta -P file.fastq</userinput></screen>
+      <para>
+	Baiting paired sequences (<filename>file_1.fastq</filename>,
+	<filename>file_2.fastq</filename> and
+	<filename>file3.fastq</filename>) and unpaired sequences
+	(<filename>file4.fastq</filename>), all at once and different file
+	types:
+      </para>
+      <screen><userinput>mirabait -b b.fasta -p file_1.fastq file_2.fastq -P file3.fasta file4.caf</userinput></screen>
+      <para>
+	Like above, but writing sequences matching baits and sequences not
+	matching baits to different files:
+      </para>
+      <screen><userinput>mirabait -I -b b.fasta -p file_1.fastq file_2.fastq -P file3.fasta file4.caf</userinput></screen>
+      <para>Change bait criterion to need 10 kmers of size 27:</para>
+      <screen><userinput>mirabait -k 27 -n 10 -b b.fasta file.fastq</userinput></screen>
+      <para>
+	Change bait criterion to baiting only reads which have all kmers
+	present in the bait:
+      </para>
+      <screen><userinput>mirabait -n 0 -b b.fasta file.fastq</userinput></screen>
+      <para>
+	Change bait criterion to baiting all reads having almost all kmers
+	present in the bait, but allowing for up to 40 kmers not in the bait:
+      </para>
+      <screen><userinput>mirabait -n -40 -b b.fasta file.fastq</userinput></screen>
+      <para>
+	Force bait sequences to load as FASTA, force sequences to be baited to
+	be loaded as FASTQ:
+      </para>
+      <screen><userinput>mirabait -b fasta::b.dat fastq::file.dat</userinput></screen>
+      <para>
+	Write result files to directory <filename>/dev/shm/</filename>:
+      </para>
+      <screen><userinput>mirabait -o /dev/shm/ -b b.fasta -p file_1.fastq file_2.fastq</userinput></screen>
+      <para>
+	Merge all result files containing sequences hitting baits to file
+	<filename>/dev/shm/match</filename>:
+      </para>
+      <screen><userinput>mirabait -o /dev/shm/match -b b.fasta -p file_1.fastq file_2.fastq</userinput></screen>
+      <para>
+	Like above, but also merge all result files containing sequences not
+	hitting baits to file <filename>/dev/shm/nomatch</filename>:
+      </para>
+      <screen><userinput>mirabait -o /dev/shm/match -O /dev/shm/nomatch -b b.fasta -p file_1.fastq file_2.fastq</userinput></screen>
+      <para>
+	Fetch all reads having rRNA motifs in a paired FASTQ files:
+      </para>
+      <screen><userinput>mirabait -j rrna -p file1.fastq file2.fastq</userinput></screen>
+      <para>
+	Fetch all reads not having rRNA motifs in a paired FASTQ files:
+      </para>
+      <screen><userinput>mirabait -j rrna -i -p file1.fastq file2.fastq</userinput></screen>
+      <para>
+	Split a paired FASTQ file into two sets of files (4 files total), one
+	containing rRNA reads and one containing non-rRNA reads:
+      </para>
+      <screen><userinput>mirabait -j rrna -I -p file1.fastq file2.fastq</userinput></screen>
+      <para>
+	Assuming the file <filename>human_genome.fasta</filename> contains the
+	human genome: bait all read pairs matching the human genome. Also,
+	save the compute kmer statistics for later re-use to file
+	<filename>HG_kmerstats.mhs.gz</filename>:
+      </para>
+      <screen><userinput>mirabait -b human_genome.fasta -K HG_kmerstats.mhs.gz -p file1.fastq file2.fastq</userinput></screen>
+      <para>
+	The same as above, but just precompute and save the kmer statistics, no actual baiting done.
+      </para>
+      <screen><userinput>mirabait -b human_genome.fasta -K HG_kmerstats.mhs.gz</userinput></screen>
+      <para>
+	Using the precomputed kmer statistics from the command above: bait
+	files with read pairs for human reads:
+      </para>
+      <screen><userinput>mirabait -B HG_kmerstats.mhs.gz -p file_1.fastq file_2.fastq</userinput></screen>
+    </sect2>
+    <sect2 id="sect_mutils_bait_installrrnadb">
+      <title>Installing different rRNA databases</title>
+      <para>
+	The standard database for rRNA baiting supplied with the MIRA source
+	code and binary packages is called
+	<filename>rfam_rrna-21-12.sls.gz</filename> which will get installed
+	as <emphasis>MHS</emphasis> (MiraHashStatistics) file into
+	<filename>$BINDIR/../share/mira/mhs/rfam_rrna-21-12.mhs.gz</filename>
+	(where $BINDIR is the directory where the mira/mirabait binary
+	resides) and a soft link pointing from
+	<filename>filter_default_rrna.mhs.gz</filename> to
+	<filename>rfam_rrna-21-12.mhs.gz</filename> like so:
+      </para>
+      <screen><prompt>arcadia:~$</prompt> <userinput>which mira</userinput>
+/usr/local/bin/mira
+<prompt>arcadia:~$</prompt> <userinput>ls -l /usr/local/share/mira/mhs</userinput>
+lrwxrwxrwx 1 bach bach        22 Mar 24 23:58 filter_default_rrna.mhs.gz -> rfam_rrna-21-12.mhs.gz
+-rw-rw-r-- 1 bach bach 148985059 Mar 24 23:58 rfam_rrna-21-12.mhs.gz</screen>
+      <para>
+	The file naming scheme for the database is as following:
+	dbidentifier-kmerlength-kmerfreqcutoff. The standard database is therefore:
+	<filename>rfam_rrna</filename> as identifier for the RFAM rRNA
+	sequences (currently RFAM 12), then 21 defining a kmer length of 21
+	and finally a kmer cutoff frequency of 12, meaning that kmers must
+	have been seen at least 12 times in the RFAM database to be stored in
+	the subset.
+      </para>
+      <note>
+	The value of 12 as frequency cutoff for the standard mirabait rRNA
+	database was chosen as a compromise between sensitivity and database
+	size.
+      </note>
+      <para>
+	Although rRNA are pretty well conserved overall, the cutoff frequency
+	also implies that kmers from rare rRNA variants will not be present in
+	the database, eventually losing some sensitivity for rRNA from rarely
+	sequenced organisms. It follows that more sensitive versions of the
+	rRNA database can be installed by downloading a file from the MIRA
+	repository at SourceForge and calling a script provided by MIRA. To
+	install a version with a kmer size of 21 and a cutoff frequency of,
+	e.g., 3, download <filename>rfam_rrna-21-3.sls.gz</filename> and
+	install it like this:
+      <screen><prompt>arcadia:~/tmp$</prompt> <userinput>ls</userinput>
+<prompt>arcadia:~/tmp$</prompt> <userinput>wget https://sourceforge.net/projects/mira-assembler/files/MIRA/slsfiles/rfam_rrna-21-3.sls.gz</userinput>
+...
+</screen>
+      </para>
+      <para>
+	TODO: continue docs here.
+      </para>
+    </sect2>
+  </sect1>
+</chapter>

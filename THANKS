@@ -1,0 +1,72 @@
+Big thanks to
+
+Sandor Suhai, Karl-Heinz Glatting and Frieder Kern from the german cancer
+research centre (DKFZ Heidelberg) who made the release of MIRA as Open Source
+possible. Thomas Pfisterer who agreed to also release his EdIt package to Open
+Source.
+
+Jose Blanca wrote the initial sff_extract script to extract and pre-process
+data from SFFs.
+
+People who wrote scripts for MIRA and made allowed me to make them publicly
+available as 3rd party scripts: Jacqueline Weber-Lehmann, Stephen Taylor, Ross
+Whettten, Gregory Harhay
+
+
+Furthermore, I would like to thank
+
+Bernd Drescher     for support, talks and tests of the earliest MIRA. He
+                    actually intiated this project at the DKFZ.
+Matthias Platzert  testing out the earliest versions of MIRA
+Gerald Nyakatura   testing out the earliest versions of MIRA
+James Bonfield     for helpful tips on how to make MIRA output compatible to
+                    the Staden gap4 program.
+Norman Warthmann   suggesting features for miraEST
+Paul Bickerstaff   for pushing early miraEST to the limits and actually
+                    sending me the first MIRA postcard ever :-)
+Alexander Kuehn    helping out with HP Testdrive to get MIRA compiled there
+Randolf Schulz     finding the Apple linker error and (a solution to it) that
+                    prevented compiling MIRA on Darwin / MacOS X
+Jacqueline Weber   for helping in finding out about the 454 adapter
+                    sequences and thoroughly testing the 454 assemblies
+Gerrit Schramm     from Roche in helping me out to understand some of the less
+                    well known things regarding the 454 sequencing system
+Hernandez Alvarez
+   Alfredo Jose    providing patches to have MIRA compile again on Solaris
+Lionel Guy         implementing bug fixes in sff_extract and making available
+                    data sets to hunt down some ugly bugs in MIRA
+Sven Klages        for insightful feedback and providing a fix for the ACE
+                    file format of tags
+Steven Cozza       Helping to iron out problems in the build process on
+                    OpenSolaris
+Heng Li            For having made available to everyone interested routines
+                    to load FASTQ.
+Thomas Vaughan     For an explanation on how to compile on NetBSD 5 (i386)
+Liam Elbourne      For finding out the cause which prevented MIRA to link
+ and                correctly on Mac OSX systems (the linker prefers system
+Peter Stockwell     libraries over specific libraries)
+David P. Judge     being the first to actually fix a dumb bug of mine in MIRA
+Bob Bruccoleri	   finding and sending fixes for problems in the configure
+                    build process as well as other patches, suggestions and
+		    test cases
+Jorge Duarte       from BIOGEMMA for making available test sets to track down
+                    memory corruption bugs
+Dag Ahren	   making available a test set to track down a rather nasty
+                    problem occurring during clipping
+Jan van Haarst	   Running benchmarks over NFS to find poorly performing
+                    input/output routines
+Peter Cock         Invaluable feedback for implementing SAM format and
+                    pointing out bugs, small and large
+Debian Med team    For patches and packaging MIRA so that it is available for
+                    Debian and all distributions based on Debian. Especially
+		    Andreas Tille, Thorsten Alteholz and Michael R. Crusoe
+
+... and numerous people on the mira_talk mailing list who reported successes,
+bugs and/or quirks either in the build process or while running mira.
+
+
+My warmest thanks to Bob Bruccoleri, Lionel Guy, Arun Rawat, Nestor Zaburannyi
+and numerous other people who either declined being thanked publicly or could
+not respond before I wrote this (just drop me a mail). They all donated time
+and computing power to hunt down a "bug" which turned out to be a RAM defect
+on my development machine.

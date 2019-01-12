@@ -1,0 +1,83 @@
+<?xml version="1.0" ?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.docbook.org/xml/4.5/docbookx.dtd">
+<chapter id="chap_bitsandpieces">
+  <chapterinfo>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="versionfile"/>
+    <author>
+      <firstname>Bastien</firstname>
+      <surname>Chevreux</surname>
+      <email>bach@chevreux.org</email>
+    </author>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="copyrightfile"/>
+  </chapterinfo>
+  <blockquote>
+    <attribution>Solomon Short</attribution>
+    <para>
+      <emphasis><quote>Just when you think it's finally settled, it isn't.
+      </quote></emphasis>
+    </para>
+  </blockquote>
+
+  <title>Bits and pieces</title>
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="warning_frontofchapter.xml"/>
+  <sect1 id="sect_bap_using_ssaha2_smalt_to_screen_for_vector_sequence">
+    <title>
+      Using SSAHA2 / SMALT to screen for vector sequence
+    </title>
+    <para>
+      If your sequencing provider gave you data which was NOT pre-clipped for
+      vector sequence, you can do this yourself in a pretty robust manner
+      using SSAHA2 -- or the successor, SMALT -- from the Sanger Centre. You
+      just need to know which sequencing vector the provider used and have its
+      sequence in FASTA format (ask your provider).
+    </para>
+    <note>
+      This screening is a valid method for any type of Sanger sequencing
+      vectors, 454 adaptors, Illumina adaptors and paired-end adaptors
+      etc. However, you probably want to use it only for Sanger type data as
+      MIRA already knows all standard 454, Ion Torrent and Illumina adaptors.
+    </note>
+    <note>
+      SSAHA2 and SMALT need their input data to be in FASTA format, so for
+      these to run you will need them also in FASTA format. For MIRA however
+      you can load your original data in whatever format it was present.
+    </note>
+    <para>
+      For SSAHA2 follow these steps (most are the same as in the example
+      above):
+    </para>
+    <screen>
+<prompt>$</prompt> <userinput>ssaha2 -output ssaha2
+  -kmer 8 -skip 1 -seeds 1 -score 12 -cmatch 9 -ckmer 6
+  /path/where/the/vector/data/resides/vector.fasta
+  <replaceable>yourinputsequences.fasta</replaceable> &gt; <replaceable>screendataforyoursequences.ssaha2</replaceable></userinput></screen>
+    <para>
+      Then, in your manifest file, add the following line in the readgroup
+      which contains the sequences you screened:
+    </para>
+<screen>
+<userinput>readgroup
+...
+data = <replaceable>yourinputsequences_inwhateverformat_thisexamplehasfastq.fastq</replaceable>
+data = <replaceable>screendataforyoursequences.ssaha2</replaceable>
+...</userinput></screen>
+    <para>
+      For SMALT, the only difference is that you use SMALT for generating the
+      vector-screen file and ask SMALT to generate it in SSAHA2 format. As
+      SMALT works in two steps (indexing and then mapping), you also need to
+      perform it in two steps and then call MIRA. E.g.:
+    </para>
+    <screen>
+<prompt>$</prompt> <userinput>smalt index -k 7 -s 1 smaltidxdb /path/where/the/vector/data/resides/vector.fasta</userinput>
+<prompt>$</prompt> <userinput>smalt map -f ssaha -d -1 -m 7 smaltidxdb <replaceable>yourinputsequences.fasta</replaceable> &gt; <replaceable>screendataforyoursequences.smalt</replaceable></userinput></screen>
+    <note>
+      Please note that, due to subtle differences between output of SSAHA2 (in
+      ssaha2 format) and SMALT (in ssaha2 format), MIRA identifies the source
+      of the screening (and the parsing method it needs) by the name of the
+      screen file. Therefore, screens done with SSAHA2 need to have the
+      postfix <filename>.ssaha2</filename> in the file name and screens done
+      with SMALT need
+      <filename>*.smalt</filename>.
+    </note>
+  </sect1>
+</chapter>

@@ -1,0 +1,819 @@
+<?xml version="1.0" ?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.docbook.org/xml/4.5/docbookx.dtd">
+<chapter id="chap_hard">
+  <chapterinfo>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="versionfile"/>
+    <author>
+      <firstname>Bastien</firstname>
+      <surname>Chevreux</surname>
+      <email>bach@chevreux.org</email>
+    </author>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="copyrightfile"/>
+  </chapterinfo>
+  <blockquote>
+    <attribution>Solomon Short</attribution>
+    <para>
+      <emphasis><quote>If it were easy, it would have been done already.
+      </quote></emphasis>
+    </para>
+  </blockquote>
+  <title>Assembly of <emphasis>hard</emphasis> genome or EST / RNASeq projects</title>
+  <sect1 id="sect_hard_getting_mean_data_assembled">
+    <title>
+      Getting 'mean' genomes or EST / RNASeq data sets assembled
+    </title>
+    <para>
+    </para>
+    <para>
+      For some EST data sets you might want to assemble, MIRA will take too
+      long or the available memory will not be sufficient. For genomes this
+      can be the case for eukaryotes, plants, but also for some bacteria which
+      contain high number of (pro-)phages, plasmids or engineered operons. For
+      EST data sets, this concerns all projects with non-normalised libraries.
+    </para>
+    <para>
+      This guide is intended to get you through these problematic genomes. It
+      is (cannot be) exhaustive, but it should get you going.
+    </para>
+    <sect2 id="sect_hard_for_the_impatient">
+      <title>
+	For the impatient
+      </title>
+      <para>
+	For bacteria with nasty repeats, try first
+	<arg>--hirep_something</arg>. This will increase runtime and memory
+	requirements, but helps to get this sorted out. If the data for lower
+	eukaryotes leads to runtime and memory explosion, try either
+	<arg>--hirep_good</arg> or, for desperate cases,
+	<arg>--hirep_something</arg>.
+      </para>
+    </sect2>
+    <sect2 id="sect_hard_introduction_to_masking">
+      <title>
+	Introduction to 'masking'
+      </title>
+      <para>
+	The SKIM phase (all-against-all comparison) will report almost every potential
+	hit to be checked with Smith-Waterman further downstream in the MIRA assembly
+	process. While this is absolutely no problem for most bacteria, some genomes
+	(eukaryotes, plants, some bacteria) have so many closely related sequences
+	(repeats) that the data structures needed to take up all information might get
+	much larger than your available memory. In those cases, your only chance to
+	still get an assembly is to tell the assembler it should disregard extremely
+	repetitive features of your genome.
+      </para>
+      <para>
+	There is, in most cases, one problem: one doesn't know beforehand which parts
+	of the genome are extremely repetitive. But MIRA can help you here as it
+	produces most of the needed information during assembly and you just need to
+	choose a threshold from where on MIRA won't care about repetitive matches.
+      </para>
+      <para>
+	The key to this are the three fail-safe command line parameters which will mask
+	"nasty" repeats from the quick overlap finder (SKIM): <arg>-KS:mnr</arg> and
+	<arg>-KS:nrr</arg> respectively <arg>-KS:nrc</arg>. I'll come back
+	to <arg>-SK:kms</arg> later as it also plays a role in this.
+      </para>
+    </sect2>
+    <sect2 id="sect_hard_how_does_nasty_repeat_masking_work">
+      <title>
+	How does 'nasty repeat' masking work?
+      </title>
+      <para>
+      </para>
+      <para>
+	If switched on <arg>-KS:mnr=yes</arg>, MIRA will use k-mer statistics to
+	find repetitive stretches. K-mers are nucleotide stretches of length k. In a
+	perfectly sequenced genome without any sequencing error and without sequencing
+	bias, the k-mer frequency can be used to assess how many times a given
+	nucleotide stretch is present in the genome: if a specific k-mer is present as
+	many times as the average frequency of all k-mers, it is a reasonable
+	assumption to estimate that the specific k-mer is not part of a repeat (at
+	least not in this genome).
+      </para>
+      <para>
+	Following the same path of thinking, if a specific k-mer frequency is now two
+	times higher than the average of all k-mers, one would assume that this
+	specific k-mer is part of a repeat which occurs exactly two times in the
+	genome. For 3x k-mer frequency, a repeat is present three times. Etc.pp. MIRA
+	will merge information on single k-mers frequency into larger 'repeat'
+	stretches and tag these stretches accordingly.
+      </para>
+      <para>
+	Of course, low-complexity nucleotide stretches (like poly-A in eukaryotes),
+	sequencing errors in reads and non-uniform distribution of reads in a
+	sequencing project will weaken the initial assumption that a k-mer frequency
+	is representative for repeat status. But even then the k-mer frequency model
+	works quite well and will give a pretty good overall picture: most repeats
+	will be tagged as such.
+      </para>
+      <para>
+	Note that the parts of reads tagged as "nasty repeat" will not get masked per
+	se, the sequence will still be present. The stretches dubbed repetitive will
+	get the "MNRr" tag. They will still be used in Smith-Waterman overlaps and
+	will generate a correct consensus if included in an alignment, but they will
+	not be used as seed.
+      </para>
+      <para>
+	Some reads will invariably end up being completely repetitive. These
+	will not be assembled into contigs as MIRA will not see overlaps as
+	they'll be completely masked away. These reads will end up as
+	debris. However, note that MIRA is pretty good at discerning 100%
+	matching repeats from repeats which are not 100% matching: if there's
+	a single base with which repeats can be discerned from each other,
+	MIRA will find this base and use the k-mers covering that base to find
+	overlaps.
+      </para>
+    </sect2>
+    <sect2 id="sect_hard_selecting_a_nasty_repeat_ratio">
+      <title>
+	Selecting a "nasty repeat ratio"
+      </title>
+      <para>
+      </para>
+      <para>
+	The ratio from which on the MIRA kmer statistics algorithm won't
+	report matches is set via <arg>-KS:nrr</arg>. E.g.,
+	using <arg>-KS:nrr=10</arg> will hide all k-mers which occur at a
+	frequency 10 times (or more) higher than the median of all k-mers.
+      </para>
+      <para>
+	The nastiness of a repeat is difficult to judge, but starting with 10 copies
+	in a genome, things can get complicated. At 20 copies, you'll have some
+	troubles for sure.
+      </para>
+      <para>
+	The standard values of <emphasis>10</emphasis> for
+	the <arg>-KS:nrr</arg> parameter is a pretty good 'standard' value
+	which can be tried for an assembly before trying to optimise it via
+	studying the kmer statistics calculated by MIRA. For the later, please
+	read the section 'Examples for kmer statistics' further down in this
+	guide.
+      </para>
+    </sect2>
+  </sect1>
+  <sect1 id="sect_hard_how_MIRA_tags_different_repeat_levels">
+    <title>
+      How MIRA tags different repeat levels
+    </title>
+    <para>
+      During SKIM phase, MIRA will assign frequency information to each and every
+      k-mer in all reads of a sequencing project, giving them different
+      status. Additionally, tags are set in the reads so that one can
+      assess reads in assembly editors that understand tags (like gap4,
+      gap5, consed etc.). The following tags are used:
+    </para>
+    <variablelist>
+      <varlistentry>
+	<term>
+	  HAF2
+	</term>
+	<listitem>
+	  <para> coverage below average ( default: &lt; 0.5 times average)
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  HAF3
+	</term>
+	<listitem>
+	  <para> coverage is at average ( default: &ge; 0.5 times average and &le; 1.5 times average)
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  HAF4
+	</term>
+	<listitem>
+	  <para> coverage above average ( default: &gt; 1.5 times average and &lt; 2 times average)
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  HAF5
+	</term>
+	<listitem>
+	  <para> probably repeat ( default: &ge; 2 times average and &lt; 5 times average)
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  HAF6
+	</term>
+	<listitem>
+	  <para> 'crazy' repeat ( default: &gt; 5 times average)
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  MNRr
+	</term>
+	<listitem>
+	  <para> stretches which were masked away by <arg>-KS:<replaceable>mnr=yes</replaceable></arg>
+	  being more repetitive than deduced
+	  by <arg>-KS:<replaceable>nrr=...</replaceable></arg> or given via <arg>-KS:<replaceable>nrc=...</replaceable></arg>.
+	  </para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+    <para>
+    </para>
+  </sect1>
+  <sect1 id="sect_hard_the_readrepeats_info_file">
+    <title>
+      The readrepeats info file
+    </title>
+    <para>
+      If <arg>-KS:mnr=yes</arg> is used, MIRA will write an additional file into the
+      info directory:
+      <filename>&lt;projectname&gt;_info_readrepeats.lst</filename>
+    </para>
+    <para>
+      The "readrepeats" file makes it possible to try and find out what makes
+      sequencing data nasty. It's a key-value-value file with the name of the
+      sequence as "key" and then the type of repeat (HAF2 - HAF7 and MNRr) and
+      the repeat sequence as "values". "Nasty" in this case means
+      <emphasis>everything which was masked via
+      <arg>-KS:mnr=yes</arg></emphasis>.
+    </para>
+    <para>
+      The file looks like this:
+    </para>
+    <screen>
+read1     HAF5   GCTTCGGCTTCGGCTTCGGCTTCGGCTTCGGCTTCGGCTTCGGCTTCGGCT ...
+read2     HAF7   CCGAAGCCGAAGCCGAAGCCGAAGCCGAAGCCGAAGCCGAAGCCGAAGC ...
+read2     MNRr   AAAAAAAAAAAAAAAAAAAAAAAAAAAA ...
+read3     HAF6   GCTTCGGCTTCGGCTTCGGCTTCGGCTTCGGCTTCGGCTTCGGCTTCGGCT ...
+...
+etc.
+    </screen>
+    <para>
+      That is, each line consists of the read name where a stretch of
+      repetitive sequences was found, then the MIRA repeat categorisation
+      level (HAF2 to HAF7 and MNRr) and then the stretch of bases which is
+      seen to be repetitive.
+    </para>
+    <para>
+      Note that reads can have several disjunct repeat stretches in a single
+      read, hence they can occur more than one time in the file as shown with
+      <emphasis>read2</emphasis> in the example above.
+    </para>
+    <para>
+      One will need to search some databases with the "nasty" sequences and find
+      vector sequences, adaptor sequences or even human sequences in bacterial or
+      plant genomes ... or vice versa as this type of contamination happens quite
+      easily with data from new sequencing technologies. After a while one gets a
+      feeling what constitutes the largest part of the problem and one can start to
+      think of taking countermeasures like filtering, clipping, masking etc.
+    </para>
+  </sect1>
+  <sect1 id="sect_hard_pipeline_to_find_worst_contaminants_or_repeats_in_sequencing_data">
+    <title>
+      Pipeline to find worst contaminants or repeats in sequencing data
+    </title>
+    <note>
+      <para>
+	In case you are not familiar with UNIX pipes, now would be a good time
+	to read an introductory text on how this wonderful system works. You
+	might want to start with a short introductory article at Wikipedia:
+	<ulink url="http://en.wikipedia.org/wiki/Pipeline_%28Unix%29"/>
+      </para>
+      <para>
+	In a nutshell: instead of output to files, a pipe directs the output
+	of one program as input to another program.
+      </para>
+    </note>
+    <para>
+      There's one very simple trick to find out whether your data contains
+      some kind of sequencing vector or adaptor contamination which I use. it
+      makes use of the read repeat file discussed above.
+    </para>
+    <para>
+      The following example shows this exemplarily on a 454 data where the
+      sequencing provider used some special adaptor in the wet lab but somehow
+      forgot to tell the Roche pre-processing software about it, so that a
+      very large fraction of reads in the SFF file had unclipped adaptor
+      sequence in it (which of course wreaks havoc with assembly programs):
+    </para>
+    <screen><prompt>arcadia:$</prompt> <userinput>grep MNRr <replaceable>badproject</replaceable>_info_readrepeats.lst | cut -f 3| sort | uniq -c |sort -g -r | head -15</userinput>
+    504 ACCACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+    501 CAACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+    489 GGACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+    483 GCCACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+    475 AATACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+    442 GATACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+    429 CGACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+    424 TTGACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+    393 ACTACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+    379 CAGACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+    363 ATTACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+    343 CATACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+    334 GTTACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+    328 AACACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+    324 GGTACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC</screen>
+    <para>
+      You probably see a sequence pattern
+      CTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC in the above screens hot. Before
+      going into details of what you are actually seeing, here's the
+      explanation how this pipeline works:
+    </para>
+    <variablelist>
+      <varlistentry>
+	<term>
+	  grep MNRr <replaceable>badproject</replaceable>_info_readrepeats.lst
+	</term>
+	<listitem>
+	  <para>
+	    From the file with the information on repeats, grab all the lines
+	    containing repetitive sequence which MIRA categorised as 'nasty'
+	    via the 'MNRr' tag. The result looks a bit like this (first 15
+	    lines shown):<screen>C6E3C7T12GKN35  MNRr    GCGACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+C6E3C7T12JLIBM  MNRr    TTCACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+C6E3C7T12HQOM1  MNRr    CAGACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+C6E3C7T12G52II  MNRr    CAGACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+C6E3C7T12JRMPO  MNRr    TCTACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+C6E3C7T12H1A8V  MNRr    GCGACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+C6E3C7T12H34Z7  MNRr    AAACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+C6E3C7T12H4HGC  MNRr    GGACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+C6E3C7T12FNA1N  MNRr    AATACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+C6E3C7T12F074V  MNRr    CTTACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+C6E3C7T12I1GYO  MNRr    CAACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+C6E3C7T12I53C8  MNRr    CACACTCGTATAGTGACACGCAACAGGGG
+C6E3C7T12I4V6V  MNRr    ATCACTCGTATAGTGACACGCAACAGGGG
+C6E3C7T12H5R00  MNRr    TCTACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+C6E3C7T12IBA5E  MNRr    AATACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+...</screen>
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  cut -f 3
+	</term>
+	<listitem>
+	  <para>
+	    We're just interested in the sequence now, which is in the third
+	    column. The above 'cut' command takes care of this. The resulting
+	    output may look like this (only first 15 lines shown):
+	  </para>
+	  <screen>GCGACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+TTCACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+CAGACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+CAGACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+TCTACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+GCGACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+AAACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+GGACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+AATACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+CTTACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+CAACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+CACACTCGTATAGTGACACGCAACAGGGG
+ATCACTCGTATAGTGACACGCAACAGGGG
+TCTACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+AATACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+...</screen>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  sort
+	</term>
+	<listitem>
+	  <para>
+	    Simply sort all sequences. The output may look like this now (only first 15 line shown):<screen>
+AAACTCGTATAGTGACACGCA
+AAACTCGTATAGTGACACGCAACAGG
+AAACTCGTATAGTGACACGCAACAGGG
+AAACTCGTATAGTGACACGCAACAGGGG
+AAACTCGTATAGTGACACGCAACAGGGG
+AAACTCGTATAGTGACACGCAACAGGGG
+AAACTCGTATAGTGACACGCAACAGGGG
+AAACTCGTATAGTGACACGCAACAGGGG
+AAACTCGTATAGTGACACGCAACAGGGGAT
+AAACTCGTATAGTGACACGCAACAGGGGATA
+AAACTCGTATAGTGACACGCAACAGGGGATA
+AAACTCGTATAGTGACACGCAACAGGGGATA
+AAACTCGTATAGTGACACGCAACAGGGGATA
+AAACTCGTATAGTGACACGCAACAGGGGATA
+AAACTCGTATAGTGACACGCAACAGGGGATA
+...</screen>
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  uniq -c
+	</term>
+	<listitem>
+	  <para>
+	    This command counts how often a line repeats itself in a file. As
+	    we previously sorted the whole file by sequence, it effectively
+	    counts how often a certain sequence has been tagged as MNRr. The
+	    output consists of a tab delimited format in two columns: the
+	    first column contains the number of times a given line (sequence
+	    in our case) was seen, the second column contains the line
+	    (sequence) itself. An exemplarily output looks like this (only first 15 lines shown):
+	  </para>
+	  <screen>      1 AAACTCGTATAGTGACACGCA
+      1 AAACTCGTATAGTGACACGCAACAGG
+      1 AAACTCGTATAGTGACACGCAACAGGG
+      5 AAACTCGTATAGTGACACGCAACAGGGG
+      1 AAACTCGTATAGTGACACGCAACAGGGGAT
+     13 AAACTCGTATAGTGACACGCAACAGGGGATA
+      6 AAACTCGTATAGTGACACGCAACAGGGGATAGAC
+      4 AAACTCGTATAGTGACACGCAACAGGGGATAGACAA
+      9 AAACTCGTATAGTGACACGCAACAGGGGATAGACAAGGC
+      3 AAACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCA
+    257 AAACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+      1 AACACTCGTATAGTGACACGCAAC
+      2 AACACTCGTATAGTGACACGCAACAGGG
+     23 AACACTCGTATAGTGACACGCAACAGGGG
+      6 AACACTCGTATAGTGACACGCAACAGGGGATA
+...</screen>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  sort -g -r
+	</term>
+	<listitem>
+	  <para>
+	    We now sort the output of the previous uniq-counting command by
+	    asking 'sort' to perform a numerical sort (via '-g') and
+	    additionally sort in reverse order (via '-r') so that we get the
+	    sequences encountered most often at the top of the output. And
+	    that one looks exactly like shown previously:
+	  </para>
+	  <screen>
+    504 ACCACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+    501 CAACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+    489 GGACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+    483 GCCACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+    475 AATACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+    442 GATACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+    429 CGACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+    424 TTGACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+    393 ACTACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+    379 CAGACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+    363 ATTACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+    343 CATACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+    334 GTTACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+    328 AACACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+    324 GGTACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC
+...</screen>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+    <para>
+      So, what is this ominous CTCGTATAGTGACACGCAACAGGGGATAGACAAGGCAC you are
+      seeing? To make it short: a modified 454 B-adaptor with an additional MID sequence.
+    </para>
+    <note>
+      <para>
+	These adaptor sequences have absolutely no reason to exist in your
+	data, none! Go back to your sequencing provider and ask them to have a look
+	at their pipeline as they should have had it set up in a way that you
+	do not see these things anymore. Yes, due to sequencing errors,
+	sometimes some adaptor or sequencing vectors remnants will stay in
+	your sequencing data, but that is no problem as MIRA is capable of
+	handling that very well.
+      </para>
+      <para>
+	But having much more than 0.1% to 0.5% of your sequence containing
+	these is a sure sign that someone goofed somewhere ... and it's very
+	probably not your fault.
+      </para>
+    </note>
+  </sect1>
+  <sect1 id="sect_hard_examples_for_kmer_statistics">
+    <title>
+      Examples for kmer statistics
+    </title>
+    <para>
+      Selecting the right ratio so that an assembly fits into your memory is not
+      straight forward. But MIRA can help you a bit: during assembly, some frequency
+      statistics are printed out (they'll probably end up in some info file in later
+      releases). Search for the term "Kmer statistics" in the information printed
+      out by MIRA (this happens quite early in the process)
+    </para>
+    <sect2 id="sect_hard_caveat:_sk:kms">
+      <title>
+	Caveat: -SK:kmer_size
+      </title>
+      <para>
+	Some explanation how kmer size affects the statistics and why it
+	should be chosen >=16 for <arg>-KS:mnr</arg>
+      </para>
+    </sect2>
+    <sect2 id="sect_hard_sanger_sequencing_a_simple_bacterium">
+      <title>
+	Sanger sequencing, a simple bacterium
+      </title>
+      <para>
+	This example is taken from a pretty standard bacterium where Sanger
+	sequencing was used:
+      </para>
+      <screen>
+Kmer statistics:
+=========================================================
+Measured avg. coverage: 15
+
+Deduced thresholds:
+-------------------
+Min normal cov: 7
+Max normal cov: 23
+Repeat cov: 29
+Crazy cov: 120
+Mask cov: 150
+
+Repeat ratio histogram:
+-----------------------
+0       475191
+1       5832419
+2       181994
+3       6052
+4       4454
+5       972
+6       4
+7       8
+14      2
+16      10
+=========================================================
+      </screen>
+      <para>
+	The above can be interpreted like this: the expected coverage of the genome is
+	15x. Starting with an estimated kmer frequency of 29, MIRA will treat a k-mer
+	as 'repetitive'. As shown in the histogram, the overall picture of this
+	project is pretty healthy:
+      </para>
+      <itemizedlist>
+	<listitem>
+	  <para>
+	    only a small fraction of k-mers have a repeat level of '0' (these would be
+	    k-mers in regions with quite low coverage or k-mers containing sequencing
+	    errors)
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    the vast majority of k-mers have a repeat level of 1 (so that's non-
+	    repetitive coverage)
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    there is a small fraction of k-mers with repeat level of 2-10
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    there are almost no k-mers with a repeat level >10
+	  </para>
+	</listitem>
+      </itemizedlist>
+      <para>
+      </para>
+    </sect2>
+    <sect2 id="sect_hard_454_sequencing_a_somewhat_more_complex_bacterium">
+      <title>
+	454 Sequencing, a somewhat more complex bacterium
+      </title>
+      <para>
+	Here's in comparison a profile for a more complicated bacterium (454
+	sequencing):
+      </para>
+      <screen>
+Kmer statistics:
+=========================================================
+Measured avg. coverage: 20
+
+Deduced thresholds:
+-------------------
+Min normal cov: 10
+Max normal cov: 30
+Repeat cov: 38
+Crazy cov: 160
+Mask cov: 0
+
+Repeat ratio histogram:
+-----------------------
+0       8292273
+1       6178063
+2       692642
+3       55390
+4       10471
+5       6326
+6       5568
+7       3850
+8       2472
+9       708
+10      464
+11      270
+12      140
+13      136
+14      116
+15      64
+16      54
+17      54
+18      52
+19      50
+20      58
+21      36
+22      40
+23      26
+24      46
+25      42
+26      44
+27      32
+28      38
+29      44
+30      42
+31      62
+32      116
+33      76
+34      80
+35      82
+36      142
+37      100
+38      120
+39      94
+40      196
+41      172
+42      228
+43      226
+44      214
+45      164
+46      168
+47      122
+48      116
+49      98
+50      38
+51      56
+52      22
+53      14
+54      8
+55      2
+56      2
+57      4
+87      2
+89      6
+90      2
+92      2
+93      2
+1177    2
+1181    2
+=========================================================
+      </screen>
+      <para>
+	The difference to the first bacterium shown is pretty striking:
+      </para>
+      <itemizedlist>
+	<listitem>
+	  <para>
+	    first, the k-mers in repeat level 0 (below average) is higher than
+	    the k-mers of level 1! This points to a higher number of
+	    sequencing errors in the 454 reads than in the Sanger project
+	    shown previously. Or at a more uneven distribution of reads (but
+	    not in this special case).
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    second, the repeat level histogram does not trail of at a repeat
+	    frequency of 10 or 15, but it has a long tail up to the fifties, even having
+	    a local maximum at 42. This points to a small part of the genome being
+	    heavily repetitive ... or to (a) plasmid(s) in high copy numbers.
+	  </para>
+	</listitem>
+      </itemizedlist>
+      <para>
+      </para>
+      <para>
+	Should MIRA ever have problems with this genome, switch on the nasty repeat
+	masking and use a level of 15 as cutoff. In this case, 15 is OK to start with
+	as a) it's a bacterium, it can't be that hard and b) the frequencies above
+	level 5 are in the low thousands and not in the tens of thousands.
+      </para>
+    </sect2>
+    <sect2 id="sect_hard_solexa_sequencing_ecoli_mg1655">
+      <title>
+	Solexa sequencing, E.coli MG1655
+      </title>
+      <para>
+      </para>
+      <screen>
+Kmer statistics:
+=========================================================
+Measured avg. coverage: 23
+
+Deduced thresholds:
+-------------------
+Min normal cov: 11
+Max normal cov: 35
+Repeat cov: 44
+Crazy cov: 184
+Mask cov: 0
+
+Repeat ratio histogram:
+-----------------------
+0       1365693
+1       8627974
+2       157220
+3       11086
+4       4990
+5       3512
+6       3922
+7       4904
+8       3100
+9       1106
+10      868
+11      788
+12      400
+13      186
+14      28
+15      10
+16      12
+17      4
+18      4
+19      2
+20      14
+21      8
+25      2
+26      8
+27      2
+28      4
+30      2
+31      2
+36      4
+37      6
+39      4
+40      2
+45      2
+46      8
+47      14
+48      8
+49      4
+50      2
+53      2
+56      6
+59      4
+62      2
+63      2
+67      2
+68      2
+70      2
+73      4
+75      2
+77      4
+=========================================================
+      </screen>
+      <para>
+	This kmer statistics shows that MG1655 is pretty boring (from a
+	repetitive point of view). One might expect a few repeats but nothing
+	fancy: The repeats are actually the rRNA and sRNA stretches in the
+	genome plus some intergenic regions.
+      </para>
+      <itemizedlist>
+	<listitem>
+	  <para>
+	    the k-mers number in repeat level 0 (below average) is
+	    considerably lower than the level 1, so the Solexa sequencing
+	    quality is pretty good respectively there shouldn't be too many
+	    low coverage areas.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    the histogram tail shows some faint traces of possibly highly repetitive
+	    k-mers, but these are false positive matches due to some standard Solexa
+	    base-calling weaknesses of earlier pipelines like, e.g., adding poly-A,
+	    poly-T or sometimes poly-C and poly-G tails to reads when spots in the
+	    images were faint and the base calls of bad quality
+	  </para>
+	</listitem>
+      </itemizedlist>
+      <para>
+      </para>
+    </sect2>
+    <sect2 id="sect_hard_need_examples_for_eukaryotes">
+      <title>
+	(NEED EXAMPLES FOR EUKARYOTES)
+      </title>
+      <para>
+      </para>
+    </sect2>
+    <sect2 id="sect_hard_need_examples_for_pathological_cases">
+      <title>
+	(NEED EXAMPLES FOR PATHOLOGICAL CASES)
+      </title>
+      <para>
+	Vector contamination etc.
+      </para>
+    </sect2>
+  </sect1>
+</chapter>

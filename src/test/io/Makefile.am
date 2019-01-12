@@ -1,0 +1,3 @@
+
+SUBDIRS = fasta generalio scf
+

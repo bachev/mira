@@ -1,0 +1,137 @@
+<?xml version="1.0" ?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.docbook.org/xml/4.5/docbookx.dtd">
+<chapter id="chap_dataprep">
+  <chapterinfo>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="versionfile"/>
+    <author>
+      <firstname>Bastien</firstname>
+      <surname>Chevreux</surname>
+      <email>bach@chevreux.org</email>
+    </author>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="copyrightfile"/>
+  </chapterinfo>
+  <blockquote>
+    <attribution>Solomon Short</attribution>
+    <para>
+      <emphasis><quote>Rome didn't fall in a day either.</quote></emphasis>
+    </para>
+  </blockquote>
+  <title>Preparing data</title>
+  <sect1 id="sect_pd_introduction">
+    <title>
+      Introduction
+    </title>
+    <para>
+      Most of this chapter and many sections are just stubs at the moment.
+    </para>
+  </sect1>
+  <sect1 id="sect_pd_sanger">
+    <title>
+      Sanger
+    </title>
+    <para>
+      Outside MIRA: transform .ab1 to .scf, perform sequencing vector clip
+      (and cloning vector clip if used), basic quality clips.
+    </para>
+    <para>
+      Recommended program: <command>gap4</command> (or
+      rather <command>pregap4</command>) from the Staden 4 package.
+    </para>
+  </sect1>
+  <sect1 id="sect_pd_454">
+    <title>
+      Roche / 454
+    </title>
+    <para>
+      Outside MIRA: convert SFF instrument from Roche to FASTQ,
+      use <command>sff_extract</command> for that. In case you used
+      "non-standard" sequencing procedures: clip away MIDs, clip away
+      non-standard sequencing adaptors used in that project.
+    </para>
+  </sect1>
+  <sect1 id="sect_pd_illumina">
+    <title>
+      Illumina
+    </title>
+    <para>
+      Outside MIRA: for heavens' sake: do NOT try to clip or trim by quality
+      yourself. Do NOT try to remove standard sequencing adaptors
+      yourself. Just leave Illumina data alone! (really, I mean it).
+    </para>
+    <para>
+      MIRA is much, much better at that job than you will probably ever be
+      ... and I dare to say that MIRA is better at that job than 99% of all
+      clipping/trimming software existing out there. Just make sure you use
+      the <arg>-CL:pec</arg> (proposed_end_clip) option of MIRA.
+    </para>
+    <note>
+      The <emphasis>only</emphasis> exception to the above is if you (or your
+      sequencing provider) used decidedly non-standard sequencing
+      adaptors. Then it might be worthwhile to perform own adaptor
+      clipping. But this will not be the case for 99% of all sequencing
+      projects out there.
+    </note>
+    <para>
+      Joining paired-ends: if you want to do this, feel free to use any tool
+      which is out there (TODO: quick list). Just make sure they do not join
+      on very short overlaps. For me, the minimum overlap is at least 17
+      bases, but I more commonly use at least 30.
+    </para>
+  </sect1>
+  <sect1 id="sect_pd_iontor">
+    <title>
+      Ion Torrent
+    </title>
+    <para>
+      Outside MIRA: need to convert BAM to FASTQ. Need to clip away
+      non-standard sequencing adaptors if used in that project. Apart from
+      that: leave the data alone.
+    </para>
+  </sect1>
+  <sect1 id="sect_pd_sra">
+    <title>
+      Short Read Archive (SRA)
+    </title>
+    <para>
+      Outside MIRA: you need to convert SRA format to FASTQ format. This is done
+      using <command>fastq-dump</command> from the SRA toolkit from the
+      NCBI. Make sure to have at least version 2.4.x of the toolkit. Last time
+      I looked (March 2015), the software was at
+      <ulink url="http://www.ncbi.nlm.nih.gov/Traces/sra/?view=software"/>, the
+      documentation for the whole toolkit was at
+      <ulink url="http://www.ncbi.nlm.nih.gov/Traces/sra/?view=toolkit_doc"/>,
+      and for <command>fastq-dump</command> it was
+      <ulink url="http://www.ncbi.nlm.nih.gov/Traces/sra/?view=toolkit_doc&amp;f=fastq-dump"/>
+    </para>
+    <para>
+      After extraction, proceed with preprocessing as described above,
+      depending on the sequencing technology used.
+    </para>
+    <para>
+      For extracting Illumina data, use something like this:
+    </para>
+    <screen><prompt>arcadia:/some/path$</prompt> <userinput>fastq-dump -I --split-files <replaceable>somefile.sra</replaceable></userinput></screen>
+    <note>
+      <para>
+	As <command>fastq-dump</command> unfortunately uses a pretty wasteful
+	variant of the FASTQ format, you might want to reduce the file size
+	for each FASTQ it produces by doing this:
+      </para>
+      <screen><userinput>sed -i '3~4 s/^+.*$/+/' <replaceable>file.fastq</replaceable></userinput></screen>
+      <para>
+	The above command performs an in-file replacement of unnecessary name
+	and comments on the quality divider lines of the FASTQ. The exact
+	translation of the <command>sed</command> is: do an in-file
+	replacement (-i); starting on the third line, then every fourth line
+	(3~4); substitute (s/); a line which starts (^); with a plus (+); and
+	then can have any character (.); repeated any number of times
+	including zero (*); until the end of the line ($); by just a single
+	plus character (/+/).
+      </para>
+      <para>
+	This alone reduces the file size of a typical Illumina data set with
+	100mers extracted from the SRA by about 15 to 20%.
+      </para>
+    </note>
+  </sect1>
+</chapter>

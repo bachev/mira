@@ -1,0 +1,549 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"http://www.docbook.org/xml/4.5/docbookx.dtd">
+<chapter id="chap_pacbio">
+  <chapterinfo>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="versionfile"/>
+    <author>
+      <firstname>Bastien</firstname>
+      <surname>Chevreux</surname>
+      <email>bach@chevreux.org</email>
+    </author>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="copyrightfile"/>
+  </chapterinfo>
+  <blockquote>
+    <attribution>Solomon Short</attribution>
+    <para>
+      <emphasis><quote>New problems demand new solutions. New solutions create new problems.
+      </quote></emphasis>
+    </para>
+  </blockquote>
+  <title>
+    Assembly of Pacific Biosciences data with MIRA3
+  </title>
+  <sect1 id="sect_pb_only_ccs_for_now">
+    <title>MIRA 4.0 officially supports only CCS or error-corrected-CLR</title>
+    <para>
+      This is here to set the stage: at the moment, MIRA can only make good
+      use of PacBio reads which have an error rate of roundabout 5%. This
+      means you will have to use either:
+    </para>
+    <orderedlist>
+      <listitem>
+	<para>
+	  CCS (Circular Consensus Sequence) reads with at least 3 to 4 passes.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  CLR (Continuous Long Reads) which were error corrected either with
+	  PacBio CCS reads, self-corrected with itself, or some other
+	  high-quality sequencing technology (Illumina comes to mind)
+	</para>
+      </listitem>
+    </orderedlist>
+    <para>
+      Impatient people can directly jump to
+      <xref linkend="sect_pb_walkthrough_realdata"/> which contains
+      walkthroughs using data made publicly available by PacBio.
+    </para>
+    <para>
+      Unofficially, MIRA also supports uncorrected reads. However, the
+      assemblies are currently (as of 4.0) not good enough and using MIRA with
+      this kind of data is not recommended for general use.
+    </para>
+  </sect1>
+  <sect1 id="sect_pb_warninto">
+    <title>WARNING</title>
+    <para>
+      During the course of 2011, PacBio has made available on
+      their <ulink url="http://www.pacbiodevnet.com/">DevNet</ulink> site
+      quite a number of documents and introductory videos. A must read for
+      everyone working with this sequencing technology.
+    </para>
+  </sect1>
+
+  <sect1 id="sect_pb_introduction">
+    <title>Introduction</title>
+    <para>
+      As of January 2014, Pacific Biosciences looks like the new undisputed
+      star in the de-novo sequencing arena. Illumina may try to counter it via
+      Moleculo, but first reports point at a few shortcomings of Moleculo
+      which Pacific Biosciences does not have.
+    </para>
+    <sect2 id="sect_pb_some_reading_requirements">
+      <title>Some reading requirements</title>
+      <para>
+	This guide assumes that you have basic working knowledge of Unix
+	systems, know the basic principles of sequencing (and sequence
+	assembly) and what assemblers do.
+      </para>
+      <para>
+	While there are step by step walk-throughs on how to setup your
+	data for Sanger, 454 and Solexa in other MIRA guides, this guide is
+	(currently) a bit more terse. You are expected to read at some point in
+	time:
+      </para>
+      <itemizedlist>
+        <listitem>
+          <para>the <emphasis>mira_reference</emphasis> help file to look up
+          some command line options.</para>
+        </listitem>
+        <listitem>
+          <para> for hybrid assemblies of PacBio data with Sanger, 454, Solexa
+          the corresponding <emphasis>mira_usage</emphasis>,
+          <emphasis>mira_454</emphasis> or <emphasis>mira_solexa</emphasis>
+          help files to look up how to prepare the different data sets.</para>
+        </listitem>
+      </itemizedlist>
+    </sect2>
+  </sect1>
+  <sect1 id="sect_pb_pacbiowithmira">
+    <title>Assembly of PacBio data with MIRA</title>
+    <para>
+    </para>
+    <sect2 id="sect_pb_prepdata">
+      <title>Preparing data</title>
+      <para>
+	MIRA will happily read data in several different formats (FASTA,
+	FASTQ, etc.). For the sake of simplicity, this guide will use FASTQ as
+	demonstration format.
+      </para>
+      <sect3 id="sect_pb_as_prepdata_simple">
+	<title>Unpaired reads</title>
+	<para>
+	  This is actually quite simple. Just put your reads as FASTQ in a
+	  file and you are done. No need to bother about read naming
+	  conventions or similar things. Like so:
+	  <screen>
+@readname_001
+ACGTTGCAGGGTCATGCAGT...
+@readname_002
+...</screen>
+	</para>
+      </sect3>
+    </sect2>
+    <sect2 id="sect_pb_as_setting_up_files">
+      <title>Setting up files and directories</title>
+    </sect2>
+    <sect2 id="sect_pb_as_launching_mira">
+      <title>Launching MIRA</title>
+      <para>
+	In the most basic incantation, you will need to tell MIRA just five things:
+      </para>
+      <orderedlist>
+	<listitem>
+	  <para>
+	    the name of your project.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    whether you want a "genome" or "EST" assembly
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    whether it is a denovo or mapping assembly
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    which quality level (draft, normal or accurate)
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    the data you want to use
+	  </para>
+	</listitem>
+      </orderedlist>
+      <para>
+	The above needs to be written together in a manifest file, which is a
+	file listing the MIRA configuration and the data it should use. Have a
+	look at the walkthrough below and at the MIRA reference to get an idea
+	on how to write such a file (it's simple, really). Then start MIRA
+	like this:
+      </para>
+      <screen>
+<command>mira</command> <replaceable>manifest.conf >&amp;log_assembly.txt</replaceable></screen>
+      <note>
+	MIRA has -- at the last count -- more than 150 parameters one can use
+	to fine tune almost every aspect of an assembly, from data loading
+	options to results saving, from data preprocessing to results
+	interpretation, from simple alignment parameters to parametrisation of
+	internal misassembly decision rules ... and much more. Many of these
+	parameters can be even set individually for each sequencing technology
+	they apply to. Example given: in an assembly with Solexa, Sanger, 454
+	and PacBio data, the minimum read length for Solexa could be set to
+	30, while for 454 it could be 80, Sanger 100 and PacBio 150. Please
+	refer to the reference manual for a full overview on how to use
+	<emphasis>quick switches</emphasis> and <firstterm>extended
+	switches</firstterm> in manifest files.
+      </note>
+    </sect2>
+  </sect1>
+  <sect1 id="sect_pb_walkthrough_realdata">
+    <title>Walkthroughs: real data sets from PacBio</title>
+    <para>
+      We'll use some data provided by PacBio for the
+      <emphasis>E. coli</emphasis> O104:H4 outbreak in 2011, see <ulink
+      url="http://www.pacbiodevnet.com/Share/Datasets/E-coli-Outbreak"/> for
+      more info.
+    </para>
+    <sect2 id="sect_pb_wtrd_clrc">
+      <title>
+	Error corrected CLR for E. coli C227-11$
+      </title>
+      <para>
+	That data set is quite interesting: PacBio took CLR reads (the reads
+	with only ~85% accuracy) and mapped CCS reads (presumably >90%
+	accuracy) to them to correct errors of the CLR reads. The resulting
+	<emphasis>error corrected CLR</emphasis> data is of pretty good
+	quality, not only from the quality values but when assembled, the
+	number of sequencing errors in the reads which can be spotted in the
+	alignments is obviously quite low.
+      </para>
+      <sect3 id="sect_pb_wtrd_clrc_prep_filesystem">
+	<title>
+	  Preparing a directory structure
+	</title>
+	<para>
+	  Note: this is how I set up a project, feel free to implement whatever
+	  structure suits your needs.
+	</para>
+	<screen>
+<prompt>$</prompt> <userinput>mkdir c227-11-clrc</userinput>
+<prompt>$</prompt> <userinput>cd c227-11-clrc</userinput>
+<prompt>arcadia:c227-11-clrc$</prompt> <userinput>mkdir origdata data assemblies</userinput></screen>
+	<para>
+	  Your directory should now look like this:
+	</para>
+	<screen>
+<prompt>arcadia:c227-11-clrc$</prompt> <userinput>ls -l</userinput>
+drwxr-xr-x 2 bach users 48 2011-08-19 20:21 assemblies
+drwxr-xr-x 2 bach users 48 2011-08-19 20:21 data
+drwxr-xr-x 2 bach users 48 2011-08-19 20:21 origdata</screen>
+        <para>
+	  "c227-11-clrc" is an arbitrary name I just chose by concatenating
+	  the name of the bug and "-clrc" to indicate that this project has
+	  <emphasis role="bold">CLR</emphasis> sequences which were <emphasis
+	  role="bold">C</emphasis>orected. But you can name this whatever you
+	  want: foobar, blafurbsel, ...
+	</para>
+        <para>
+	  Explanation of the structure:
+	</para>
+	<itemizedlist>
+	  <listitem>
+	    <para>
+	      the <filename>origdata</filename> directory will contain the 'raw'
+	      result files that one might get from sequencing. In our case it
+	      will be the <filename>.tar.gz</filename> file with the data in
+	      FASTQ format from the DevNet site.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      the <filename>data</filename> directory will contain the
+	      preprocessed sequences for the assembly, ready to be used by MIRA
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      the <filename>assemblies</filename> directory will contain
+	      assemblies we make with our data (we might want to make more than
+	      one).
+	    </para>
+	  </listitem>
+	</itemizedlist>
+      </sect3>
+      <sect3 id="sect_pb_wtrd_clrc_getdata">
+	<title>
+	  Getting the data and preparing it
+	</title>
+	<para>
+	  Head over to PacBio DevNet and fetch the data set for the <ulink
+	  url="http://www.pacbiodevnet.com/Share/Datasets/e-coli-c227-11-corrected-fastq-1.2.2beta.tgz">E. coli
+	  C227-11 CLR corrected</ulink> data set. Put it into the
+	  <filename>origdata</filename> directory created a few moments ago.
+	</para>
+	<para>
+	  Now, let's extract the data to the <filename>data</filename> directory:
+	</para>
+	<screen>
+<prompt>arcadia:c227-11-clrc$</prompt> <userinput>cd data</userinput>
+<prompt>arcadia:data$</prompt> <userinput>tar xvzf ../origdata/e-coli-c227-11-corrected-fastq-1.2.2beta.tgz</userinput>
+e-coli-c227-11-corrected-fastq-1.2.2beta/
+e-coli-c227-11-corrected-fastq-1.2.2beta/e-coli-c227-11-corrected.fastq</screen>
+        <para>
+	  One thing you would quickly find out but which I tell now to save
+	  time: at the moment, PacBio seems to love ultra long read
+	  names. Here are the first 10 from the current data set:
+        </para>
+	<screen>
+<prompt>arcadia:data$</prompt> <userinput>grep ^@m e-coli-c227-11-corrected-fastq-1.2.2beta/e-coli-c227-11-corrected.fastq | head -10</userinput>
+@m110618_035655_42142_c100158802555500000315044108071130_s1_p0/10040/0_5174/c0
+@m110618_035655_42142_c100158802555500000315044108071130_s1_p0/10040/0_5174/c1
+@m110618_035655_42142_c100158802555500000315044108071130_s1_p0/1017/0_1636/c0
+@m110618_035655_42142_c100158802555500000315044108071130_s1_p0/1054/0_4073/c0
+@m110618_035655_42142_c100158802555500000315044108071130_s1_p0/1054/0_4073/c1
+@m110618_035655_42142_c100158802555500000315044108071130_s1_p0/1054/4121_4891/c0
+@m110618_035655_42142_c100158802555500000315044108071130_s1_p0/10548/0_5766/c0
+@m110618_035655_42142_c100158802555500000315044108071130_s1_p0/10548/0_5766/c1
+@m110618_035655_42142_c100158802555500000315044108071130_s1_p0/10640/0_2393/c0
+@m110618_035655_42142_c100158802555500000315044108071130_s1_p0/11000/0_3285/c0</screen>
+        <para>
+	  How sweet! Read names with 80 and more characters AND having the "/"
+	  character as component, the later being a recipe for disaster sooner
+	  or later in some post-processing pipelines.
+        </para>
+	<note>
+	  MIRA has absolutely no problem with the above: neither with long read
+	  names nor with the "/" character in the name. However, long read names
+	  are a problem for example for <command>gap4</command> (an assembly
+	  viewer) and the "/" character might lead to confusion with the
+	  standard UNIX directory separator, many programs which can be used
+	  to post-process assemblies simply disallow that character.
+	</note>
+        <para>
+	  For the sake of simplicity and compatibility, let's rename all
+	  sequences. For this we'll use <command>miraconvert</command>,
+	  which is a binary of the MIRA program package:
+        </para>
+	<screen>
+<prompt>arcadia:data$</prompt> <userinput>miraconvert
+  -R c227-11-clrc
+  e-coli-c227-11-corrected-fastq-1.2.2beta/e-coli-c227-11-corrected.fastq
+  c227-11-clrc.fastq</userinput>
+Loading from fastq, saving to: fastq
+Loading data from FASTQ ...
+Counting sequences in FASTQ file: found 73496 sequences.
+Localtime: Sat Aug 20 20:36:26 2011
+Unusual offset of 34, guessing this file to be a Sanger-type FASTQ format.
+Using calculated FASTQ quality offset: 33
+Localtime: Sat Aug 20 20:36:26 2011
+Loading data from FASTQ file:
+ [0%] ....|.... [10%] ....|.... [20%] ....|.... [30%] ....|.... [40%] ....|....
+[50%] ....|.... [60%] ....|.... [70%] ....|.... [80%] ....|.... [90%] ....|.... [100%]
+
+Done.
+Loaded 73496 reads, Localtime: Sat Aug 20 20:36:35 2011
+ done.
+Data conversion process finished, no obvious errors encountered.</screen>
+      <note>
+	The above command has been split in multiple lines for better overview
+	but should be entered in one line.
+      </note>
+      <para>
+	The parameters to <command>miraconvert</command> say
+      </para>
+	<itemizedlist>
+	  <listitem>
+	    <para>
+	      <emphasis role="bold">-R c227-11-clrc</emphasis>: sequences
+	      should be renamed, all starting with "c227-11-clrc" and to which
+	      <command>miraconvert</command> will append an underscore and
+	      a counter.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      <emphasis
+	      role="bold">e-coli-c227-11-corrected-fastq-1.2.2beta/e-coli-c227-11-corrected.fastq</emphasis>:
+	      that's the full name of our input file.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      <emphasis role="bold">c227-11-clrc.fastq</emphasis>: that's
+	      the name of our output file.
+	    </para>
+	  </listitem>
+	</itemizedlist>
+	<para>
+	  Your directory should now look like this ...
+	</para>
+	<screen>
+<prompt>arcadia:data$</prompt> <userinput>ls -l</userinput>
+-rw-r--r-- 1 bach bach 257844076 2011-08-20 21:04 c227-11-clrc.fastq
+drwxr-x--- 2 bach bach      4096 2011-07-22 04:49 e-coli-c227-11-corrected-fastq-1.2.2beta</screen>
+	<para>
+	  ... and as we do not need the subdirectory with the extracted data from PacBio anymore, let's get rid of it:
+	</para>
+	<screen>
+<prompt>arcadia:data$</prompt> <userinput>rm -rf e-coli-c227-11-corrected-fastq-1.2.2beta</userinput>
+<prompt>arcadia:data$</prompt> <userinput>ls -l</userinput>
+-rw-r--r-- 1 bach bach 257844076 2011-08-20 21:04 c227-11-clrc.fastq</screen>
+	<para>
+	  Perfect, we're done here.
+	</para>
+      </sect3>
+      <sect3 id="sect_pb_wtrd_clrc_starting_assembly">
+	<title>
+	  Starting the assembly
+	</title>
+	<para>
+	  Good, we're almost there. Let's switch to the
+	  <filename>assembly</filename> directory and create a subdirectory for our
+	  first assembly test.
+	</para>
+	<screen>
+<prompt>arcadia:data$</prompt> <userinput>cd ../assemblies/</userinput>
+<prompt>arcadia:assemblies$</prompt> <userinput>mkdir 1sttest</userinput>
+<prompt>arcadia:assemblies$</prompt> <userinput>cd 1sttest</userinput></screen>
+        <para>
+	  This directory is quite empty and the PacBio data is not
+	  present. And it does not need to be as we'll tell MIRA in the manifest
+	  configuration file where to find the data and what to do with it.
+	</para>
+	<screen>
+# A manifest file can contain comment lines, these start with the #-character
+
+# First part of a manifest: defining some basic things
+
+# In this example, we just give a name to the assembly
+#  and tell MIRA it should assemble a genome de-novo in accurate mode
+
+<userinput>project = <replaceable>c227-11-clrc</replaceable>
+job = <replaceable>genome,denovo,accurate</replaceable>
+parameters = <replaceable>-CO:mrpg=5</replaceable></userinput>
+
+# The second part defines the sequencing data MIRA should load and assemble
+# The data is logically divided into "readgroups", for more information
+#  please consult the MIRA manual, chapter "Reference"
+
+<userinput>readgroup = <replaceable>MyPacBioCLRCReads</replaceable>
+technology = <replaceable>pcbiohq</replaceable>
+data = <replaceable>../../data/c227-11-clrc.fastq</replaceable></userinput></screen>
+        <para>
+	  Starting the assembly is now just a matter of one line:
+	</para>
+	<screen>
+<prompt>arcadia:1sttest$</prompt> <userinput>mira <replaceable>manifest.conf >&amp;log_assembly.txt</replaceable></userinput></screen>
+	<para>
+	  Some 3 to 4 hours later, you should have a nice and shiny assembly of
+	  your data.
+	</para>
+	<para>
+	  Now, that was easy, wasn't it? In the above example - for assemblies
+	  having only PacBio data and if you followed the walkthrough on how to
+	  prepare the data - everything you might want to adapt in the first
+	  time are the following options:
+	</para>
+	<itemizedlist>
+	  <listitem>
+	    <para>
+	      project= (for naming your assembly project)
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      job= (perhaps to change the quality of the assembly to 'draft'
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      parameters= -CO:mrpg= X
+	    </para>
+	    <para>
+	      At the moment, this parameter needs to be adjusted by YOU
+	      regarding the expected average coverage of error corrected reads
+	      in your project. The value <emphasis>X</emphasis> should be set
+	      as in <emphasis>X = AvgCov / 5</emphasis> (alternatively divide
+	      by 4 or 6).
+	    </para>
+	  </listitem>
+	</itemizedlist>
+	<para>
+	  Of course, you are free to change any of the &gt; 150 options via
+	  the extended parameters MIRA has ... but this is covered in the MIRA
+	  main reference manual.
+	</para>
+      </sect3>
+      <sect3 id="sect_pb_wtrd_clrc_working_with_results">
+	<title>
+	  Working with the results of the assembly
+	</title>
+	<para>
+	  There is a whole chapter in the manual dedicated to this, you are expected to read it :-)
+	</para>
+	<para>
+	  However, for the impatient, here's a quick rundown on what I am
+	  going to show as example in this section: loading results into an
+	  assembly viewer.
+	</para>
+      </sect3>
+      <sect3 id="sect_pb_wtrd_clrc_wwr_gap4">
+	<title>
+	  Looking at the assembly in gap4
+	</title>
+	<para>
+	  I'm very fond of gap4, so I'll use it to show ho the assembly looks like:
+	</para>
+	<screen><prompt>arcadia:c227-11-clrc_results$</prompt> <userinput>caf2gap -project c227-11 -ace c227-11-clrc_LargeContigs_out.caf >&amp;/dev/null</userinput>
+<prompt>arcadia:c227-11-clrc_results$</prompt> <userinput>ls -l C*</userinput>
+-rw-r--r-- 1 bach bach 543539856 2011-08-20 22:35 C227-11.0
+-rw-r--r-- 1 bach bach  39512896 2011-08-20 22:35 C227-11.0.aux
+<prompt>arcadia:c227-11-clrc_results$</prompt> <userinput>gap4 C227-11.0</userinput></screen>
+	<para>
+	  And while it's difficult to judge an assembly only from a
+	  screen shot, I made one: 22 contigs, none smaller than 4kb and
+	  pretty good certainty your bases are correct. Pray tell, isn't that
+	  beautiful?
+	</para>
+	<figure id="chap_pacbio::pb_elasticdarkinserts04">
+	  <title>
+	    Result of the assembly of <emphasis>E. coli</emphasis> C227-11 with
+	    error corrected CLR reads.
+	  </title>
+	  <mediaobject>
+	    <imageobject>
+	      <imagedata fileref="bookfigures/pb_c227-11-clcr_res.png" width="90%"/>
+	    </imageobject>
+	  </mediaobject>
+	</figure>
+      </sect3>
+    </sect2>
+    <sect2>
+      <title>CCS reads for E. coli C227-11</title>
+      <para>
+	Head over to PacBio DevNet and fetch the data set for the <ulink
+	url="http://www.pacbiodevnet.com/Share/Datasets/e-coli-c227-11-ccs-fastq-1.2.2beta.tgz">E. coli
+	C227-11 CCS</ulink> data set.
+      </para>
+      <para>
+	For the rest ... well, it's pretty much the same as for the CLR data
+	set. Just one little difference: in the <filename>.tgz</filename> you
+	downloaded, PacBio has split the data set into multiple FASTQ files
+	(for whatever reason). You will need to give those names in the
+	manifest file before starting to work with that. Yep, and that's it.
+      </para>
+    </sect2>
+  </sect1>
+  <sect1 id="sect_pb_exsd_hybrids">
+    <title>Hybrid assemblies: PacBio plus Sanger/454/Solexa/IonTorrent</title>
+    <para>
+      TO BE EXPANDED: no real walkthrough yest, just a few hints.
+    </para>
+    <itemizedlist>
+      <listitem>
+	<para>
+	  Prepare your PacBio data like explained in this guide. I.e.: get it
+	  error corrected into FASTQ files.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Prepare your other data (Sanger, 454, Solexa, IonTorrent or any combination of
+	  it) like explained in the respective MIRA guides.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Write a manifest which includes all data files as readgroups and start MIRA.
+	</para>
+      </listitem>
+    </itemizedlist>
+  </sect1>
+</chapter>

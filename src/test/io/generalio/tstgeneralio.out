@@ -1,0 +1,15 @@
+Testing normal operation
+############ 1-0
+Testing kvin.txt
+------------------------------------------------
+key "laber1"	value "bla1"
+key "laber2"	value "bla2"
+key "laber3"	value "bla3 gna 5"
+key "laber4"	value "bla4 gna 5"
+key "hick6"	value ""
+
+
+KV list ended.
+
+
+Tests ended.

@@ -1,0 +1,808 @@
+Allignment problems in homopolymer ends
+
+ref  xxx*TTTTTTxxx
+     xxxTTTTT
+     xxxTTTTT
+     xxxTTTT
+     xxxTTT
+-->  xxxTTTTTTTxxx
+     xxx*TTTTTTxxx
+     xxx*TTTTTTxxx
+     xxx*TTTTTTxxx
+     xxx*TTTTTTxxx
+     xxx*TTTTTTxxx
+     xxx*TTTTTTxxx
+     -------------
+CONS xxxtTTTTTTxxx
+        ^
+See whether and how to fix this.
+
+E.g.:
+BS5939: locus BSU25630
+
+
+Maybe only in mapping: cleanup run on assembled/cleaned contig, cut back reads
+so that they do not start/stop in / near SRxC / SIOC / SAOc columns? To get
+cleaner gap/base columns.
+
+----
+
+Astonishing amount of unedited simple errors in MiSeq PE 250 data
+
+Also: miscalls in short homopolymers. Eg: CCCC instead of correct CACC
+
+Projects: BS7550, BS7840, BS7845, BS7852-1, BS7852-2, BS7852-3
+
+----
+
+RNASeq: Illumina stranded RNASeq
+
+----
+
+eliminate raw pointer new in gff_save
+
+----
+Maybe for EST/RNASeq assembly only?
+
+disallow short overlaps (even 100% matches) on low entropy
+
+The below joined two different proteins together.
+
+         hictree_br:1:1208:3561:53878/1   - atgagtttgtgtctacctaatgaataatacatatat*tttttatttTcttaaaaaaaa
+         hictree_br:1:1203:19652:53508    - atgagtttgtgtctacctaatgaataatacatatat*tttttatttTcttaaaa
+100%     hictree_br:1:1115:10648:15532/1  - atgagtttgtgtctacctaatgaataatacatatat*tttttatttTcttaaaaaaaaa
+         hictree_br:1:2103:2240:67066     + atgagtttg
+         hictree_br:1:1209:15440:14393    - atgagtttgtgtctacctaatgaataatacatatat*tttttaAAAaAA
+         hictree_br:1:1111:6993:9703/1    - atgagtttgtgtctacctaat
+         hictree_br:1:2105:16335:20880    +                              cTGaACtGCAACtatttacttaaaaaaaaaa
+         hictree_br:1:1102:16982:53407/2  -                                    tGCAACtatttTcttaaaaaaaaaa
+         hictree_br:1:1207:3054:24329/2   +                                      CAACtatttacttaaaaaaaaaa
+         hictree_br:1:1207:6278:13826/1   -                                      CAACtatttTcttaaaaaaaaaa
+         mictree_br:1:1107:5162:22321/2   -                                       AACtatttacttaaaaaaaaaa
+100%     mictree_br:1:1115:5293:7671/2    -                                           atttTcttaaaaaaaaaa
+         mictree_br:1:1102:12199:12157/2  -                                           atttacttaaaaaaaaaa
+
+Above: polyA-9 and poly-T 4 (total 13) on 18 bp match
+
+Idea: if sum of poly-runs >=4 is >=50% of overlap, reject. Maybe for overlaps
+<20 (25? 30? 40?) Also maybe if contains a run >=8 on overlaps <= 20-25?
+
+-----------------------------------
+
+contig_consensus: makeIntelligentConsensus()
+helper2 remade for solexa, need to redo for others, too:
+- return all possible groups, let the predictlevel choose afterwards!
+
+-----------------------------------
+
+assembly.C:
+markReadsWithInvalidKMerEndsAsChimeras_Pool and
+markReadsWithRareKMersAsChimeras_Pool throw out single coverage reads in
+mapping. Switched off in mapping for now. See whether to switch back on
+again.
+
+-----------------------------------
+
+sxa300
+
+1. ppathfinder: deprioritise
+  - not well_connected + no valid kmer at ends
+
+2. contig building: starting in pass3?
+  - iteratively cut back read overhangs without valid kmer and remove from contig
+
+...
+
+--
+- Why does contig building not always give same start contig on restart?
+
+-----------------------------------
+
+Unify clipping log output, tabular.
+
+-----------------------------------
+
+keep -AL:mo=25 aligned with -SK:bph=17 ??? when using multiple pass with
+increasing bph?
+
+-----------------------------------
+
+!!!!!!!!!!!!! CLAM ribDypuD search: iteration 1. Did not assemble 100% matches???
+
+-----------------------------------
+
+maybe optimise the keeping of persistent overlaps?
+RhoSPhae 80x 100bp shotgun: 1 GiB file
+Eco 1655 2*3m 100bp: 2.7 GiB
+
+-----------------------------------
+
+simple scaffolder. soon!
+
+-----------------------------------
+
+implement no truncate within SKIM of _posmatch?_pass.*.bin when doing mapping only???
+
+-----------------------------------
+
+populate more data for *_info_readgroups.txt
+
+-----------------------------------
+
+instead of using fixed -CL:pmkfr, maybe scale back to pmkfr=1 on kmers with
+high GC?
+
+-----------------------------------
+
+go through code and make use of boost::filesystem /-operator to construct
+file and path names.
+
+-----------------------------------
+
+Assembly with -AS:nop=3, stopped in pass 2 and resumed: just calculates pass 2
+and stopps without a pass 3???
+
+-----------------------------------
+
+neisseria:
+paired-end wishlist
+
+-----------------------------------
+
+apropos function on manifest parameters
+
+-----------------------------------
+
+Loading of CAF/ MAF for assembly:
+
+if manifest like this
+readgroup
+technology=pcbiohq
+data=... .maf
+
+but the MAF contains, e.g., Solexa, MIRA does not know about the
+Solexas after the manifest parsed and hence did not prepare its
+parameters!
+
+*sigh*
+
+-----------------------------------
+
+sam depad : no "allstrains" consensus embedded in MAF anymore?
+
+-----------------------------------
+
+Read::getDigiNormMultiplier();
+
+eventually cache a boolean for quick yes/no?
+
+-----------------------------------
+
+removing pcr duplicates (solexa)
+
+work on pairs per read group: need to have the same direction, length and same crc32/md5 for segment pairs
+
+eg
+
+pair 1   + aaaa/1           - gggg/2
+pair 2   + aaaa/1           - gggg/2
+pair 3   + aaaa/1           - gggg/2
+
+but not
+         + aaa/1            - gggg/2
+         + aaTa/1           - gggg/2
+         + aaaa/2           - gggg/1
+         - aaaa/1           + gggg/2
+
+
+Then (for genomes only?):
+if readgroup had "enough" duplicates seen earlier and/or if hashstats avg freq
+"OK", remove single read duplicate: same length, same crc32/md5, same segment
+
+
+Then (for genomes only?):
+analyse contig for pcr dup patterns (same start, same end)
+
+-----------------------------------
+
+-SB:abnc gives totally weird results (first 2kb bs168)
+
+-----------------------------------
+
+John, bughunt, SEnt small map
+HWI-ST724:221:C1BU4ACXX:5:1102:16881:253
+misaligned!!!!
+
+problem goes away after git 426f466a946300e8d84ab66043cd6cc2831596fa
+but it's just because the misalignment bug is not triggered anymore
+need to still hunt down.
+
+-----------------------------------
+
+walkthrough for NCBI data: loading .fna, .gff3 and assembly of SRA
+
+-----------------------------------
+
+docs for -CL:pmkfr:cbse
+
+-----------------------------------
+
+resume mapping assemblies! (is that needed or "simply not supported"?
+
+need to save backbone sequences and rails as contigs, taking them out of
+normal readpool.maf. This would/might destroy read order ... need to also save read
+order in readpool.
+
+-----------------------------------
+
+move Read::isUsedInAssembly() to Assembly
+---> merge with other flags into a bitfiled?
+
+
+-----------------------------------
+EST:
+
+categorise reads as possible introns by coverage within a contig if no SRMc
+
+-----------------------------------
+
+reactivate TCS
+
+
+-----------------------------------
+
+document ltr2mfsm, mfsm tags
+make user able to define own tags to mfsm
+
+document fcov example
+
+document clipping options of -CL:pec group, -CL:rkm
+
+-----------------------------------
+
+> During the 3 steps of the miraSearchESTSNPs pipeline I encountered several
+> problems, that were overcome with a few èscamotages that I’m not sure were
+> properly addressed. First of all, I had problems in highering the assembly
+> stringency (I mean avoiding the introduction of too many gaps in the
+> assembly). It seems step 2 considers input sequences as Sanger even if my
+> dataset is only composed by 454 sequences, so I had to add parameters
+> regulating the assembly stringency also as SANGER_SETTINGS  to the command
+> line.
+
+Oooops ... you sure about that? I'll need to have a look at that one.
+--------------------------------
+
+idee: count how often read is incorporated in contigs without involvement in
+ new SRMc. last pass: throw out / remove well connected status for reads
+ never OK
+idee: lastpast, cut back ends not covered by HAF tags (+2 into HAF??)
+
+--------------------------------
+
+implement BLOOM filter for shash statistics as pre-filter
+First pass BLOOM, storing hashes >= 2x in the filter
+
+--------------------------------
+
+document -CL:msvssfc:msvssec
+
+--------------------------------
+
+
+Contig: transpose SRMr tags to SRMr/CRMr tags in reads not tagged yet
+
+--------------------------------
+
+U13 with qual clips: some 100% matching contigs not assembled???
+
+--------------------------------
+test on aciadp1, 454pe lib contaminated with peanut mRNA
+
+-----------------------------------
+document/parametrise skim.C analyseHashes(): fwdrevmin
+document: -OUT:org3
+-----------------------------------
+
+implement VCF, BED
+
+scere artificial: pass 2
+400m edges added by rsh4_takeReptPEPEHitsThatExtend(20,100,fname, blockpos,
+blocklen);
+-> rethink strategy of that func
+
+
+--------
+> Also, could you include the MIRA version number in the MAF file, and the
+> command line used to invoke it? This would be useful for tracking how all
+> my difference assemblies were created.
+
+Hmmm, not sure whether I want to do this. I initially wanted to have some
+   comment fields in MAF format, but did not come around implementing
+   them. Give me some time to think this through.
+-------
+
+replace INCLUDES in Makefile.am with CXXFLAGS=-I... // progs: look at itxt
+
+configurable: 64 instead of 16 files for hstat.
+
+
+aci_adp: hybrid ... SRMr tags set only in 454 reads, not sxa???
+
+
+
+
+-----------------------------------------------------------------------------
+Problem: Very, very spurious overhang misassemblies. All HAF3. If detectable,
+   then only by setting endreadmarkexclusionarea to 0 (too dangerous).
+
+1.4 MB contigs in BS
+
+..................xx.
+................*x*xx
+................*x*xxx
+................*x*xxxx
+................x.........................
+..........................................
+      xxxxx...............................
+       xxxx...............................
+        xxx...............................
+         xx...............................
+------------------------------------------------------------------------------
+
+document order of file creation
+document hard/soft Solexa filters
+
+EZRJ5AL02JMKBG
+E0K6C4E01EE4FA
+E0K6C4E02HKBO6
+E0K6C4E02JD918
+E0K6C4E02F3T1Y
+E0K6C4E02G544S
+
+
+read.C
+loadDataFromEXP(): reactivate/convert swapTags()
+initialiseRead(): reactivate/convert adding tags
+
+EST:
+ mask at X times hash in project
+
+
+mapping: Gogo: try whether mapping indels first is better!
+overlapcompressstepping in buildFirstContigs(): check whether functional!
+fasta2frag: continue mutation
+
+skim: fullencasing erlaubt bei EST?
+
+memorysave: read
+nuke forward/complement?
+
+allow reads without adjustments (done, now allow dynamic re-enabling)
+
+
+bceti: prüfen ob
+
+FF5UQ0101A62BE.fn
+FFPHEER01DATWZ
+FFPHEER01AK3C0
+
+sich als join spoiler verraten durch anzahl overlapextends links / rechts
+(oder verhältnis oder so)
+
+bceti: urdsip=4 trotzdem in pass 4 noch coverage >500???
+
+
+4705: rails am ende (funktioniert eh nicht derzeit). hängt auf nach Assembly bei
+   Searching for SNPs and IUPACs, preparing needed data ...
+
+
+
+setvbuf ( pFile , NULL , _IOFBF , 1024 );
+
+
+==================================
+DOCUMENTATION
+==================================
+
+
+
+
+use
+http://www.ncbi.nlm.nih.gov/Traces/sra/sra.cgi?run=SRR005481&cmd=viewer&m=data&s=viewer
+and
+http://www.ncbi.nlm.nih.gov/Traces/sra/sra.cgi?run=SRR005482&cmd=viewer&m=data&s=viewer
+to write a paired / unpaired 454 assembly guide
+
+
+use
+
+SRR005677 (Acinetobacter sp. ATCC 27244) Solexa + 454
+
+
+
+
+- NONO the functionality of propose cutbacks now also takes into account
+  forward/reverse presence of clean ends for 454 and Solexa data.
+
+
+
+==================================
+HIGHEST PRIORITY (2.9.x)
+==================================
+
+idea: pass 1: no ads_enforce_clean_ends, no editing,
+      pass 2: switch on enforce
+      pass 3: switch on editing (or in pass2?)
+      after 2 rounds edit, recalc *all* reads with SRM/WRM
+
+
+
+skim:
+- (eventually, if easy, else later): prefer to write skim results with non-mc
+  overlaps
+
+
+Hmmm... bs168:
+- sequencing bias. Idea: if more than x reads align at same position, same
+direction and have same length, remove some (EZRJ5AL02FOGB8 EZRJ5AL02FVAKW)
+and (E0K6C4E02HY6PS E0K6C4E02I9JDB)
+
+Problem bs168 pass3
+E0K6C4E02GWD5E EZRJ5AL02GD876 (alignment end protection would have
+helped). Idea: perhaps sub-critical SRMr mismatches. If more than 15 in a 30
+stretch: mark SMRr?
+
+
+convert_project: ohne -y keine statistiken über large contigs :(((
+
+bceti: FFPHEER01EYB6A, FFPHEER01EYIHS do not find perfect 42 bases overlap to
+FFPHEER01BSB83 ??? -> reduce skim: take left and right extensions of every
+read!!! (or does it get thrown out earlier?)
+
+
+
+ETX12BK02HGFOM in ecoli paper project: alignment of multicopy against backbone
+-> in higher passes, transpose SRMr tags and reject alignment
+
+CCCCAGTAGCGGCGAGCGAACGGGGAGCAGCCGAGTGGTTTCATACGCGTGAA*GTTC*TGCAATAGT  ETX12B...
+CCCCAGTAGCGGCGAGCGAACGGGGAGCAGCCCAGAGCCTGAATCAGTATGTGTGTTAGTGGAAGCGT  cons
+                                   x  x xx  xx xx  xxx   xx     xxx
+
+
+
+replace -AL:egpl with mechanism not in Align class (for handling different
+strains)
+weiter maxgapcounter in align, have contig reject codon gaps and
+these reads set as need all overlaps (analysis function)
+
+
+
+assembly_info: number of reads with SRMr, resolved SRMr (SRMc) positions
+
+BUG: "convert_project -f CAF -t ace" does not have same ouput as original
+ACE??? The quality values are totally different???
+
+delete MRMr tags at SRMr positions?
+
+454 Regel: Qual-3 oder -2 für SRMr wenn 8 / Basegroup und + / -
+
+Wenn -SK:mnr benutzt wird ... skimfilter auch alle SRMr/SRMr hits?
+
+check gnl|ti|1251406489 in spneu to bb hyb
+
+
+-highlyrepetitive: add -AS:urd and pass? change -SK:rt?
+
+STMS tags set on N in Solexa reads (other error before, but this should not
+happen neither)
+
+contig_analysis.C: Must account for mapped reads in nmpr_firstfillin() or
+nmpr_rategroups() and the rest of the newrepeatmarker();
+
+
+contig.C: add options to parametrise the short read clippings
+contig.C: add options to parametrise short read acceptance upon number and
+          type of errors.
+
+assembly.C/contig.C: check which align to take when using hybrids.
+rethink in hybrid assemblies (and different strains): parametrisation of
+align, which to take? tough when same strain and seq.tech, bit more lenient
+else? (example of rrna stretches in Bsub with one codon more / less)
+
+
+Contig: USCLO_SWALIGN (when mapping Solexa) shows time dependency of unknown
+        factor. Why????????? From 300k to 1m reads -> slow. At 1.2mio reads,
+        fast again.
+
+In contigs: transpose SRMr tags in non-SRMc columns to CRMr in other reads (if
+there are more than 2, 3, 4, 5, ... other bases). To prevent aligning of SRMr
+tagged sequences with non-SRMr sequences that have another base)
+
+Also: mapping: no tag transposal to backbone???
+
+Loading backbone: are SRMr tags transposed to rails??? (they must be!)
+
+
+==================================
+HIGH PRIORITY
+==================================
+
+homopolymer quality propagation: after all clipping and masking, assign
+quality of lowest base in a run to all bases of the run? Danger! AAAAAAAAAA ->
+AAAAAtAAAA where long homopolymer might have really bad quality then :-(
+
+feature analysis: uppercasing /lowercasing sequences on mutation does not work
+for feature strain???
+
+
+print some cluster/debris info after clustering
+
+put strain info to rails?
+
+GBF: "ncRNA" are "gene" after gbf in assembly, caf->gap4->caf->gbf
+
+GBF: write "/codon_start" and "/transl_table" (and have convert_proejct a
+switch to choose the table
+
+
+E0K6C4E02JXSHC (bs168) nachprüfen warum mistig aligned? (ohne gap)
+
+take x left/rightmost reads of each contig as "needalloverlaps"
+
+parameters: -clippingXXX  for 454, SOLEXA & SOLID?
+
+backbone assembly abnc=no: multicopy file no entry > 0 ???
+
+test miraclip/mirapre
+
+convert_project: caf2caf with -d deleteStarOnlyColumns() throws on GLL 14k
+
+!!!!!!! STILL THERE??? GLL 7ksmall (and GLL full) after 1st pass:
+        possible SRM tagged??? 138832_3005_0985 (pos 2657 in contig). miratest
+        finds it???
+
+
+Segfault! Mapping 454 reads, having first performed vector clipping and read
+extension. (bb_500k for bs168)
+
+
+==================================
+MEDIUM PRIORITY
+==================================
+
+add some parameter that allows to set mask tags that MIRA will not use in
+consensus computation (only if no other sequence is present). Needs als slight
+changes to
+
+Maximum allowed coverage? (start in loop ...). Use 1.5x avg cov as general
+threshold and 1.2x avg. cov for for "convicted multicopies" (rails can be
+that, too)? But for mapping, allow reads when there's a position with a low
+coverage (Solexa<6?), else "Canyon-SNPs" won't be found. (per round, else
+after 6 mappings it's stopping)
+
+cyanothece example (2.9.24x2 on): gnl|ti|1986108285 aligns with
+gnl|ti|1986095147 with a 9bp gap (repeat which doesn't get tagged as SRMc but
+only WRMc). Idea: switch on egp after given number of passes? Idea: as soon as
+gaps involved >3bp morph WRMc -> SRMc?
+
+TXT output of alignment: handle read names >20 or so characters
+TXT output of alignment: sloooooooooooooow for Solexa assemblies
+
+rework EST minidemo for new switches (once poly-A tagging works again (needs
+skim masking))
+
+problem: ">bla" as solexa input file (zero length seq) gives error
+
+check parameter flexer for cases needing <<EOF>>
+
+Assembly error with repeat and 2 strains. see
+wrongassembly_problem3reads2strains. Must be fixed in Contig baselocks,
+checkADSForMismatchworks
+
+backbone assembly: first sanger (backbone quick, backbone normal), then 454
+instead of first backbone quick (sanger, 454) and then backbone normal
+(sanger, 454) ???
+
+XML load: say which reads not covered by xml info?
+
+NCBI XML: parse mate pairs
+.
+Improve template handling
+-------------------------
+
+parsing of templates
+
+slimdown/beef-up cycle for contigs? (take out multicopy orphan templates,
+rebuild) or even more sophisticated: when building and non-multicopy read
+clashes in insert size with multicopy template partner, remove template
+partner from contig)
+
+alternative to beef-up/slim-down: align non-multicopy reads even if template
+is wrong if template partner is multicopy, throw out multicopy template
+partner from contig
+
+---------------------------
+
+
+SKIM: SRMr/CRMr als preferred match position mitziehen, wenn links & rechts
+davon hits, dann muss auch da ein hit sein?
+
+ODER: in reads mit SRMr/CRMr extra skim pass: nur die areas um die tags
+hashen und vergleichen. im normalen pass wenn beide reads tags haben nicht
+vergleichen.
+
+
+-------------------------------------
+check how to better implement AS_permanent_overlap_bans: this gets a memory
+nightmare for highly repetitive 454 data
+-------------------------------------
+
+
+Idee (unbedingt/vielleicht?): read mit P454>=20% (und * mitspieler) und N in
+homopolymer >= x (oder nur >2N) -> raus aus assembly
+
+
+==================================
+LOW PRIORITY
+==================================
+
+454
+---
+3 pass assembly also does the job pretty well: after 454 editing:
+copyRebuildContig(). take reads from old contig and insert them in new contig,
+getting clean alignments (stop if any read does not perform as
+advertised). re-edit that.
+
+read: changeQualityInSequence()? (baseruns) and align with lowest baserun qual
+base set to lowercase?
+ACGTAGTCTGACCCcACGTACGT
+ACGTAGTCTGACCC*ACGTACGT
+
+
+nukeSTLContainer also in Contig? In others?
+
+
+AS_contigs.push_back(con) then AS_contigs.back().saveMem(); works. Doing it
+the other way round a segfault????
+
+
+==================================
+ULTRALOW PRIORITY
+==================================
+
+option: tags in reads mappen auf consensus bei der ausgabe
+
+contig
+prüfen, was bei PRMBs im backbone passiert (geladene PRMBs)
+
+assembly
+andere filetypen im backbone laden (fofnexp!)
+
+permbanliste unbedingt um offset erweitern.
+
+nicht geclippte mögliche Vectorleftovers merken, dann im contig
+analysieren, evtl. später rausclippen (wenn am Ende eines Contigs oder
+wirklich als einziges drin)
+
+
+uebl init wert parametrierbar: uebl als loop?
+
+ban overlapping template partners von vornherein wenn größe nicht
+stimmen kann?
+
+replace FUNCSTART with __PRETTY_FUNCTION__ (portability?)
+use __builtin_prefetch (portability)
+
+alignment of Read::READTYPE_...consshred with same type -> replace bmin
+with fixed value (e.g.21 or similar) to speed up massive oversampling
+
+convert_project: CAF and other files with only reads: convert one read at a
+time (to save memory)
+
+
+==================================
+TOCHECK
+==================================
+
+multithreading: to prevent locks in alignments: 1 thread grabs all possible
+hits with first read equal
+
+
+==================================
+IDEAS
+==================================
+
+SRMs in SKIM: count seen hashes with SRM / expected hashes with SRM for an
+additional percentage?
+
+better and earlier repeat disambigueation: in additional alignments, use 3rd
+pass with all skims. SRMr, CRMr (*and* overlaplen >X *and* % > 90%) *and*
+_fresh_ repeat markers (having a comment != "")
+
+
+compute overcompression clusters: from average coverage (evtl. only those
+contigs without overcompression?), analyse contigs for coverage. At
+overcompression sites (starting at 1.3x-2x average coverage?), bin reads
+equally distributed into overcompression groups (OCG). then in subsequent
+passes, allow reads that overlap with reads in an OCG only to overlap with
+other reads of the same OCG.
+
+SKIM / filter: multicopy must have "almost full overlap match"???
+
+changed additional alignment iteration now also working on reduced
+skim-hits. check whether working on full could be done
+
+save memory: put newedges_t.best_weight into adsfact? (and then also test
+speed impact if calculated on-the-fly)
+
+save memory?: normalise newedges_t, put every rid1-hit into a vector
+
+spneu log: pass 3 -> gnlti 1252169540: nonmulticopy weight 109850 mit 40/65% overlap???
+
+put all read overlaping in contig at SRMs into list of additional alignments
+to check after pass
+
+with templates: look at at short orphans at ends of previous contig, try to
+start with counterparts for next contig.
+
+
+
+--------------------------------------------
+
+
+TODO: smooth consed: abi->phred->phd->ace
+
+
+--------------------------------------------
+
+
+
+
+
+
+
+
+MAF Documentation
+
+
+// Header
+
+  // FV = format version: major minor
+  // @R = num reads (optional)
+  // @C = num reads (optional)
+  // @L = length longest sequence (optional, treat as hint to minimise re-alloc, may be bigger)
+
+
+// For reads
+
+  // RD = Read name
+  // LR = length read (length of unclipped sequence)
+  // SQ = sequence (in one line, gaps as '*')
+  // BQ = base quality (in one line, FASTQ-33 format)
+  // SV = sequencing vector (name)
+  // TN = template (name)
+  // DI = direction (strand; 'F' or 'R' for forward/reverse)
+
+  // TF = template size from (integer>=0 or -1 for "don't care")
+  // TT = template size to (integer>=0 or -1 for "don't care")
+
+  // SF = Sequencing File (file name with raw data like SCF file etc.pp)
+  // BC = basecaller (name)
+
+  // SL, SR = sequencing vector left / right cutoffs
+  // QL, QR = quality left / right cutoffs
+  // CL, CR = (other) clipping left / right cutoffs
+
+  // AO = Align to Original (is align_to_scf from CAF: from to from to)
+
+  // RT = Read Tag (identifier from to comment).
+
+  // ST = sequencing type (Sanger, 454, Solexa, SOLiD
+  // SN = strain name
+  // MT = machine name
+
+  // IB = is backbone (0 or 1)
+  // IR = is rail (0 or 1)
+  // IC = is Coverage Equivalent Read (0 or 1)
+
+  // ER = End Read (marker for MAF parsing, mandatory)

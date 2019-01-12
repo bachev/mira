@@ -1,0 +1,111 @@
+DocBook Indexing Guidelines
+
+These guidelines are specific to indexing in DocBook. Note that O'Reilly books are generally indexed by professionals during Production, and this file is what we usually give to vendors. We've filed it here for cases where authors are adding their own indexterms, if first approved by Editorial and Production.
+
+Tools and Validating Markup
+
+The tools you use to enter the index tags are up to you, but you must use an XML editor of some kind (XMLmind, oXygen, etc.). Do NOT attempt to index the XML in MS Word because Word mangles DocBook (despite claims to the contrary). We have a simple indexing macro that helps indexing in XMLmind. Please let us know if you are interested, and we'll provide it for you.
+
+Whatever tool/method you decide to use to index the book, the XML files that you return to us must be well-formed and valid DocBook 4.4. There are several tools of checking validity, and most XML editors can check validity for you. If you are unsure about your tools, please ask.
+
+If you don't have access to validity tools, you can check validity by using the SVN commit hook (orm:commitpdf). This method uses xmllint, and you can see the log that xmllint generates when you try to create a PDF in the repo: pdf/.buildlog. Please write to toolsreq@oreilly.com for more information on the SVN commit hook.
+
+Proper Markup
+
+Avoid inserting <indexterm>s inside of elements such as <literal>, <emphasis>, <title>, <sect*>: generally, they should be at the end of <para>s, before the final "."
+
+    * NEVER, EVER! insert <indexterm> after a closing </para> and before an opening <para>. They should almost always be at the end of <para>s (before the closing tag).
+    * Do not insert <indexterm>s inside of <title> or <sectN> tags.
+    * Do not create a new <para> to insert an <indexterm>, including those that are the endofrange indexterms.
+    * Do not insert <indexterms> just before the close of a <screen>, <programlisting>, <table>, <figure>, etc. Insert them at the end of the preceding <para> instead.
+          * However, if you encounter a situation where there are no <para>s to insert an <indexterm>, you can insert the <indexterm> elsewhere, such as directly after the last line of a <programlisting> or <screen>, or within a <para> in a <table>.
+
+Do this:
+
+    Use <literal>SELECT</literal><indexterm><primary>SELECT statements</primary></indexterm> statements to show...
+
+Not this:
+
+    Use <literal><indexterm><primary>SELECT statements</primary></indexterm>SELECT</literal> statements to show...
+
+Do this:
+
+    <para><literal>NULL</literal> values also behave
+    specially with respect to sorting and
+    summary operations<indexterm class="endofrange"
+    startref="ch03_nullvalues"></indexterm>.</para>
+
+Not this:
+
+    <para><literal>NULL</literal> values also behave
+    specially with respect to sorting and
+    summary operations.</para>
+
+    <para>
+    <indexterm class="endofrange" startref="ch03_nullvalues"></indexterm>
+    </para>
+
+Indexing Syntax
+
+Basic index entry:
+
+ <indexterm><primary>index entry syntax, level 1</primary></indexterm>
+
+Secondary entry (subentry):
+
+ <indexterm>
+    <primary>index entry syntax</primary>
+    <secondary>for a subentry</secondary>
+ </indexterm>
+
+Tertiary entry (sub-subentry):
+
+ <indexterm>
+    <primary>index entry syntax</primary>
+    <secondary>for a subentry</secondary>
+    <tertiary>with a subentry</tertiary>
+ </indexterm>
+
+An index entry with a range:
+
+This book is full of geeky text with DocBook XML markup, which starts here:
+<indexterm class="startofrange" id="geekytext"><primary>geeky DocBook XML text</primary></indexterm>blah blah blah Ajax
+blah blah blah Ruby on Rails
+blah blah blah spreading the knowledge of innovators
+...
+...
+and ends here<indexterm class="endofrange" startref="geekytext">
+
+Note: The ending <indexterm> entry does not contain a <primary> or <secondary> tag, just an startref attribute that references the starting <indexterm> entry. Also, do not place the ending tag on its own line, or the FO processor will add a blank line to the PDF.
+
+An Index Entry with a "(see)" and No Page Reference:
+
+ <indexterm>
+   <primary>geeky DocBook XML text</primary>
+   <see>even more geeky DocBook XML text</see>
+ </indexterm>
+
+or, with a subentry:
+
+ <indexterm>
+   <primary>DocBook XML text</primary>
+   <secondary>geeky</secondary>
+   <see>even more geeky DocBook XML text</see>
+ </indexterm>
+
+Changing how an entry is alphabetized:
+
+  <indexterm>
+    <primary sortas="elite">l33t</primary>
+  </indexterm>
+
+A "(see also)" entry:
+
+  <indexterm>
+    <primary>foo</primary>
+    <seealso>bar</seealso>
+  </indexterm>
+
+Indexing Macro in XXE
+
+See the XXE Tutorial at https://prod.oreilly.com/external/tools/docbook/docs/authoring/xxe_tutorial.pdf for info on using the indexing macro.

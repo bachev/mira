@@ -1,0 +1,916 @@
+<?xml version="1.0" ?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.docbook.org/xml/4.5/docbookx.dtd">
+<chapter id="chap_454">
+  <chapterinfo>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="versionfile"/>
+    <author>
+      <firstname>Bastien</firstname>
+      <surname>Chevreux</surname>
+      <email>bach@chevreux.org</email>
+    </author>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="copyrightfile"/>
+  </chapterinfo>
+  <blockquote>
+    <attribution>Solomon Short</attribution>
+    <para>
+      <emphasis><quote>Upset causes changes. Change causes upset.</quote></emphasis>
+    </para>
+  </blockquote>
+  <title>Assembly of 454 data with MIRA3</title>
+  <sect1 id="sect_454_introduction">
+    <title>
+      Introduction
+    </title>
+    <para>
+      MIRA can assemble 454 type data either on its own or together with any
+      other technology MIRA know to handle (Illumina, Sanger,
+      etc.). Paired-end sequences coming from genomic projects can also be
+      used if you take care to prepare your data the way MIRA needs it.
+    </para>
+    <para>
+      MIRA goes a long way to assemble sequence in the best possible way: it
+      uses multiple passes, learning in each pass from errors that occurred in
+      the previous passes. There are routines specialised in handling oddities
+      that occur in different sequencing technologies
+    </para>
+    <note>
+      <title>Tip</title> Use the MIRA version of
+      the <command>sff_extract</command> script which is provided as
+      download in the MIRA 3rd party software package. This script knows
+      about adaptor information and all the little important details when
+      extracting data from SFF into FASTQ (or FASTA) format.
+    </note>
+    <sect2 id="sect_454_some_reading_requirements">
+      <title>
+	Some reading requirements
+      </title>
+      <para>
+	This guide assumes that you have basic working knowledge of Unix
+	systems, know the basic principles of sequencing (and sequence
+	assembly) and what assemblers do.
+      </para>
+      <para>
+	While there are step by step walkthroughs on how to setup your 454
+	data and then perform an assembly, this guide expects you to read at
+	some point in time
+      </para>
+      <itemizedlist>
+	<listitem>
+	  <para>
+	    the <emphasis>"Caveats when using 454 data"</emphasis> section of
+	    this document (just below). <emphasis
+	    role="bold">This. Is. Important. Read. It!</emphasis>
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    the <emphasis>mira_usage</emphasis> introductory help file so that
+	    you have a basic knowledge on how to set up projects in mira for
+	    Sanger sequencing projects.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    the <emphasis>GS FLX Data Processing Software Manual</emphasis>
+	    from Roche Diagnostics (or the corresponding manual for the GS20
+	    or Titanium instruments).
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    and last but not least the <emphasis>mira_reference</emphasis>
+	    help file to look up some command line options.
+	  </para>
+	</listitem>
+      </itemizedlist>
+      <para>
+      </para>
+    </sect2>
+    <sect2 id="sect_454_playing_around_with_some_demo_data">
+      <title>
+	Playing around with some demo data
+      </title>
+      <para>
+	If you want to jump into action, I suggest you walk through the
+	"Walkthrough: combined unpaired and paired-end assembly of Brucella
+	ceti" section of this document to get a feeling on how things
+	work. That particular walkthrough is with paired and unpaired 454 data
+	from the NCBI short read archive, so be prepared to download a couple
+	of hundred MiBs.
+      </para>
+      <para>
+	But please do not forget to come back to the "Caveats" section just
+	below later, it contains a pointers to common traps lurking in the
+	depths of high throughput sequencing.
+      </para>
+    </sect2>
+    <sect2 id="sect_454_estimating_memory_needs">
+      <title>
+	Estimating memory needs
+      </title>
+      <para>
+	<emphasis>"Do I have enough memory?"</emphasis> has been one of the
+	most often asked question in former times. To answer this question,
+	please use miramem which will give you an estimate. Basically, you
+	just need to start the program and answer the questions, for more
+	information please refer to the corresponding section in the main MIRA
+	documentation.
+      </para>
+      <para>
+	Take this estimate with a grain of salt, depending on the sequences
+	properties, variations in the estimate can be +/- 30%.
+      </para>
+      <para>
+	Take these estimates even with a larger grain of salt for
+	eukaryotes. Some of them are incredibly repetitive and this leads
+	currently to the explosion of some secondary tables in MIRA. I'm
+	working on it.
+      </para>
+    </sect2>
+  </sect1>
+  <sect1 id="sect_454_caveats_when_using_454_data">
+    <title>
+      Caveats when using 454 data
+    </title>
+    <para>
+      Please take some time to read this section. If you're really eager to
+      jump into action, then feel free to skip forward to the walkthrough, but
+      make sure to come back later.
+    </para>
+    <sect2 id="sect_454_screen_your_sequences!_part_1">
+      <title>
+	Screen. Your. Sequences! (part 1)
+      </title>
+      <para>
+	Or at least use the vector clipping info provided in the SFF file and
+	have them put into a standard NCBI TRACEINFO XML format. Yes, that's
+	right: vector clipping info.
+      </para>
+      <para>
+	Here's the short story: 454 reads can contain a kind of vector
+	sequence. To be more precise, they can - and very often do - contain
+	the sequence of the (A or B)-adaptors that were used for sequencing.
+      </para>
+      <para>
+	To quote a competent bioinformatician who thankfully dug through quite
+	some data and patent filings to find out what is going on: "These
+	adaptors consist of a PCR primer, a sequencing primer and a key. The
+	B-adaptor is always in because it's needed for the emPCR and
+	sequencing. If the fragments are long enough, then one usually does
+	not reach the adaptor at all. But if the fragments are too short -
+	tough luck."
+      </para>
+      <para>
+	Basically it's tough luck for a lot of 454 sequencing
+	project I have seen so far, both for public data (sequences available
+	at the NCBI trace archive) and non-public data.
+      </para>
+    </sect2>
+    <sect2 id="sect_454_screen_your_sequences!_optional_part_2">
+      <title>
+	Screen. Your. Sequences! (optional part 2)
+      </title>
+      <para>
+	Some labs use specially designed tags for their sequencing (I've heard
+	of cases with up to 20 bases). The tag sequences always being very
+	identical, they will behave like vector sequences in an assembly. Like
+	for any other assembler: if you happen to get such a project, then you
+	must take care that those tags are filtered out, respectively masked
+	from your sequences before going into an assembly. If you don't, the
+	results will be messy at best.
+      </para>
+      <note>
+	<title>Tip</title> Put your FASTAs through SSAHA2 or better, SMALT
+	with the sequence of your tags as masking target. MIRA can read the
+	SSAHA2 output (or SMALT when using "-f ssaha" output) and mask
+	internally using the MIRA <arg>-CL:msvs*</arg> parameters.
+      </note>
+    </sect2>
+    <sect2 id="sect_454_to_right_clip_or_not_to_right_clip?">
+      <title>
+	To right clip or not to right clip?
+      </title>
+      <para>
+	Sequences coming from the GS20, FLX or Titanium have usually pretty
+	good clip points set by the Roche/454 preprocessing software. There
+	is, however, a tendency to overestimate the quality towards the end of
+	the sequences and declare sequence parts as 'good' which really
+	shouldn't be.
+      </para>
+      <para>
+	Sometimes, these bad parts toward the end of sequences are so
+	annoyingly bad that they prevent MIRA from correctly building contigs,
+	that is, instead of one contig you might get two.
+      </para>
+      <para>
+	MIRA has the <arg>-CL:pec</arg> clipping option to deal with these
+	annoyances (standard for all <literal>--job=genome</literal>
+	assemblies). This algorithm performs <emphasis>proposed end
+	clipping</emphasis> which will guarantee that the ends of reads are
+	clean when the coverage of a project is high enough.
+      </para>
+      <para>
+	For genomic sequences: the term 'enough' being somewhat fuzzy
+	... everything above a coverage of 15x should be no problem at all,
+	coverages above 10x should also be fine. Things start to get tricky
+	below 10x, but give it a try.  Below 6x however, switch off
+	the <arg>-CL:pec</arg> option.
+      </para>
+    </sect2>
+    <sect2 id="sect_454_left_clipping_wrongly_preprocessed_data">
+      <title>
+	Left clipping wrongly preprocessed data
+      </title>
+      <para>
+	Short intro, to be expanded. (see example in B:ceti walkthrough)
+      </para>
+    </sect2>
+  </sect1>
+  <sect1 id="sect_454_walkthrough_a_454_assembly_unpaired_reads">
+    <title>
+      Walkthrough: a 454 assembly with unpaired reads
+    </title>
+    <sect2 id="sect_454_preparing_the_454_data_for_mira">
+      <title>
+	Preparing the 454 data for MIRA
+      </title>
+      <para>
+	The basic data type you will get from the sequencing instruments will
+	be SFF files. Those files contain almost all information needed for an
+	assembly, but they need to be converted into more standard files
+	before mira can use this information.
+      </para>
+      <para>
+	Let's assume we just sequenced a bug (<emphasis>Bacillus
+	chocorafoliensis</emphasis>) and internally our department uses the
+	short <emphasis>bchoc</emphasis> mnemonic for your
+	project/organism/whatever. So, whenever you
+	see <emphasis>bchoc</emphasis> in the following text, you can replace
+	it by whatever name suits you.
+      </para>
+      <para>
+	For this example, we will assume that you have created a directory
+	<filename>myProject</filename> for the data of your project and that
+	the SFF files are in there. Doing a <literal>ls -lR</literal> should
+	give you something like this:
+      </para>
+      <screen>
+<prompt>arcadia:/path/to/myProject$</prompt> <userinput>ls -lR</userinput>
+-rw-rw-rw- 1 bach users 475849664 2007-09-23 10:10 EV10YMP01.sff
+-rw-rw-rw- 1 bach users 452630172 2007-09-25 08:59 EV5RTWS01.sff
+-rw-rw-rw- 1 bach users 436489612 2007-09-21 08:39 EVX95GF02.sff
+      </screen>
+      <para>
+	As you can see, this sequencing project has 3 <filename>SFF</filename>
+	files.
+      </para>
+      <para>
+	We'll use <command>sff_extract</command>:
+      </para>
+      <screen>
+<prompt>arcadia:/path/to/myProject$</prompt> <userinput>sff_extract -o bchoc EV10YMP01.sff EV5RTWS01.sff EVX95GF02.sff</userinput></screen>
+      <note>
+	For more information on how to use <command>sff_extract</command>,
+	please refer to the chapter in the NCBI Trace and Short Read archive.
+      </note>
+      <para>
+	This can take some time, the 1.2 million FLX reads from this
+	example need approximately 9 minutes for conversion. Your directory
+	should now look something like this:
+      </para>
+      <screen>
+<prompt>arcadia:/path/to/myProject$</prompt> <userinput>ls -l</userinput>
+-rw-r--r-- 1 bach users  231698898 2007-10-21 15:16 bchoc.fastq
+-rw-r--r-- 1 bach users  193962260 2007-10-21 15:16 bchoc.xml
+-rw-rw-rw- 1 bach users  475849664 2007-09-23 10:10 EV10YMP01.sff
+-rw-rw-rw- 1 bach users  452630172 2007-09-25 08:59 EV5RTWS01.sff
+-rw-rw-rw- 1 bach users  436489612 2007-09-21 08:39 EVX95GF02.sff</screen>
+      <para>
+	By this time, the SFFs are not needed anymore. You can remove them
+	from this directory if you want.
+      </para>
+    </sect2>
+    <sect2 id="sect_454_writing_a_manifest">
+      <title>
+	Writing a manifest
+      </title>
+      <para>
+	The manifest is a configuration file for an assembly: it controls what
+	type of assembly you want to do and which data should go into the
+	assembly. For this first example, we just need a very simple manifest:
+      </para>
+      <screen>
+# A manifest file can contain comment lines, these start with the #-character
+
+# First part of a manifest: defining some basic things
+
+# In this example, we just give a name to the assembly
+#  and tell MIRA it should assemble a genome de-novo in accurate mode
+# As special parameter, we want to use 4 threads in parallel (where possible)
+
+<userinput>project = <replaceable>MyFirstAssembly</replaceable>
+job = <replaceable>genome,denovo,accurate</replaceable>
+parameters = <replaceable>-GE:not=4</replaceable></userinput>
+
+# The second part defines the sequencing data MIRA should load and assemble
+# The data is logically divided into "readgroups", for more information
+#  please consult the MIRA manual, chapter "Reference"
+
+<userinput>readgroup = <replaceable>SomeUnpaired454ReadsIGotFromTheLab</replaceable>
+technology = <replaceable>454</replaceable>
+data = <replaceable>bchoc.fastq</replaceable> <replaceable>bchoc.xml</replaceable></userinput></screen>
+    <para>
+      Save the above lines into a file, we'll use
+      <filename>bchoc_1st_manifest.conf</filename> in this example.
+    </para>
+      <screen>
+<prompt>arcadia:/path/to/myProject$</prompt> <userinput>ls -l</userinput>
+-rw-r--r-- 1 bach users  231698898 2007-10-21 15:16 bchoc.fastq
+-rw-r--r-- 1 bach users  193962260 2007-10-21 15:16 bchoc.xml
+-rw-r--r-- 1 bach users        756 2011-11-05 17:57 bchoc_1st_manifest.conf</screen>
+    </sect2>
+    <sect2 id="sect_454_starting_the_assembly">
+      <title>
+	Starting the assembly
+      </title>
+      <para>
+	Starting the assembly is now just a matter of one line:
+      </para>
+      <screen>
+<prompt>arcadia:/path/to/myProject$</prompt> <userinput>mira <replaceable>bchoc_1st_manifest.conf &gt;&amp;log_assembly.txt</replaceable></userinput></screen>
+      <para>
+	Now, that was easy, wasn't it? In the above example - for assemblies
+	having only 454 data and if you followed the walkthrough on how to
+	prepare the data - everything you might want to adapt in the first
+	time are the following line in the manifest file:
+      </para>
+      <itemizedlist>
+	<listitem>
+	  <para>
+	    project= (for naming your assembly project)
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    job= (perhaps to change the quality of the assembly to 'draft')
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    parameters= -GE:not=xxx (perhaps to change the number of processors)
+	  </para>
+	</listitem>
+      </itemizedlist>
+      <para>
+	Of course, you are free to change any option via the extended
+	parameters, but this is covered in the MIRA main reference manual.
+      </para>
+    </sect2>
+  </sect1>
+  <sect1 id="sect_454_walkthrough_a_sanger_454_hybrid_assembly">
+    <title>
+      Walkthrough: a paired-end Sanger / unpaired 454 hybrid assembly
+    </title>
+    <para>
+      Preparing the data for a Sanger / 454 hybrid assembly takes some more steps
+      but is not really more complicated than a normal Sanger-only or 454-only
+      assembly.
+    </para>
+    <para>
+      In the following sections, the files with 454 input data will have
+      <filename>.454.</filename> in the name, files with Sanger have
+      <filename>.sanger.</filename>. That's just a convention I use, you do
+      not need to do that, but it helps to keep things nicely organised.
+    </para>
+    <sect2 id="sect_454_preparing_the_454_data">
+      <title>
+	Preparing the 454 data
+      </title>
+      <para>
+	Please proceed exactly in the same way as described for the assembly
+	of unpaired 454-only data in the section above, that is, without
+	writing a manifest and starting the actual assembly. The only difference: in the <command>sff_extract</command> part, use "-o" with the parameter "bchoc.454" to get the files named accordingly.
+      </para>
+      <screen>
+<prompt>arcadia:/path/to/myProject$</prompt> <userinput>sff_extract -o bchoc.454 EV10YMP01.sff EV5RTWS01.sff EVX95GF02.sff</userinput></screen>
+      <para>
+	In the end you should have two files (FASTQ and TRACEINFO) for the 454
+	data ready.
+      </para>
+    </sect2>
+    <sect2 id="sect_454_preparing_the_sanger_data">
+      <title>
+	Preparing the Sanger data
+      </title>
+      <para>
+	There are quite a number of sequencing providers out there, all with
+	different pre-processing pipelines and different output
+	file-types. MIRA supports quite a number of them, the three most
+	important would probably be
+      </para>
+      <orderedlist>
+	<listitem>
+	  <para>
+	    (preferred option) FASTQ files and ancillary data in NCBI
+	    TRACEINFO XML format.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    (preferred option) FASTA files which are coupled with FASTA quality
+	    files and ancillary data in NCBI TRACEINFO XML format.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    (preferred option) CAF (from the Sanger Institute) files that
+	    contain the sequence, quality values and ancillary data like
+	    clippings etc.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    (secondary option) EXP files as the Staden pregap4 package writes.
+	  </para>
+	</listitem>
+      </orderedlist>
+      <para>
+	Your sequencing provider MUST have performed at least a sequencing
+	vector clip on this data. A quality clip might also be good to do by
+	the provider as they usually know best what quality they can expect
+	from their instruments (although MIRA can do this also if you want).
+      </para>
+      <para>
+	You can either perform clipping the hard way by removing physically
+	all bases from the input (this is
+	called <emphasis>trimming</emphasis>), or you can keep the clipped
+	bases in the input file and provided clipping information in ancillary
+	data files. These clipping information then MUST be present in the
+	ancillary data (either the TRACEINFO XML, or in the combined CAF, or
+	in the EXP files), together with other standard data like, e.g.,
+	mate-pair information when using a paired-ends approach.
+      </para>
+      <para>
+	This example assumes that the data is provided as FASTA together with a
+	quality file and ancillary data in NCBI TRACEINFO XML format.
+      </para>
+      <para>
+	Put these files (appropriately renamed) into the directory with the
+	454 data.
+      </para>
+      <para>
+	Here's how the directory with the preprocessed data should now look
+	approximately like:
+      </para>
+      <screen>
+<prompt>arcadia:/path/to/myProject$</prompt> <userinput>ls -l</userinput>
+-rwxrwxrwx 1 bach  2007-10-13 22:44 bchoc.454.fastq
+-rwxrwxrwx 1 bach  2007-10-13 22:44 bchoc.454.xml
+
+-rwxrwxrwx 1 bach  2007-10-13 22:44 bchoc.sanger.fastq
+-rwxrwxrwx 1 bach  2007-10-13 22:44 bchoc.sanger.xml</screen>
+    </sect2>
+    <sect2 id="sect_454_manifest_for_hybrid_assembly">
+      <title>
+	Writing a manifest
+      </title>
+      <para>
+	This assembly contains unpaired 454 data and paired-end Sanger
+	data. Let's assume the 454 data to be exactly the same as for the
+	previous walkthrough. For the Sanger data, let's assume the template
+	DNA size for the Sanger library to be between 2500 and 3500 bases and
+	the read naming to follow the TIGR naming scheme:
+      </para>
+      <screen>
+# A manifest file can contain comment lines, these start with the #-character
+
+# First part of a manifest: defining some basic things
+
+# In this example, we just give a name to the assembly
+#  and tell MIRA it should assemble a genome de-novo in accurate mode
+# As special parameter, we want to use 4 threads in parallel (where possible)
+
+<userinput>project = <replaceable>MyFirstHybridAssembly</replaceable>
+job = <replaceable>genome,denovo,accurate</replaceable>
+parameters = <replaceable>-GE:not=4</replaceable></userinput>
+
+# The second part defines the sequencing data MIRA should load and assemble
+# The data is logically divided into "readgroups", for more information
+#  please consult the MIRA manual, chapter "Reference"
+
+<userinput>readgroup = <replaceable>SomeUnpaired454ReadsIGotFromTheLab</replaceable>
+technology = <replaceable>454</replaceable>
+data = <replaceable>bchoc.454.*</replaceable></userinput>
+
+# Note the wildcard "bchoc.454.*" in the data line above: this
+#  will load both the FASTQ and XML data
+
+<userinput>readgroup = <replaceable>SomePairedSangerReadsIGotFromTheLab</replaceable>
+technology = <replaceable>sanger</replaceable>
+template_size = <replaceable>2500 3500</replaceable>
+segment_placement = <replaceable>---&gt; &lt;---</replaceable>
+segment_naming = <replaceable>TIGR</replaceable>
+data = <replaceable>bchoc.sanger.*</replaceable></userinput></screen>
+    <para>
+      If you compare the manifest above with the manifest in the walkthrough
+      for using only unpaired 454 data, you will see that large parts, i.e.,
+      the definition of the job, parameter and the 454 read group is
+      <emphasis>exactly</emphasis> the same. The only differences are in the
+      naming of the assembly project (in <literal>project =</literal>), and
+      the definition of a second readgroup containing the Sanger sequencing
+      data.
+    </para>
+    </sect2>
+    <sect2 id="sect_454_starting_the_hybrid_assembly">
+      <title>
+	Starting the hybrid assembly
+      </title>
+      <para>
+	Quite unsurprisingly, the command to start the assembly is exactly the same as always:
+      </para>
+      <screen>
+<prompt>arcadia:/path/to/myProject$</prompt> <userinput>mira <replaceable>myassebly_manifest.conf</replaceable> &gt;&amp;log_assembly.txt</userinput></screen>
+    </sect2>
+  </sect1>
+  <sect1 id="sect_454_walkthrough:_combined_unpaired_and_pairedend_assembly_of_brucella_ceti">
+    <title>
+      Walkthrough: combined unpaired and paired-end assembly of Brucella ceti
+    </title>
+    <para>
+      Here's a walkthrough which should help you in setting up own assemblies. You
+      do not need to set up your directory structures as I do, but for this
+      walkthrough it could help.
+    </para>
+    <note>
+      This walkthrough was written at times when the NCBI still offered SFFs
+      for 454 data, which now it does not anymore. However, the approach is
+      still valid for your data where you should get SFFs.
+    </note>
+    <note>
+      This walkthrough was written at times when the primary input for 454
+      data in MIRA was using FASTA + FASTA quality files. This has shifted
+      nowadays to FASTQ as input (it's more compact and faster to parse). I'm
+      sure you will be able to make the necessary changes to the command line
+      of <command>sff_extract</command> yourself :-)
+    </note>
+    <sect2 id="sect_454_preliminaries">
+      <title>
+	Preliminaries
+      </title>
+      <para>
+	Please make sure that sff_extract is working properly and that you have
+	at least version 0.2.1 (use <literal>sff_extract -v</literal>). Please also make sure
+	that SSAHA2 can be run correctly (test this by running <literal>ssaha2 -v</literal>).
+      </para>
+    </sect2>
+    <sect2 id="sect_454_preparing_your_filesystem">
+      <title>
+	Preparing your file system
+      </title>
+      <para>
+	Note: this is how I set up a project, feel free to implement whatever
+	structure suits your needs.
+      </para>
+      <screen>
+<prompt>$</prompt> <userinput>mkdir bceti</userinput>
+<prompt>$</prompt> <userinput>cd bceti</userinput>
+<prompt>bceti_assembly$</prompt> <userinput>mkdir origdata data assemblies</userinput></screen>
+      <para>
+	Your directory should now look like this:
+      </para>
+      <screen>
+<prompt>arcadia:bceti$</prompt> <userinput>ls -l</userinput>
+drwxr-xr-x 2 bach users 48 2008-11-08 16:51 assemblies
+drwxr-xr-x 2 bach users 48 2008-11-08 16:51 data
+drwxr-xr-x 2 bach users 48 2008-11-08 16:51 origdata</screen>
+      <para>
+	Explanation of the structure:
+      </para>
+      <itemizedlist>
+	<listitem>
+	  <para>
+	    the <filename>origdata</filename> directory will contain the 'raw'
+	    result files that one might get from sequencing. Basically,.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    the <filename>data</filename> directory will contain the
+	    preprocessed sequences for the assembly, ready to be used by MIRA
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    the <filename>assemblies</filename> directory will contain
+	    assemblies we make with our data (we might want to make more than
+	    one).
+	  </para>
+	</listitem>
+      </itemizedlist>
+      <para>
+      </para>
+    </sect2>
+    <sect2 id="sect_454_getting_the_data">
+      <title>
+	Getting the data
+      </title>
+      <note>
+	Since early summer 2009, the NCBI does not offer SFF files anymore,
+	which is a pity. This guide will nevertheless allow you to perform
+	similar assemblies on own data.
+      </note>
+      <para>
+	Please browse to
+	<ulink url="http://www.ncbi.nlm.nih.gov/Traces/sra/sra.cgi?run=SRR005481&amp;cmd=viewer&amp;m=data&amp;s=viewer"/>
+	and
+	<ulink url="http://www.ncbi.nlm.nih.gov/Traces/sra/sra.cgi?run=SRR005482&amp;cmd=viewer&amp;m=data&amp;s=viewer"/>
+	and download the SFF files to the <filename>origdata</filename>
+	directory (press the download button on those pages).
+      </para>
+      <para>
+	En passant, note the following: SRR005481 is described to be a 454 FLX
+	data set where the library contains unpaired data ("Library Layout:
+	SINGLE"). SRR005482 has also 454 FLX data, but this time it's
+	paired-end data ("Library Layout: PAIRED
+	(ORIENTATION=forward)"). Knowing this will be important later on in
+	the process.
+      </para>
+      <screen>
+<prompt>arcadia:bceti$</prompt> <userinput>cd origdata</userinput>
+<prompt>arcadia:origdata$</prompt> <userinput>ls -l</userinput>
+-rw-r--r-- 1 bach users 240204619 2008-11-08 16:49 SRR005481.sff.gz
+-rw-r--r-- 1 bach users 211333635 2008-11-08 16:55 SRR005482.sff.gz</screen>
+      <para>
+	We need to unzip those files:
+      </para>
+      <screen>
+<prompt>arcadia:bceti_assembly/origdata$</prompt> <userinput>gunzip *.gz</userinput></screen>
+      <para>
+	And now this directory should look like this
+      </para>
+      <screen>
+<prompt>arcadia:bceti_assembly/origdata$</prompt> <userinput>ls -l</userinput>
+-rw-r--r-- 1 bach users 544623256 2008-11-08 16:49 SRR005481.sff
+-rw-r--r-- 1 bach users 476632488 2008-11-08 16:55 SRR005482.sff</screen>
+      <para>
+	Now move into the (still empty) <filename>data</filename> directory
+      </para>
+      <screen>
+<prompt>arcadia:origdata$</prompt> <userinput>cd ../data</userinput></screen>
+    </sect2>
+    <sect2 id="sect_454_data_preprocessing_with_sff_extract">
+      <title>
+	Data preprocessing with sff_extract
+      </title>
+      <para>
+      </para>
+      <sect3 id="sect_454_extracting_unpaired_data_from_sff">
+	<title>
+	  Extracting unpaired data from SFF
+	</title>
+	<para>
+	  We will first extract the data from the unpaired experiment
+	  (SRR005481), the generated file names should all start
+	  with <emphasis>bceti</emphasis>:
+	</para>
+	<screen>
+<prompt>arcadia:bceti_assembly/data$</prompt> <userinput>sff_extract -o bceti ../origdata/SRR005481.sff</userinput>
+Working on &apos;../origdata/SRR005481.sff&apos;:
+Converting &apos;../origdata/SRR005481.sff&apos; ...  done.
+Converted 311201 reads into 311201 sequences.
+
+********************************************************************************
+WARNING: weird sequences in file ../origdata/SRR005481.sff
+
+After applying left clips, 307639 sequences (=99%) start with these bases:
+TCTCCGTC
+
+This does not look sane.
+
+Countermeasures you *probably* must take:
+1) Make your sequence provider aware of that problem and ask whether this can be
+corrected in the SFF.
+2) If you decide that this is not normal and your sequence provider does not
+react, use the --min_left_clip of sff_extract.
+(Probably &apos;--min_left_clip=13&apos; but you should cross-check that)
+********************************************************************************</screen>
+	<para>
+	  (Note: I got this on the SRR005481 data set downloaded in October
+	  2008. In the mean time, the sequencing center or NCBI may have
+	  corrected the error)
+	</para>
+	<para>
+	  Wait a minute ... what happened here?
+	</para>
+	<para>
+	  We launched a pretty standard extraction of reads where the whole
+	  sequence were extracted and saved in the FASTA files and FASTA
+	  quality files, and clipping information will be given in the
+	  XML. Additionally, the clipped parts of every read will be shown in
+	  lower case in the FASTA file.
+	</para>
+	<para>
+	  After two or three minutes, the directory looked like this:
+	</para>
+	<screen>
+<prompt>arcadia:bceti_assembly/data$</prompt> <userinput>ls -l
+-rw-r--r-- 1 bach users  91863124 2008-11-08 17:15 bceti.fasta
+-rw-r--r-- 1 bach users 264238484 2008-11-08 17:15 bceti.fasta.qual
+-rw-r--r-- 1 bach users  52197816 2008-11-08 17:15 bceti.xml</userinput></screen>
+      </sect3>
+      <sect3 id="sect_454_dealing_with_wrong_clipoffs_in_the_sff">
+	<title>
+	  Dealing with wrong clip-offs in the SFF
+	</title>
+	<para>
+	  In the example above, sff_extract discovered an unusual pattern
+	  sequence and gave a (stern) warning: almost all the sequences
+	  created for the FASTA file had a skew in the distribution of bases.
+	</para>
+	<para>
+	  Let's have a look at the first 30 bases of the first 20 sequences of
+	  the FASTA that was created:
+	</para>
+	<screen>
+<prompt>arcadia:bceti_assembly/data$</prompt> <userinput>head -40 bceti_in.454.fasta | grep -v &quot;&gt;&quot; | cut -c 0-30</userinput>
+tcagTCTCCGTCGCAATCGCCGCCCCCACA
+tcagTCTCCGTCGGCGCTGCCCGCCCGATA
+tcagTCTCCGTCGTGGAGGATTACTGGGCG
+tcagTCTCCGTCGGCTGTCTGGATCATGAT
+tcagTCTCCGTCCTCGCGTTCGATGGTGAC
+tcagTCTCCGTCCATCTGTCGGGAACGGAT
+tcagTCTCCGTCCGAGCTTCCGATGGCACA
+tcagTCTCCGTCAGCCTTTAATGCCGCCGA
+tcagTCTCCGTCCTCGAAACCAAGAGCGTG
+tcagTCTCCGTCGCAGGCGTTGGCGCGGCG
+tcagTCTCCGTCTCAAACAAAGGATTAGAG
+tcagTCTCCGTCCTCACCCTGACGGTCGGC
+tcagTCTCCGTCTTGTGCGGTTCGATCCGG
+tcagTCTCCGTCTGCGGACGGGTATCGCGG
+tcagTCTCCGTCTCGTTATGCGCTCGCCAG
+tcagTCTCCGTCTCGCATTTTCCAACGCAA
+tcagTCTCCGTCCGCTCATATCCTTGTTGA
+tcagTCTCCGTCCTGTGCTGGGAAAGCGAA
+tcagTCTCCGTCTCGAGCCGGGACAGGCGA
+tcagTCTCCGTCGTCGTATCGGGTACGAAC</screen>
+	<para>
+	  What you see is the following: the leftmost 4
+	  characters <literal>tcag</literal> of every read are the last bases
+	  of the standard 454 sequencing adaptor A.  The fact that they are
+	  given in lower case means that they are clipped away in the SFF
+	  (which is good).
+	</para>
+	<para>
+	  However, if you look closely, you will see that there is something
+	  peculiar: after the adaptor sequence, all reads seem to start with
+	  exactly the same sequence <literal>TCTCCGTC</literal>. This is *not*
+	  sane.
+	</para>
+	<para>
+	  This means that the left clip of the reads in the SFF has not been
+	  set correctly. The reason for this is probably a wrong value which
+	  was used in the 454 data processing pipeline. This seems to be a
+	  problem especially when custom sequencing adaptors are used.
+	</para>
+	<para>
+	  In this case, the result is pretty catastrophic: out of the 311201
+	  reads in the SFF, 307639 (98.85%) show this behaviour. We will
+	  certainly need to get rid of these first 12 bases.
+	</para>
+	<para>
+	  Now, in cases like these, there are three steps that you really
+	  should follow:
+	</para>
+	<orderedlist>
+	  <listitem>
+	    <para>
+	      Is this something that you expect from the experimental setup?
+	      If yes, then all is OK and you don't need to take further
+	      action. But I suppose that for 99% of all people, these abnormal
+	      sequences are not expected.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      Contact. Your. Sequence. Provider! The underlying problem is
+	      something that *MUST* be resolved on their side, not on
+	      yours. It might be a simple human mistake, but it it might very
+	      well be a symptom of a deeper problem in their quality
+	      assurance. Notify. Them. Now!
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      In the mean time (or if the sequencing provider does not react),
+	      you can use the <arg>--min_left_clip</arg> command line option
+	      from sff_extract as suggested in the warning message.
+	    </para>
+	  </listitem>
+	</orderedlist>
+	<para>
+	</para>
+	<para>
+	  So, to correct for this error, we will redo the extraction of the
+	  sequence from the SFF, this time telling sff_extract to set the left
+	  clip starting at base 13 at the lowest:
+	</para>
+	<screen>
+<prompt>arcadia:bceti_assembly/data$</prompt> <userinput>sff_extract -o bceti --min_left_clip=13 ../origdata/SRR005481.sff</userinput>
+Working on &apos;../origdata/SRR005481.sff&apos;:
+Converting &apos;../origdata/SRR005481.sff&apos; ...  done.
+Converted 311201 reads into 311201 sequences.
+<prompt>arcadia:sff_from_ncbi/bceti_assembly/data$</prompt> <userinput>ls -l</userinput>
+-rw-r--r-- 1 bach users  91863124 2008-11-08 17:31 bceti.fasta
+-rw-r--r-- 1 bach users 264238484 2008-11-08 17:31 bceti.fasta.qual
+-rw-r--r-- 1 bach users  52509017 2008-11-08 17:31 bceti.xml</screen>
+	<para>
+	  This concludes the small intermezzo on how to deal with wrong left
+	  clips.
+	</para>
+      </sect3>
+    </sect2>
+    <sect2 id="sect_454_preparing_an_assembly">
+      <title>
+	Preparing an assembly
+      </title>
+      <para>
+	Preparing an assembly is now just a matter of setting up a directory and
+	linking the input files into that directory.
+      </para>
+      <screen>
+<prompt>arcadia:bceti_assembly/data$</prompt> <userinput>cd ../assemblies/</userinput>
+<prompt>arcadia:bceti_assembly/assemblies$</prompt> <userinput>mkdir arun_08112008</userinput>
+<prompt>arcadia:bceti_assembly/assemblies$</prompt> <userinput>cd arun_08112008</userinput>
+<prompt>arcadia:assemblies/arun_08112008$</prompt> <userinput>ln -s ../../data/* .</userinput>
+<prompt>arcadia:bceti_assembly/assemblies/arun_08112008$</prompt> <userinput>ls -l</userinput>
+lrwxrwxrwx 1 bach users 29 2008-11-08 18:17 bceti.454.fasta -&gt; ../../data/bceti.454.fasta
+lrwxrwxrwx 1 bach users 34 2008-11-08 18:17 bceti.454.fasta.qual -&gt; ../../data/bceti.454.fasta.qual
+lrwxrwxrwx 1 bach users 33 2008-11-08 18:17 bceti.454.xml -&gt; ../../data/bceti.454.xml</screen>
+    </sect2>
+    <sect2 id="sect_454_starting_the_assembly_2">
+      <title>
+	Starting the assembly 2
+      </title>
+      <para>
+	Start an assembly with the options you like, for example like this:
+      </para>
+      <screen>
+<prompt>$</prompt> <userinput>NONONONONONONO   ---- MAKE IT WITH MANIFEST !!!!mira --project=bceti --job=denovo,genome,accurate,454 &gt;&amp;log_assembly</userinput></screen>
+    </sect2>
+  </sect1>
+  <sect1 id="sect_454_what_to_do_with_the_mira_result_files?">
+    <title>
+      What to do with the MIRA result files?
+    </title>
+    <note>
+      Please consult the corresponding section in the
+      <emphasis>mira</emphasis> <emphasis>usage</emphasis> document, it
+      contains much more information than this stub.
+    </note>
+    <para>
+      But basically, after the assembly has finished, you will find four
+      directories. The <filename>tmp</filename> directory can be deleted
+      without remorse as it contains logs and some tremendous amount of
+      temporary data (dozens of gigabytes for bigger
+      projects). The <filename>info</filename> directory has some text files
+      with basic statistics and other informative files. Start by having a
+      look at the <filename>*_info_assembly.txt</filename>, it'll give you a
+      first idea on how the assembly went.
+    </para>
+    <para>
+      The <filename>results</filename> directory finally contains the assembly
+      files in different formats, ready to be used for further processing with
+      other tools.
+    </para>
+    <para>
+      If you used the uniform read distribution option, you will inevitably
+      need to filter your results as this option produces larger and better
+      alignments, but also more ``debris contigs''. For this, use the
+      miraconvert which is distributed together with the MIRA package.
+    </para>
+    <para>
+      Also very important when analysing 454 assemblies: screen the small
+      contigs ( &lt; 1000 bases) for abnormal behaviour. You wouldn't be the
+      first to have some human DNA contamination in a bacterial sequencing. Or
+      some herpes virus sequence in a bacterial project. Or some bacterial DNA
+      in a human data set.  Look whether these small contigs
+    </para>
+    <itemizedlist>
+      <listitem>
+	<para>
+	  have a different GC content than the large contigs
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  whether a BLAST of these sequences against some selected databases
+	  brings up hits in other organisms that you certainly were not
+	  sequencing.
+	</para>
+      </listitem>
+    </itemizedlist>
+    <para>
+    </para>
+  </sect1>
+</chapter>
+

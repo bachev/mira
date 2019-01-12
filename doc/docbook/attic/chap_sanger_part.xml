@@ -1,0 +1,592 @@
+<?xml version="1.0" ?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.docbook.org/xml/4.5/docbookx.dtd">
+<chapter id="chap_sanger">
+  <chapterinfo>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="versionfile"/>
+    <author>
+      <firstname>Bastien</firstname>
+      <surname>Chevreux</surname>
+      <email>bach@chevreux.org</email>
+    </author>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="copyrightfile"/>
+  </chapterinfo>
+  <blockquote>
+    <attribution>Solomon Short</attribution>
+    <para>
+      <emphasis><quote>Just when you think it's finally settled, it isn't.
+      </quote></emphasis>
+    </para>
+  </blockquote>
+
+  <title>Short usage introduction to MIRA3</title>
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="warning_frontofchapter.xml"/>
+  <para>
+    This guide assumes that you have basic working knowledge of Unix systems,
+    know the basic principles of sequencing (and sequence assembly) and what
+    assemblers do. Furthermore, it is advised to read through the main
+    documentation of the assembler as this is really just a getting started
+    guide.
+  </para>
+  <sect1 id="sect_sanger_important_notes">
+    <title>
+      Important notes
+    </title>
+    <para>
+      For working parameter settings for assemblies involving 454, IonTorrent,
+      Solexa or PacBio data, please also read the MIRA help files dedicated to these
+      platforms.
+    </para>
+  </sect1>
+  <sect1 id="sect_sanger_quick_start_for_the_impatient">
+    <title>
+      Quick start for the impatient
+    </title>
+    <para>
+      This example assumes that you have a few sequences in FASTA format that
+      may or may not have been preprocessed - that is, where sequencing vector
+      has been cut back or masked out. If quality values are also present in a
+      fasta like format, so much the better.
+    </para>
+    <para>
+      We need to give a name to our project: throughout this example, we will
+      assume that the sequences we are working with are
+      from <emphasis>Bacillus</emphasis>
+      <emphasis>chocorafoliensis</emphasis> (or short: <emphasis>Bchoc</emphasis>); a well known,
+      chocolate-adoring bug from the <emphasis>Bacillus</emphasis> family which is able to make a
+      couple of hundred grams of chocolate vanish in just a few minutes.
+    </para>
+    <para>
+      Our project will therefore be named 'bchoc'.
+    </para>
+    <sect2 id="sect_sanger_estimating_memory_needs">
+      <title>
+	Estimating memory needs
+      </title>
+      <para>
+	<emphasis>"Do I have enough memory?"</emphasis> has been one of the
+	most often asked question in former times. To answer this question,
+	please use <command>miramem</command> which will give you an
+	estimate. Basically, you just need to start the program and answer the
+	questions, for more information please refer to the corresponding
+	section in the main MIRA documentation.
+      </para>
+      <para>
+	Take this estimate with a grain of salt, depending on the sequences
+	properties, variations in the estimate can be +/- 30%.
+      </para>
+    </sect2>
+    <sect2 id="sect_sanger_preparing_and_starting_an_assembly_from_scratch_with_fasta_files">
+      <title>
+	Preparing and starting an assembly from scratch with FASTA files
+      </title>
+      <para>
+      </para>
+      <sect3 id="sect_sanger_with_data_preclipped_or_prescreened_for_vector_sequence">
+	<title>
+	  With data pre-clipped or pre-screened for vector sequence
+	</title>
+	<para>
+	  The following steps will allow to quickly start a simple assembly if
+	  your sequencing provider gave you data which was pre-clipped or
+	  pre-screened for vector sequence:
+	</para>
+	<screen>
+<prompt>$</prompt> <userinput>mkdir bchoc_assembly1</userinput>
+<prompt>$</prompt> <userinput>cd bchoc_assembly1</userinput>
+<prompt>bchoc_assembly1$</prompt> <userinput>cp /your/path/sequences.fasta bchoc_in.sanger.fasta</userinput>
+<prompt>bchoc_assembly1$</prompt> <userinput>cp /your/path/qualities.someextension bchoc_in.sanger.fasta.qual</userinput>
+<prompt>bchoc_assembly1$</prompt> <userinput>mira --project=bchoc --job=denovo,genome,accurate,sanger --fasta</userinput></screen>
+	<para>
+	  <emphasis role="underline">Explanation:</emphasis> we created a
+	  directory for the assembly, copied the sequences into it (to make
+	  things easier for us, we named the file directly in a format
+	  suitable for mira to load it automatically) and we also copied
+	  quality values for the sequences into the same directory. As last
+	  step, we started mira with options telling it that
+	</para>
+	<itemizedlist>
+	  <listitem>
+	    <para>
+	      our project is named 'bchoc' and hence, input and output files
+	      will have this as prefix;
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      the data is in a FASTA formatted file;
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      the data should be assembled <emphasis>de-novo</emphasis> as
+	      a <emphasis>genome</emphasis> at an assembly quality level
+	      of <emphasis>accurate</emphasis> and that the reads we are
+	      assembling were generated with Sanger technology.
+	    </para>
+	  </listitem>
+	</itemizedlist>
+	<para>
+	  By giving mira the project name 'bchoc'
+	  (<literal>--project=bchoc</literal>) and naming sequence file with
+	  an appropriate extension <filename>_in.sanger.fasta</filename>, mira
+	  automatically loaded that file for assembly. When there are
+	  additional quality values available
+	  (<filename>bchoc_in.sanger.fasta.qual</filename>), these are also
+	  automatically loaded and used for the assembly.
+	</para>
+	<note>
+	  If there is no file with quality values available, MIRA will stop
+	  immediately. You will need to provide parameters to the command line
+	  which explicitly switch off loading and using quality files.
+	</note>
+	<warning>
+	  Not using quality values is <emphasis role="bold">NOT</emphasis>
+	  recommended. Read the corresponding section in the MIRA reference
+	  manual.
+	</warning>
+      </sect3>
+      <sect3 id="sect_sanger_using_ssaha2_smalt_to_screen_for_vector_sequence">
+	<title>
+	  Using SSAHA2 / SMALT to screen for vector sequence
+	</title>
+	<para>
+	  If your sequencing provider gave you data which was NOT pre-clipped
+	  for vector sequence, you can do this yourself in a pretty robust
+	  manner using SSAHA2 -- or the successor, SMALT -- from the Sanger
+	  Centre. You just need to know which sequencing vector the provider
+	  used and have its sequence in FASTA format (ask your provider).
+	</para>
+	<para>
+	  Note that this screening is a valid method for any type of Sanger
+	  sequencing vectors, 454 adaptors, Solexa adaptors and paired-end
+	  adaptors etc.
+	</para>
+	<para>
+	  For SSAHA2 follow these steps (most are the same as in the example
+	  above):
+	</para>
+	<screen>
+<prompt>$</prompt> <userinput>mkdir bchoc_assembly1</userinput>
+<prompt>$</prompt> <userinput>cd bchoc_assembly1</userinput>
+<prompt>bchoc_assembly1$</prompt> <userinput>cp /your/path/sequences.fasta bchoc_in.sanger.fasta</userinput>
+<prompt>bchoc_assembly1$</prompt> <userinput>cp /your/path/qualities.someextension bchoc_in.sanger.fasta.qual</userinput>
+<prompt>bchoc_assembly1$</prompt> <userinput>ssaha2 -output ssaha2
+  -kmer 8 -skip 1 -seeds 1 -score 12 -cmatch 9 -ckmer 6
+  /path/where/the/vector/data/resides/vector.fasta
+  bchoc_in.sanger.fasta &gt; bchoc_ssaha2vectorscreen_in.txt</userinput>
+<prompt>bchoc_assembly1$</prompt> <userinput>mira -project=bchoc -job=denovo,genome,accurate,sanger -fasta SANGER_SETTINGS -CL:msvs=yes</userinput></screen>
+	<para>
+	  <emphasis role="underline">Explanation:</emphasis> there are just
+	  two differences to the example above:
+	</para>
+	<itemizedlist>
+	  <listitem>
+	    <para>
+	      calling SSAHA2 to generate a file which contains information on
+	      the vector sequence hitting your sequences.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      telling mira with <literal>SANGER_SETTINGS
+	      -CL:msvs=yes</literal> to load this vector screening data for
+	      Sanger data
+	    </para>
+	  </listitem>
+	</itemizedlist>
+	<para>
+	  For SMALT, the only difference is that you use SMALT for generating
+	  the vector-screen file and ask SMALT to generate it in SSAHA2
+	  format. As SMALT works in two steps (indexing and then mapping), you
+	  also need to perform it in two steps and then call MIRA. E.g.:
+	</para>
+	<screen>
+<prompt>bchoc_assembly1$</prompt> <userinput>smalt index -k 7 -s 1 smaltidxdb /path/where/the/vector/data/resides/vector.fasta</userinput>
+<prompt>bchoc_assembly1$</prompt> <userinput>smalt map -f ssaha -d -1 -m 7 smaltidxdb bchoc_in.sanger.fasta  > bchoc_smaltvectorscreen_in.txt</userinput>
+<prompt>bchoc_assembly1$</prompt> <userinput>mira -project=bchoc -job=denovo,genome,accurate,sanger -fasta SANGER_SETTINGS -CL:msvs=yes</userinput></screen>
+	<note>
+	  Please note that, due to subtle differences between output of SSAHA2
+	  (in ssaha2 format) and SMALT (in ssaha2 format), MIRA identifies the
+	  source of the screening (and the parsing method it needs) by the
+	  name of the screen file. Therefore, screens done with SSAHA2 need to
+	  have the postfix <filename>*_ssaha2vectorscreen_in.txt</filename> in
+	  the file name and screens done with SMALT need
+	  <filename>*_smaltvectorscreen_in.txt</filename>.
+	</note>
+      </sect3>
+    </sect2>
+  </sect1>
+  <sect1 id="sect_sanger_calling_mira_from_the_command_line">
+    <title>
+      Calling mira from the command line
+    </title>
+    <para>
+      Mira can be used in many different ways: building assemblies from
+      scratch, performing reassembly on existing projects, assembling
+      sequences from closely related strains, assembling sequences against an
+      existing backbone (mapping assembly), etc.pp. Mira comes with a number
+      of <emphasis role="bold">quick switches</emphasis>, i.e., switches that
+      turn on parameter combinations which should be suited for most needs.
+    </para>
+    <para>
+      E.g.: <literal>mira --project=foobar --job=sanger --fasta
+      -highlyrepetitive</literal>
+    </para>
+    <para>
+      The line above will tell mira that our project will have the general
+      name <emphasis>foobar</emphasis> and that the sequences are to be loaded
+      from FASTA files, the sequence input file being
+      named <filename>foobar_in.sanger.fasta</filename> (and sequence quality
+      file, if
+      available, <filename>foobar_in.sanger.fasta.qual</filename>. The reads
+      come from Sanger technology and mira is prepared for the genome
+      containing nasty repeats. The result files will be in a directory
+      named <filename>foobar_results</filename>, statistics about the assembly
+      will be available in the <filename>foobar_info</filename> directory
+      like, e.g., a summary of contig statistics in
+      <filename>foobar_info/foobar_info_contigstats.txt</filename>. Notice
+      that the <emphasis>--job=</emphasis> switch is missing some
+      specifications, mira will automatically fill in the remaining defaults
+      (i.e., denovo,genome,accurate in the example above).
+    </para>
+    <para>
+      E.g.: <literal>mira --project=foobar --job=mapping,accurate,sanger
+      --fasta --highlyrepetitive</literal>
+    </para>
+    <para>
+      This is the same as the previous example except mira will perform a
+      mapping assembly in 'accurate' quality of the sequences against a
+      backbone sequence(s). mira will therefore additionally load the backbone
+      sequence(s) from the file <filename>foobar_backbone_in.fasta</filename>
+      (FASTA being the default type of backbone sequence to be loaded) and, if
+      existing, quality values for the backbone
+      from <filename>foobar_backbone_in.fasta.qual</filename>.
+    </para>
+    <para>
+      E.g.: <literal>mira --project=foobar --job=mapping,accurate,sanger
+      --fasta --highlyrepetitive -SB:bft=gbf</literal>
+    </para>
+    <para>
+      As above, except we have added an <emphasis role="bold">extensive
+      switch</emphasis> (<arg>-SB:bft</arg>) to tell mira that the backbones
+      are in a GenBank format file (GBF). MIRA will therefore load the
+      backbone sequence(s) from the file
+      <filename>foobar_backbone_in.gbf</filename>. Note that the GBF file can
+      also contain multiple entries, i.e., it can be a GBFF file.
+    </para>
+    <para>
+      E.g.: <literal>mira --project=foobar --job=mapping,accurate,sanger
+      --fastq --highlyrepetitive -SB:bft=gbf</literal>
+    </para>
+    <para>
+      As above, except we have changed the input type for all files from FASTA
+      to FASTQ.
+    </para>
+  </sect1>
+  <sect1 id="sect_sanger_using_multiple_processors">
+    <title>
+      Using multiple processors
+    </title>
+    <para>
+      This feature is in its infancy, presently only the SKIM algorithm uses
+      multiple threads. Setting the number of processes for this stage can be
+      done via the <arg>-GE:not</arg>
+      parameter. E.g. <literal>-GE:not=4</literal> to use 4 threads.
+    </para>
+  </sect1>
+  <sect1 id="sect_sanger_usage_examples">
+    <title>
+      Usage examples
+    </title>
+    <para>
+    </para>
+    <sect2 id="sect_sanger_assembly_from_scratch_with_gap4_and_exp_files">
+      <title>
+	Assembly from scratch with GAP4 and EXP files
+      </title>
+      <para>
+	A simple GAP4 project will do nicely. Please take care of the
+	following: You need already preprocessed experiment / fasta / phd
+	files, i.e., at least the sequencing vector should have been tagged
+	(in EXP files) or masked out (FASTA or PHD files). It would be nice if
+	some kind of not too lazy quality clipping had also been done for the
+	EXP files, pregap4 should do this for you.
+      </para>
+      <orderedlist>
+	<listitem>
+	  <para>
+	    Step 1: Create a file of filenames (named
+	    <filename>mira_in.fofn</filename>) for the project you wish to
+	    assemble. The file of filenames should contain the newline
+	    separated names of the EXP-files and nothing else.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    Step 2: Execute the mira assembly, eventually using command line
+	    options or output redirection:
+	  </para>
+	  <screen>
+<prompt>$</prompt> <userinput>/path/to/the/mira/package/mira <replaceable>... other options ...</replaceable></userinput></screen>
+	  <para>
+	    or simply
+	  </para>
+	  <screen>
+<prompt>$</prompt> <userinput>mira <replaceable>... other options ...</replaceable></userinput></screen>
+	  <para>
+	    if MIRA is in a directory which is in your PATH. The result of the
+	    assembly will now be in directory
+	    named <filename>mira_results</filename> where you will
+	    find <filename>mira_out.caf</filename>, <filename>mira_out.html</filename>
+	    etc.  or in gap4 direct assembly format in
+	    the <filename>mira_out.gap4da</filename> sub-directory.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    Step 3a: <emphasis>(This is not recommended
+	    anymore)</emphasis> Change to the gap4da directory and start gap4:
+	  </para>
+	  <screen>
+<prompt>$</prompt> <userinput>cd mira_results/mira_out.gap4da</userinput>
+<prompt>mira_results/mira_out.gap4da$</prompt> <userinput>gap4</userinput></screen>
+	  <para>
+	    choose the menu 'File->New' and enter a name for your new database
+	    (like 'demo'). Then choose the menu 'Assembly->Directed
+	    assembly'. Enter the text 'fofn' in the entry
+	    labelled <emphasis>Input readings from List or file
+	    name</emphasis> and enter the text 'failures' into the entry
+	    labelled <emphasis>Save failures to List or file name</emphasis>.
+	    Press "OK".
+	  </para>
+	  <para>
+	    That's it.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    Step 3b: <emphasis>(Recommended)</emphasis> As an alternative to
+	    step 3a, one can use the caf2gap converter (see below)
+	  </para>
+	  <screen>
+<prompt>mira_results$</prompt> <userinput>caf2gap -project demo -version 0 -ace mira_out.caf</userinput>
+<prompt>mira_results$</prompt> <userinput>gap4 DEMO.0</userinput></screen>
+	</listitem>
+      </orderedlist>
+      <para>
+      </para>
+      <formalpara>
+	<title>Out-of-the box example</title>
+	MIRA comes with a few really small toy project to test usability on a
+	given system. Go to the minidemo directory and follow the instructions
+	given in the section for own projects above, but start with step 2.
+	Eventually, you might want to start mira while redirecting the output
+	to a file for later analysis.
+      </formalpara>
+    </sect2>
+    <sect2 id="sect_sanger_reassembly_of_gap4_edited_projects">
+      <title>
+	Reassembly of GAP4 edited projects
+      </title>
+      <para>
+	It is sometimes wanted to reassemble a project that has already been
+	edited, for example when hidden data in reads has been uncovered or
+	when some repetitive bases have been tagged manually. The canonical
+	way to do this is by using CAF files as data exchange format and the
+	caf2gap and gap2caf converters available from the Sanger Centre
+	(<ulink url="http://www.sanger.ac.uk/Software/formats/CAF/"/>).
+      </para>
+      <warning>
+	The project will be completely reassembled, contig joins or breaks
+	that have been made in the GAP4 database will be lost, you will get an
+	entirely new assembly with what mira determines to be the best
+	assembly.
+      </warning>
+      <itemizedlist>
+	<listitem>
+	  <para>
+	    Step 1: Convert your GAP4 project with the gap2caf tool. Assuming
+	    that the assembly is in the GAP4
+	    database <filename>CURRENT.0</filename>, convert it with the
+	    gap2caf tool:
+	  </para>
+	  <screen>
+<prompt>$</prompt> <userinput>gap2caf -project CURRENT -version 0 -ace &gt; newstart_in.caf</userinput></screen>
+	  <para>
+	    The name <emphasis>"newstart"</emphasis> will be the project name
+	    of the new assembly project.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    Step 2: Start mira with the -caf option and tell it the name of
+	    your new reassembly project:
+	  </para>
+	  <screen>
+<prompt>$</prompt> <userinput>mira -caf=newstart</userinput></screen>
+	  <para>
+	    (and other options like --job etc. at will.)
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    Step 3: Convert the resulting CAF file
+	    <filename>newstart_assembly/newstart_d_results/newstart_out.caf</filename>
+	    to a gap4 database format as explained above and start gap4 with
+	    the new database:
+	  </para>
+	  <screen>
+<prompt>$</prompt> <userinput>cd newstart_assembly/newstart_d_results</userinput>
+<prompt>newstart_assembly/newstart_d_results$</prompt> <userinput>caf2gap -project reassembled -version 0 -ace newstart_out.caf</userinput>
+<prompt>newstart_assembly/newstart_d_results$</prompt> <userinput>gap4 REASSEMBLED.0</userinput></screen>
+	</listitem>
+      </itemizedlist>
+    </sect2>
+    <sect2 id="sect_sanger_using_backbones_to_perform_a_mapping_assembly_against_a_reference_sequence">
+      <title>
+	Using backbones to perform a mapping assembly against a reference sequence
+      </title>
+      <para>
+	<!--%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%-->
+	One useful features of mira is the ability to assemble against already
+	existing reference sequences or contigs (also called a mapping assembly). The
+	parameters that control the behaviour of the assembly in these cases are in
+	the <arg>-STRAIN/BACKBONE</arg> section of the parameters.
+      </para>
+      <para>
+	Please have a look at the example in the <filename>minidemo/bbdemo2</filename> directory
+	which maps sequences from <emphasis>C.jejuni RM1221</emphasis> against (parts of) the genome
+	of <emphasis>C.jejuni NCTC1168</emphasis>.
+      </para>
+      <para>
+	There are a few things to consider when using backbone sequences:
+      </para>
+      <orderedlist>
+	<listitem>
+	  <para>
+	    Backbone sequences can be as long as needed! They are not subject
+	    to normal read length constraints of a maximum of 10k bases. That
+	    is, if one wants to load one or several entire chromosomes of a
+	    bacterium or lower eukaryote as backbone sequence(s), this is just
+	    fine.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    Backbone sequences can be single sequences like provided by, e.g.,
+	    FASTA, FASTQ or GenBank files. But backbone sequences also can be
+	    whole assemblies when they are provided as, e.g., CAF format. This
+	    opens the possibility to perform semi-hybrid assemblies by
+	    assembling first reads from one sequencing technology de-novo
+	    (e.g. 454) and then map reads from another sequencing technology
+	    (e.g. Solexa) to the whole 454 alignment instead of mapping it to
+	    the 454 consensus.
+	  </para>
+	  <para>
+	    A semi-hybrid assembly will therefore contain, like a hybrid
+	    assembly, the reads of both sequencing technologies.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    Backbone sequences will not be reversed! They will always appear in
+	    forward direction in the output of the assembly. Please note: if the
+	    backbone sequence consists of a CAF file that contain contigs which contain
+	    reversed reads, then the contigs themselves will be in forward direction.
+	    But the reads they contain that are in reverse complement direction will of
+	    course also stay reverse complement direction.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    Backbone sequences will not not be assembled together! That is, if a
+	    sequence of the backbones has a perfect overlap with another backbone
+	    sequence, they will still not be merged.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    Reads are assembled to backbones in a first come, first served
+	    scattering strategy.
+	    </para>
+	    <para>
+	      Suppose you have two identical backbones and one read which
+	      would match both, then the read would be mapped to the first
+	      backbone. If you had two (almost) identical reads, the first
+	      read would go to the first backbone, the second read to the
+	      second backbone. With three almost identical reads, the first
+	      backbone would get two reads, the second backbone one read.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    Only in backbones loaded from CAF files: contigs made out of single
+	    reads (singlets) loose their status as backbones and will be returned to the
+	    normal read pool for the assembly process. That is, these sequences will be
+	    assembled to other backbones or with each other.
+	  </para>
+	</listitem>
+      </orderedlist>
+      <para>
+      </para>
+      <para>
+	Examples for using backbone sequences:
+      </para>
+      <itemizedlist>
+	<listitem>
+	  <para>
+	    Example 1: assume you have a genome of an existing organism. From
+	    that, a mutant has been made by mutagenesis and you are skimming
+	    the genome in shotgun mode for mutations. You would generate for
+	    this a <emphasis>straindata</emphasis> file that gives the name of
+	    the mutant strain to the newly sequenced reads and simply assemble
+	    those against your existing genome, using the following
+	    parameters:
+	  </para>
+	  <para>
+	    <literal>-SB:lsd=yes:lb=yes:bsn=<replaceable>nameOriginalStrain</replaceable>:bft=<replaceable>caf|fasta|gbf</replaceable></literal>
+	  </para>
+	  <para>
+	    When loading backbones from CAF, the qualities of the consensus
+	    bases will be calculated by mira according normal consensus
+	    computing rules.  When loading backbones from FASTA or GBF, one
+	    can set the expected overall quality of the sequences (e.g. 1
+	    error in 1000 bases = quality of 30) with
+	    <arg>-SB:bbq=30</arg>. It is recommended to have the backbone
+	    quality at least as high as the <arg>-CO:mgqrt</arg> value, so
+	    that mira can automatically detect and report SNPs.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    Example 2: suppose that you are in the process of performing a
+	    shotgun sequencing and you want to determine the moment when you
+	    got enough reads. One could make a complete assembly each day when
+	    new sequences arrive. However, starting with genomes the size of a
+	    lower eukaryote, this may become prohibitive from the
+	    computational point of view. A quick and efficient way to resolve
+	    this problem is to use the CAF file of the previous assembly as
+	    backbone and simply add the new reads to the pool. The number of
+	    singlets remaining after the assembly versus the total number of
+	    reads of the project is a good measure for the coverage of the
+	    project.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    Example 3: in EST assembly with miraSearchESTSNPs, existing cDNA
+	    sequences can also be useful when added to the project during step
+	    3 (in the file <filename>step3_in.par</filename>). They will
+	    provide a framework to which mRNA-contigs built in previous steps
+	    will be assembled against, allowing for a fast evaluation of the
+	    results. Additionally, they provide a direction for the assembled
+	    sequences so that one does not need to invert single contigs by
+	    hand afterwards.
+	  </para>
+	</listitem>
+      </itemizedlist>
+      <para>
+      </para>
+    </sect2>
+  </sect1>
+</chapter>

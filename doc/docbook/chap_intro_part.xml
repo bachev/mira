@@ -1,0 +1,1206 @@
+<?xml version="1.0" ?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.docbook.org/xml/4.5/docbookx.dtd">
+<chapter id="chap_intro">
+  <chapterinfo>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="versionfile"/>
+    <author>
+      <firstname>Bastien</firstname>
+      <surname>Chevreux</surname>
+      <email>bach@chevreux.org</email>
+    </author>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="copyrightfile"/>
+  </chapterinfo>
+  <blockquote>
+    <attribution>Solomon Short</attribution>
+    <para>
+      <emphasis><quote>Half of being smart is to know what you're dumb at.
+      </quote></emphasis>
+    </para>
+  </blockquote>
+
+  <title>Introduction to MIRA</title>
+  <sect1 id="sect_intro_whatismira">
+    <title>
+      What is MIRA?
+    </title>
+    <para>
+      MIRA is a multi-pass DNA sequence data assembler/mapper for whole
+      genome and EST/RNASeq projects. MIRA assembles/maps reads gained by
+    </para>
+    <itemizedlist>
+      <listitem>
+	<para>
+	  electrophoresis sequencing (aka Sanger sequencing)
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Illumina (Solexa) sequencing
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Less so: 454 pyro-sequencing (GS20, FLX or Titanium)
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Less so: Ion Torrent
+	</para>
+      </listitem>
+    </itemizedlist>
+    <para>
+      into contiguous sequences (called <emphasis>contigs</emphasis>). One can
+      use the sequences of different sequencing technologies either in a
+      single assembly run (a <emphasis>true hybrid assembly</emphasis>) or by
+      mapping one type of data to an assembly of other sequencing type (a
+      <emphasis>semi-hybrid assembly (or mapping)</emphasis>) or by mapping a
+      data against consensus sequences of other assemblies (a <emphasis>simple
+      mapping</emphasis>).
+    </para>
+    <para>
+      The MIRA acronym stands for <emphasis role="bold">M</emphasis>imicking
+      <emphasis role="bold">I</emphasis>ntelligent <emphasis
+      role="bold">R</emphasis>ead <emphasis role="bold">A</emphasis>ssembly
+      and the program pretty well does what its acronym says (well, most of
+      the time anyway). It is the Swiss army knife of sequence assembly that
+      I've used and developed during the past 20 years to get assembly jobs I
+      work on done efficiently - and especially accurately. That is, without
+      me actually putting too much manual work into it.
+    </para>
+    <para>
+      Over time, other labs and sequencing providers have found MIRA useful
+      for assembly of extremely 'unfriendly' projects containing lots of
+      repetitive sequences. As always, your mileage may vary.
+    </para>
+  </sect1>
+  <sect1 id="sect_wheretostartreading">
+    <title>
+      What to read in this manual and where to start reading?
+    </title>
+    <para>
+      At the last count, this manual had almost 200 pages and this might seem a little bit daunting.
+      However, you very probably do not need to read everything.
+    </para>
+    <para>
+      You should read most of this introductional chapter though: e.g.,
+    </para>
+      <itemizedlist>
+	<listitem>
+	  <para>
+	    the part with the MIRA quick tour
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    the part which gives a quick overview for which data sets to use MIRA and for which not
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    the part which showcases different features of MIRA (lots of screen shots!)
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    where and how to get help if things don't work out as you expected
+	  </para>
+	</listitem>
+      </itemizedlist>
+    <para>
+      After that, reading should depend on the type of data you intend to work
+      with: there are specific chapters for assembly of de-novo, of mapping and
+      of EST / RNASeq projects. They all contain an overview on how to
+      define your data and how to launch MIRA for these data sets. There is
+      also chapter on how to prepare data sets from specific sequencing
+      technologies.
+    </para>
+    <para>
+      The chapter on working with results of MIRA should again be of general
+      interest to everyone. It describes the structure of output directories
+      and files and gives first pointers on what to find where. Also,
+      converting results into different formats -- with and without filtering
+      for specific needs -- is covered there.
+    </para>
+    <para>
+      As the previously cited chapters are more introductory in their nature,
+      they do not go into the details of MIRA parametrisation. While MIRA has
+      a comprehensive set of standard settings which should be suited for a
+      majority of assembly tasks, the are more than 150 switches / parameters
+      with which one can fine tune almost every aspect of an assembly. A
+      complete description for each and every parameter and how to correctly
+      set parameters for different use cases and sequencing technologies can
+      be found in the reference chapter.
+    </para>
+    <para>
+      As not every assembly project is simple, there is also a chapter with
+      tips on how to deal with projects which turn out to be "hard." It
+      certainly helps if you at least skim through it even if you do not
+      expect to have problems with your data ... it contains a couple of
+      tricks on what one can see in result files as well as in temporary and
+      log files which are not explained elsewhere.
+    </para>
+    <para>
+      MIRA comes with a number of additional utilities which are described in
+      an own chapter. While the purpose of <command>miraconvert</command>
+      should be quite clear quite quickly, the versatility of use cases for
+      <command>mirabait</command> might surprise more than one. Be sure to
+      check it out.
+    </para>
+    <para>
+      As from time to time some general questions on sequencing are popping up
+      on the MIRA talk mailing list, I have added a chapter with some general
+      musings on what to consider when going into sequencing projects. This
+      should be in no way a replacement for an exhaustive talk with a
+      sequencing provider, but it can give a couple of hints on what to take
+      care of.
+    </para>
+    <para>
+      There is also a FAQ chapter with some of the more frequently asked questions
+      which popped up in the past few years.
+    </para>
+    <para>
+      Finally, there are also chapters covering some more technical aspects of MIRA: the MAF format
+      and structure / content of the tmp directory have own chapters.
+    </para>
+    <para>
+      Complete walkthroughs ... are lacking at the moment for MIRA 4. In the
+      MIRA 3 manual I had them, but so many things have changed (at all
+      levels: MIRA, the sequencing technologies, data repositories) that I did
+      not have time to update them. I probably will need quite some time to
+      write new ones. Feel free to send me some if you are inclined to help
+      fellow scientists.
+    </para>
+  </sect1>
+  <sect1 id="sect_intro_miraquicktour">
+    <title>
+      The MIRA quick tour
+    </title>
+    <para>
+      Input can be in various formats like Staden experiment (EXP), Sanger
+      CAF, FASTA, FASTQ or PHD file. Ancillary data containing additional
+      information helpful to the assembly as is contained in, e.g. NCBI
+      traceinfo XML files or Staden EXP files, is also honoured. If present,
+      base qualities in
+      <command>phred</command> style and SCF signal electrophoresis trace
+      files are used to adjudicate between or even correct contradictory
+      stretches of bases in reads by either the integrated automatic EdIt
+      editor (written by Thomas Pfisterer) or the assembler itself.
+    </para>
+    <para>
+      MIRA was conceived especially with the problem of repeats in genomic
+      data and SNPs in transcript (EST / RNASeq) data in mind. Considerable
+      effort was made to develop a number of strategies -- ranging from
+      standard clone-pair size restrictions to discovery and marking of base
+      positions discriminating the different repeats / SNPs -- to ensure that
+      repetitive elements are correctly resolved and that misassemblies do not
+      occur.
+    </para>
+    <para>
+      The resulting assembly can be written in different standard formats like
+      CAF, Staden GAP4 directed assembly, ACE, HTML, FASTA, simple text or
+      transposed contig summary (TCS) files. These can easily be imported into
+      numerous finishing tools or further evaluated with simple scripts.
+    </para>
+    <para>
+      The aim of MIRA is to build the best possible assembly by
+    </para>
+    <orderedlist>
+      <listitem>
+	<para>
+	  having a more or less full overview on the whole project at any time
+	  of the assembly, i.e. knowledge of almost all possible read-pairs in
+	  a project,
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  using high confidence regions (HCRs) of several aligned read-pairs to
+	  start contig building at a good anchor point of a contig, extending
+	  clipped regions of reads on a 'can be justified' basis.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  using all available data present at the time of assembly, i.e.,
+	  instead of relying on sequence and base confidence values only, the
+	  assembler will profit from trace files containing electrophoresis
+	  signals, tags marking possible special attributes of DNA,
+	  information on specific insert sizes of read-pairs etc.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  having 'intelligent' contig objects accept or refuse reads based on
+	  the rate of unexplainable errors introduced into the consensus
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  learning from mistakes by discovering and analysing possible repeats
+	  differentiated only by single nucleotide polymorphisms. The
+	  important bases for discriminating different repetitive elements are
+	  tagged and used as new information.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  using the possibility given by the integrated automatic editor to
+	  correct errors present in contigs (and subsequently) reads by
+	  generating and verifying complex error hypotheses through analysis
+	  of trace signals in several reads covering the same area of a
+	  consensus,
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  iteratively extending reads (and subsequently) contigs based on
+	</para>
+	<orderedlist>
+	  <listitem>
+	    <para>
+	      additional information gained by overlapping read pairs in contigs
+	      and
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      corrections made by the automated editor.
+	    </para>
+	  </listitem>
+	</orderedlist>
+      </listitem>
+    </orderedlist>
+    <para>
+    </para>
+    <para>
+      MIRA was part of a bigger project that started at the DKFZ (Deutsches
+      Krebsforschungszentrum, German Cancer Research Centre) Heidelberg in
+      1997: the "Bundesministerium für Bildung, Wissenschaft, Forschung und
+      Technologie" supported the PhD thesis of Thomas and myself by grant
+      number <emphasis>01 KW 9611</emphasis>. Beside an assembler to tackle
+      difficult repeats, the grant also supported the automated editor /
+      finisher EdIt package -- written by Thomas Pfisterer. The strength of
+      MIRA and EdIt is the automatic interaction of both packages which
+      produces assemblies with less work for human finishers to be done.
+    </para>
+    <para>
+      I'd like to thank everybody who reported bugs to me, pointed out problems,
+      sent ideas and suggestions they encountered while using the predecessors.
+      Please continue to do so, the feedback made this third version possible.
+    </para>
+  </sect1>
+
+  <sect1 id="sect_for_which_data_sets_to_use_mira_and_for_which_not">
+    <title>
+      For which data sets to use MIRA and for which not
+    </title>
+    <para>
+      As a general rule of thumb: if you have an organism with more than
+      100 to 150 megabases or more than 20 to 40 million reads, you might want
+      to try other assemblers first.
+    </para>
+    <sect2 id="sect3_genome_denovo">
+      <title>
+	Genome de-novo
+      </title>
+      <para>
+	For genome assembly, the version 5 series of MIRA have been reported
+	to work on projects with something like a million Sanger reads (~80 to
+	100 megabases at 10x coverage), five to ten million 454 Titanium reads
+	(~100 megabases at 20x coverage) and 20 to 40 million Illumina reads
+	(enough for de-novo of a bacterium or a small eukaryote with 76mers to
+	300mers).
+      </para>
+      <para>
+	Provided you have the memory, MIRA is expected to work in de-novo
+	mode with
+      </para>
+      <itemizedlist>
+	<listitem>
+	  <para>
+	    Sanger reads: 5 to 10 million
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    454 reads: 5 to 15 million
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    Ion Torrent reads: 5 to 15 million
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    Illumina reads: in normal operation, up to 40 million reads. Some
+	    people use it on up to 300 million, but you'll need a really big
+	    machine and month of computation time ... I do not recommend
+	    that.
+	  </para>
+	</listitem>
+      </itemizedlist>
+      <para>
+	and "normal" coverages, whereas "normal" would be at no more than 50x
+	to 70x for genome projects. Higher coverages will also work, but may
+	create somewhat larger temporary files without heavy
+	parametrisation. Lower coverages (&lt;4x for Sanger, &lt;10x for 454,
+	&lt; 10x for IonTorrent) also need special attention in the
+	parameter settings.
+      </para>
+    </sect2>
+    <sect2 id="sect_genome_mapping">
+      <title>
+	Genome mapping
+      </title>
+      <para>
+	As the complexity of mapping is a lot lower than de-novo, one can
+	basically double (perhaps even triple) the number of reads compared to
+	'de-novo'. The limiting factor will be the amount of RAM though, and
+	MIRA will also need lots of it if you go into eukaryotes.
+      </para>
+      <para>
+	The main limiting factor regarding time will be the number of
+	reference sequences (backbones) you are using. MIRA being pedantic
+	during the mapping process, it might be a rather long wait if you have
+	more than 40 megabase of reference sequences.
+      </para>
+    </sect2>
+    <sect2 id="sect3_ests_rnaseq_dn">
+      <title>
+	De-novo ESTs / RNASeq
+      </title>
+      <para>
+	The default values for MIRA should allow it to work with many EST and
+	RNASeq data sets, sometimes even from non-normalised libraries. For
+	extreme coverage cases however (like, something with a lot of cases at
+	and above 10k coverage), one would perhaps want to resort to data
+	reduction routines before feeding the sequences to MIRA.
+      </para>
+      <para>
+	On the other hand, recent developments of MIRA were targeted at making
+	de-novo RNASeq assembly of non-normalised libraries liveable, and
+	indeed I now regularly use MIRA for data sets with up to 50 million
+	Illumina 250bp paired-end reads.
+      </para>
+    </sect2>
+    <sect2 id="sect3_ests_rnaseq_map">
+      <title>
+	Mapping EST / RNASeq
+      </title>
+      <para>
+	Mapping 50 to 60 million sequences against 20k to 30k gene reference
+	sequences is doable, but slow and memory intensive.
+      </para>
+      <note>
+	For mapping against an eukaryotic genome: MIRA does
+	<emphasis>not</emphasis>
+	splice reads in mapping mode. While it is able to more or less handle
+	insertion / deletions of up to 15% of a read length, splices larger
+	than that will not be made: MIRA will still map the reads, but call a
+	lot of SNPs in the parts which should have been spliced.
+      </note>
+    </sect2>
+  </sect1>
+  <sect1 id="sect_intro_specialfeatures">
+    <title>
+      Any special features I might be interested in?
+    </title>
+    <para>
+      A few perhaps.
+    </para>
+    <note>
+      <para>
+	The screen shots in this section show data from assemblies produced
+	with MIRA, but the visualisation itself is done in a finishing program
+	named <command>gap4</command>.
+      </para>
+      <para>
+	Some of the screen shots were edited for showing a special feature of
+	MIRA. E.g., in the screen shots with Illumina data, quite some reads were
+	left out of the view pane as else -- due to the amount of data --
+	these screen shots would need several pages for a complete printout.
+      </para>
+    </note>
+    <sect2 id="sect_intro_miradiscernsrepeats">
+      <title>
+	MIRA learns to discern non-perfect repeats, leading to better assemblies
+      </title>
+      <para>
+	MIRA is an iterative assembler (it works in several passes) and acts a
+	bit like a child when exploring the world: it explores the assembly
+	space and is specifically parameterised to allow a couple of assembly
+	errors during the first passes. But after each pass some routines (the
+	"parents", if you like) check the result, searching for assembly
+	errors and deduce knowledge about specific assemblies MIRA should not
+	have ventured into. MIRA will then prevent these errors to re-occur in
+	subsequent passes.
+      </para>
+      <para>
+	As an example, consider the following multiple alignment:
+      </para>
+      <figure id="chap_intro::srmc_in_454sxahyb_1stpass.png">
+	<title>How MIRA learns from misassemblies (1). Multiple alignment
+	after 1st pass with an obvious assembly error, notice the clustered
+	columns discrepancies. Two slightly different repeats were assembled
+	together.</title>
+	<titleabbrev>
+	  How MIRA learns from misassemblies (1)
+	</titleabbrev>
+	<mediaobject>
+	  <imageobject>
+	    <imagedata fileref="bookfigures/srmc_in_454sxahyb_1stpass.png" width="90%"/>
+	  </imageobject>
+	</mediaobject>
+      </figure>
+      <para>
+	These kind of errors can be easily spotted by a human, but are hard to
+	prevent by normal alignment algorithms as sometimes there's only one
+	single base column difference between repeats (and not several as in
+	this example).
+      </para>
+      <para>
+	MIRA spots these things (even if it's only a single column), tags the
+	base positions in the reads with additional information and then will
+	use that information in subsequent passes. The net effect is shown in
+	the next two figures:
+      </para>
+      <figure id="chap_intro::srmc_in_454sxahyb_lastpass1.png">
+	<title>
+	  Multiple alignment after last pass where assembly errors from
+	  previous passes have been resolved (1st repeat site)
+	</title>
+	<titleabbrev>
+	  How MIRA learns from misassemblies (2)
+	</titleabbrev>
+	<mediaobject>
+	  <imageobject>
+	    <imagedata fileref="bookfigures/srmc_in_454sxahyb_lastpass1.png" width="90%"/>
+	  </imageobject>
+	</mediaobject>
+      </figure>
+      <figure id="chap_intro::srmc_in_454sxahyb_lastpass2.png">
+	<title>
+	  Multiple alignment after last pass where assembly errors from
+	  previous passes have been resolved (2nd repeat site)
+	</title>
+	<titleabbrev>
+	  How MIRA learns from misassemblies (3)
+	</titleabbrev>
+	<mediaobject>
+	  <imageobject>
+	    <imagedata fileref="bookfigures/srmc_in_454sxahyb_lastpass2.png" width="90%"/>
+	  </imageobject>
+	</mediaobject>
+      </figure>
+      <para>
+	The ability of MIRA to learn and discern non-identical repeats from
+	each other through column discrepancies is nothing new. Here's the
+	link to a paper from a talk I had at the German Conference on
+	Bioinformatics in 1999: <ulink
+	url="http://www.bioinfo.de/isb/gcb99/talks/chevreux/"/>
+      </para>
+      <para>
+	I'm sure you'll recognise the basic principle in figures 8 and 9. The
+	slides from the corresponding talk also look very similar to the
+	screen shots above:
+      </para>
+      <figure id="chap_intro::gcb99_replocator.png">
+	<title>
+	  Slides presenting the repeat locator at the GCB 99
+	</title>
+	<mediaobject>
+	  <imageobject>
+	    <imagedata fileref="bookfigures/gcb99_replocator.png" width="90%"/>
+	  </imageobject>
+	</mediaobject>
+      </figure>
+      <para>
+	You can get the talk with these slides here: <ulink
+	url="http://chevreux.org/dkfzold/gcb99/bachvortrag_gcb99.ppt"/>
+      </para>
+    </sect2>
+    <sect2 id="sect_intro_automatic_editors">
+      <title>
+	MIRA has integrated editors for data from Sanger, 454, IonTorrent sequencing
+      </title>
+      <para>
+	In the first versions in 1999, the <emphasis>EdIt</emphasis> automatic
+	Sanger sequence editor from Thomas Pfisterer was integrated into MIRA.
+      </para>
+      <figure id="chap_intro::gcb99_edit.png">
+	<title>
+	  Slides presenting the Edit automatic Sanger editor at the GCB 99
+	</title>
+	<mediaobject>
+	  <imageobject>
+	    <imagedata fileref="bookfigures/gcb99_edit.png" width="90%"/>
+	  </imageobject>
+	</mediaobject>
+      </figure>
+      <para>
+	The routines used a combination of hypothesis generation/testing
+	together with neural networks (trained on ABI and ALF traces) for
+	signal recognition to discern between base calling errors and true
+	multiple alignment differences. They wen back to the trace data to
+	resolve potential conflicts and eventually recall bases using the
+	additional information gained in a multiple alignment of reads.
+      </para>
+      <figure id="chap_intro::san_autoedit1.png">
+	<titleabbrev>
+	  Sanger assembly without EdIt automatic editing routines
+	</titleabbrev>
+	<title>
+	  Sanger assembly without EdIt automatic editing routines. The bases
+	  with blue background are base calling errors.
+	</title>
+	<mediaobject>
+	  <imageobject>
+	    <imagedata fileref="bookfigures/san_autoedit1.png" width="90%"/>
+	  </imageobject>
+	</mediaobject>
+      </figure>
+      <figure id="chap_intro::san_autoedit2.png">
+	<titleabbrev>
+	  Sanger assembly with EdIt automatic editing routines
+	</titleabbrev>
+	<title>
+	  Sanger assembly with EdIt automatic editing routines. Bases with
+	  pink background are corrections made by EdIt after assessing the
+	  underlying trace files (SCF files in this case). Bases with blue
+	  background are base calling errors where the evidence in the trace
+	  files did not show enough evidence to allow an editing correction.
+	</title>
+	<mediaobject>
+	  <imageobject>
+	    <imagedata fileref="bookfigures/san_autoedit2.png" width="90%"/>
+	  </imageobject>
+	</mediaobject>
+      </figure>
+      <para>
+	With the introduction of 454 and Illumina reads, MIRA also got in 2007
+	specialised editors to search and correct for typical 454 and Illumina
+	sequencing problems, like the homopolymer run over-/undercalls or the
+	Illumina GGCxG motif problem. These editors are now integrated into
+	MIRA itself and are not part of EdIt anymore.
+      </para>
+      <para>
+	While not being paramount to the assembly quality, both editors
+	provide additional layers of safety for the MIRA learning algorithm to
+	discern non-perfect repeats even on a single base
+	discrepancy. Furthermore, the multiple alignments generated by these
+	two editors are way more pleasant to look at (or automatically
+	analyse) than the ones containing all kind of gaps, insertions,
+	deletions etc.pp.
+      </para>
+      <figure id="chap_intro::454_autoedit1.png">
+	<title>
+	  454 assembly without 454 automatic editing routines
+	</title>
+	<mediaobject>
+	  <imageobject>
+	    <imagedata fileref="bookfigures/454_autoedit1.png" width="90%"/>
+	  </imageobject>
+	</mediaobject>
+      </figure>
+      <figure id="chap_intro::454_autoedit2.png">
+	<title>
+	  454 assembly with 454 automatic editing routines
+	</title>
+	<mediaobject>
+	  <imageobject>
+	    <imagedata fileref="bookfigures/454_autoedit2.png" width="90%"/>
+	  </imageobject>
+	</mediaobject>
+      </figure>
+    </sect2>
+    <sect2 id="sect_intro_whycontigsend">
+      <title>
+	MIRA lets you see why contigs end where they end
+      </title>
+      <para>
+	A very useful feature for finishing are kmer (hash) frequency tags
+	which MIRA sets in the assembly. Provided your finishing editor
+	understands those tags
+	(<command>gap4</command>, <command>gap5</command>
+	and <command>consed</command> are fine but there may be others),
+	they'll give you precious insight where you might want to be cautious
+	when joining to contigs or where you would need to perform some primer
+	walking. MIRA colourises the assembly with the hash frequency (HAF)
+	tags to show repetitiveness.
+      </para>
+      <para>
+	You will need to read about the HAF tags in the reference manual, but
+	in a nutshell: the HAF5, HAF6 and HAF7 tags tell you potentially have
+	repetitive to very repetitive read areas in the genome, while HAF2
+	tags will tell you that these areas in the genome have not been
+	covered as well as they should have been.
+      </para>
+      <para>
+	As an example, the following figure shows the coverage of a contig.
+      </para>
+      <figure id="chap_intro::haf5_haf2_contigcoverage_ovals.png">
+	<title>
+	  Coverage of a contig.
+	</title>
+	<mediaobject>
+	  <imageobject>
+	    <imagedata fileref="bookfigures/haf5_haf2_contigcoverage_ovals.png" width="90%"/>
+	  </imageobject>
+	</mediaobject>
+      </figure>
+      <para>
+	The question is now: why did MIRA stop building this contig on the
+	left end (left oval) and why on the right end (right oval).
+      </para>
+      <para>
+	Looking at the HAF tags in the contig, the answer becomes quickly
+	clear: the left contig end has HAF5 tags in the reads (shown in bright
+	red in the following figure). This tells you that MIRA stopped because
+	it probably could not unambiguously continue building this
+	contig. Indeed, if you BLAST the sequence at the NCBI, you will find
+	out that this is an rRNA area of a bacterium, of which bacteria
+	normally have several copies in the genome:
+      </para>
+      <figure id="chap_intro::haf5_repend_rrna.png">
+	<title>
+	  HAF5 tags (reads shown with red background) covering a contig end
+	  show repetitiveness as reason for stopping a contig build.
+	</title>
+	<titleabbrev>
+	  Repetitive end of a contig
+	</titleabbrev>
+	<mediaobject>
+	  <imageobject>
+	    <imagedata fileref="bookfigures/haf5_repend_rrna.png" width="90%"/>
+	  </imageobject>
+	</mediaobject>
+      </figure>
+      <para>
+	The right end of the same contig however ends in HAF3 tags (normal
+	coverage, bright green in the next figure) and even HAF2 tags (below
+	average coverage, pale green in the next image). This tells you MIRA
+	stopped building the contig at this place simply because there were
+	no more reads to continue. This is a perfect target for primer
+	walking if you want to finish a genome.
+      </para>
+      <figure id="chap_intro::haf2_end_nomoredata.png">
+	<title>
+	  HAF2 tags covering a contig end show that no more reads were
+	  available for assembly at this position.
+	</title>
+	<titleabbrev>
+	  Non-repetitive end of a contig
+	</titleabbrev>
+	<mediaobject>
+	  <imageobject>
+	    <imagedata fileref="bookfigures/haf2_end_nomoredata.png" width="90%"/>
+	  </imageobject>
+	</mediaobject>
+      </figure>
+    </sect2>
+    <sect2 id="sect_intro_stmshybrid_tags">
+      <title>
+	MIRA tags problematic decisions in hybrid assemblies
+      </title>
+      <para>
+	Many people combine Sanger &amp; 454 or 454 &amp;
+	Illumina to improve the sequencing quality of their project through
+	two (or more) sequencing technologies. To reduce time spent in
+	finishing, MIRA automatically tags those bases in a consensus of a
+	hybrid assembly where reads from different sequencing technologies
+	severely contradict each other.
+      </para>
+      <para>
+	The following example shows a hybrid 454 / Illumina assembly where reads
+	from 454 (highlighted read names in following figure) were not sure
+	whether to have one or two "G" at a certain position. The consensus
+	algorithm would have chosen "two Gs" for 454, obviously a wrong
+	decision as all Illumina reads at the same spot (the reads which are not
+	highlighted) show only one "G" for the given position. While MIRA
+	chose to believe Illumina in this case, it tagged the position anyway in
+	case someone chooses to check these kind of things.
+      </para>
+      <figure id="chap_intro::454sxa_stms_hybdenovo.png">
+	<title>
+	  A "STMS" tag (Sequencing Technology Mismatch Solved, the black
+	  square base in the consensus) showing a potentially difficult
+	  decision in a hybrid 454 / Illumina de-novo assembly.
+	</title>
+	<titleabbrev>
+	  MIRA pointing out problems in hybrid assemblies (1)
+	</titleabbrev>
+	<mediaobject>
+	  <imageobject>
+	    <imagedata fileref="bookfigures/454sxa_stms_hybdenovo.png" width="90%"/>
+	  </imageobject>
+	</mediaobject>
+      </figure>
+<!--
+      <para>
+	The following is an example in a hybrid Sanger / 454 project where by
+	pure misfortune, all Sanger reads have a base calling error at a given
+	position while the 454 reads show the true sequence.
+      </para>
+      <figure id="chap_intro::454san_stmu_hybdenovo.png">
+	<title>
+	  A "STMU" tag (Sequencing Technology Mismatch Unresolved, light blue
+	  square in the consensus at lower end of large oval) showing a
+	  potentially difficult decision in a hybrid Sanger / 454 mapping
+	  assembly.
+	</title>
+	<titleabbrev>
+	  MIRA pointing out problems in hybrid assemblies (2)
+	</titleabbrev>
+	<mediaobject>
+	  <imageobject>
+	    <imagedata fileref="bookfigures/454san_stmu_hybdenovo.png" width="90%"/>
+	  </imageobject>
+	</mediaobject>
+      </figure>
+-->
+    </sect2>
+    <sect2 id="sect_intro_polishing">
+      <title>
+	MIRA for polishing of PacBio or ONT assemblies
+      </title>
+      <para>
+	While MIRA is not really suited to assemble PacBio or Oxford Nanopore
+	reads de-novo, it is very well suited to polish the results of such
+	assemblies with Illumina reads in mapping projects.
+      </para>
+      <para>
+	TODO: example
+      </para>
+    </sect2>
+    <sect2 id="sect_intro_cer_reads">
+      <title>
+	MIRA allows older finishing programs to cope with amount data in Illumina
+	mapping projects
+      </title>
+      <para>
+	Quality control is paramount when you do mutation analysis for
+	biologists: I know they'll be on my doorstep the very next minute they
+	found out one of the SNPs in the resequencing data wasn't a SNP, but a
+	sequencing artefact. And I can understand them: why should they invest
+	-- per SNP -- hours in the wet lab if I can invest a couple of minutes
+	to get them data false negative rates (and false discovery rates) way
+	below 1%? So, finishing and quality control for any mapping project is
+	a must.
+      </para>
+      <para>
+	Both <command>gap4</command> and <command>consed</command> start to
+	have a couple of problems when projects have millions of reads: you
+	need lots of RAM and scrolling around the assembly gets a test to your
+	patience. Still, these two assembly finishing programs are amongst the
+	better ones out there, although <command>gap5</command> starts to
+	quickly arrive in a state in which it allows itself to substitute to
+	<command>gap4</command>.
+      </para>
+      <para>
+	So, MIRA reduces the number of reads in Illumina mapping projects
+	without sacrificing information on coverage. The principle is pretty
+	simple: for 100% matching reads, MIRA tracks coverage of every
+	reference base and creates long synthetic, coverage equivalent reads
+	(CERs) in exchange for the Illumina reads. Reads that do not match 100%
+	are kept as own entities, so that no information gets lost. The
+	following figure illustrates this:
+      </para>
+      <figure id="chap_intro::sxa_cer_reads1.png">
+	<titleabbrev>
+	  Coverage equivalent reads (CERs) explained.
+	</titleabbrev>
+	<title>
+	    Coverage equivalent reads (CERs) explained.
+	  <para>
+	    Left side of the figure: a conventional mapping with eleven reads
+	    of size 4 against a consensus (in uppercase). The inversed base in
+	    the lowest read depicts a sequencing error.
+	  </para>
+	  <para>
+	    Right side of the figure: the same situation, but with coverage
+	    equivalent reads (CERs). Note that there are less reads, but no
+	    information is lost: the coverage of each reference base is
+	    equivalent to the left side of the figure and reads with
+	    differences to the reference are still present.
+	  </para>
+	</title>
+	<mediaobject>
+	  <imageobject>
+	    <imagedata fileref="bookfigures/sxa_cer_reads1.png" width="90%"/>
+	  </imageobject>
+	</mediaobject>
+      </figure>
+      <para>
+	This strategy is very effective in reducing the size of a project. As
+	an example, in a mapping project with 9 million Illumina 36mers, MIRA
+	created a project with 1.7m reads: 700k CER reads representing ~8
+	million 100% matching Illumina reads, and it kept ~950k mapped reads as
+	they had &ge; mismatch (be it sequencing error or true SNP) to the
+	reference. A reduction of 80%, and numbers for mapping projects with
+	Illumina 100bp reads are in a similar range.
+      </para>
+      <para>
+	Also, mutations of the resequenced strain now really stand out in the
+	assembly viewer as the following figure shows:
+      </para>
+      <figure id="chap_intro::sxa_cer_reads2.png">
+	<title>
+	  Coverage equivalent reads let SNPs become very visible in assembly viewers
+	</title>
+	<mediaobject>
+	  <imageobject>
+	    <imagedata fileref="bookfigures/sxa_cer_reads2.png" width="90%"/>
+	  </imageobject>
+	</mediaobject>
+      </figure>
+    </sect2>
+    <sect2 id="sect_intro_mapping_tags">
+      <title>
+	MIRA tags SNPs and other features, outputs result files
+	for biologists
+      </title>
+      <para>
+	Want to assemble two or several very closely related genomes without
+	reference, but finding SNPs or differences between them?
+      </para>
+      <para>
+	Tired of looking at some text output from mapping programs and
+	guessing whether a SNP is really a SNP or just some random junk?
+      </para>
+      <para>
+	MIRA tags all SNPs (and other features like missing coverage etc.) it
+	finds so that -- when using a finishing viewer like gap4 or consed --
+	one can quickly jump from tag to tag and perform quality control. This
+	works both in de-novo assembly and in mapping assembly, all MIRA needs
+	is the information which read comes from which strain.
+      </para>
+      <para>
+	The following figure shows a mapping assembly of Illumina 36mers against
+	a bacterial reference sequence, where a mutant has an indel position
+	in an gene:
+      </para>
+      <figure id="chap_intro::sxa_sroc_lenski2.png">
+	<title>
+	  "SROc" tag (Snp inteR Organism on Consensus) showing a SNP position
+	  in a Illumina mapping assembly.
+	</title>
+	<titleabbrev>
+	  SNP tags in a MIRA assembly
+	</titleabbrev>
+	<mediaobject>
+	  <imageobject>
+	    <imagedata fileref="bookfigures/sxa_sroc_lenski2.png" width="90%"/>
+	  </imageobject>
+	</mediaobject>
+      </figure>
+      <para>
+	Other interesting places like deletions of whole genome parts are also
+	directly tagged by MIRA and noted in diverse result files (and
+	searchable in assembly viewers):
+      </para>
+      <figure id="chap_intro::sxa_mcvc_lenski.png">
+	<title>
+	  "MCVc" tag (Missing CoVerage in Consensus, dark red stretch in figure)
+	  showing a genome deletion in Illumina mapping assembly.
+	</title>
+	<titleabbrev>
+	  Tag pointing out a large deletion in a MIRA mapping assembly
+	</titleabbrev>
+	<mediaobject>
+	  <imageobject>
+	    <imagedata fileref="bookfigures/sxa_mcvc_lenski.png" width="90%"/>
+	  </imageobject>
+	</mediaobject>
+      </figure>
+      <note>
+	For bacteria -- and if you use annotated GenBank files as reference
+	sequence -- MIRA will also output some nice lists directly usable (in
+	Excel) by biologists, telling them which gene was affected by what
+	kind of SNP, whether it changes the protein, the original and the
+	mutated protein sequence etc.pp.
+      </note>
+    </sect2>
+    <sect2 id="sect_intro_miramuchmore">
+      <title>
+	MIRA has ... much more
+      </title>
+      <itemizedlist>
+	<listitem>
+	  <para>
+	    Extensive possibilities to clip data if needed: by quality, by
+	    masked bases, by A/T stretches, by evidence from other reads, ...
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    Routines to re-extend reads into clipped parts if multiple
+	    alignment allows for it.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    Read in ancillary data in different formats: EXP, NCBI TRACEINFO
+	    XML, SSAHA2, SMALT result files and text files.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    Detection of chimeric reads.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    Support for many different of input and output formats (FASTA,
+	    EXP, FASTQ, CAF, MAF, ...)
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    Automatic memory management (when RAM is tight)
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    Over 150 parameters to tune the assembly for a lot of use cases,
+	    many of these parameters being tunable individually depending on
+	    sequencing technology they apply to.
+	  </para>
+	</listitem>
+      </itemizedlist>
+      <para>
+      </para>
+    </sect2>
+  </sect1>
+  <sect1 id="sect_intro_versions_licenses_disclaimer_and_copyright">
+    <title>
+      Versions, Licenses, Disclaimer and Copyright
+    </title>
+    <sect2 id="sect_intro_versions">
+      <title>
+	Versions
+      </title>
+      <para>
+	There are two kind of versions for MIRA that can be compiled form
+	source files: production and development.
+      </para>
+      <para>
+	Production versions are from the stable branch of the source code. These
+	versions are available for download from SourceForge.
+      </para>
+      <para>
+	Development versions are from the development branch of the source
+	tree. These are also made available to the public and should be
+	compiled by users who want to test out new functionality or to track
+	down bugs or errors that might arise at a given location. Release
+	candidates (rc) also fall into the development versions: they are
+	usually the last versions of a given development branch before being
+	folded back into the production branch.
+      </para>
+    </sect2>
+    <sect2 id="sect_intro_licenses">
+      <title>
+	License
+      </title>
+      <sect3 id="sect_intro_licensemira">
+	<title>
+	  MIRA
+	</title>
+	<para>
+	  MIRA has been put under the GPL version 2.
+	</para>
+	<para>
+	  This program is free software; you can redistribute it and/or modify
+	  it under the terms of the GNU General Public License as published by
+	  the Free Software Foundation; either version 2 of the License, or (at
+	  your option) any later version.
+	</para>
+	<para>
+	  This program is distributed in the hope that it will be useful, but
+	  WITHOUT ANY WARRANTY; without even the implied warranty of
+	  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+	  General Public License for more details.
+	</para>
+	<para>
+	  You should have received a copy of the GNU General Public License
+	  along with this program; if not, write to the Free Software
+	  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	  02110-1301, USA
+	</para>
+	<para>
+	  You may also visit <ulink
+	  url="http://www.opensource.org/licenses/gpl-2.0.php"/> at the Open
+	  Source Initiative for a copy of this licence.
+	</para>
+      </sect3>
+      <sect3 id="sect_intro_licensedocs">
+	<title>
+	  Documentation
+	</title>
+	<para>
+	  The documentation pertaining to MIRA is licensed under the Creative
+	  Commons Attribution-NonCommercial-ShareAlike 3.0 Unported
+	  License. To view a copy of this license, visit <ulink
+	  url="http://creativecommons.org/licenses/by-nc-sa/3.0/"/> or send a
+	  letter to Creative Commons, 171 Second Street, Suite 300, San
+	  Francisco, California, 94105, USA.
+	</para>
+      </sect3>
+    </sect2>
+    <sect2 id="sect_intro_copyright">
+      <title>
+	Copyright
+      </title>
+      <para>
+	&copy; 1997-2000 Deutsches Krebsforschungszentrum Heidelberg -- Dept.
+	of Molecular Biophysics and Bastien Chevreux (for MIRA) and Thomas
+	Pfisterer (for EdIt)
+      </para>
+      <para>
+	&copy; 2001 (and later) Bastien Chevreux.
+      </para>
+      <para>
+	All rights reserved.
+      </para>
+    </sect2>
+    <sect2 id="sect_intro_external_libraries">
+      <title>
+	External libraries
+      </title>
+      <para>
+	MIRA uses the excellent Expat library to parse XML files. Expat is Copyright
+	&copy;  1998, 1999, 2000 Thai Open Source Software Center Ltd and Clark
+	Cooper as well as Copyright &copy;
+	2001, 2002 Expat maintainers.
+      </para>
+      <para>
+	See <ulink url="http://www.libexpat.org/"/> and
+	<ulink url="http://sourceforge.net/projects/expat/"/> for more information on Expat.
+      </para>
+    </sect2>
+  </sect1>
+  <sect1 id="sect_intro_getting_help___mailing_lists___reporting_bugs">
+    <title>
+      Getting help / Mailing lists / Reporting bugs
+    </title>
+    <para>
+      Please try to find an answer to your question by first reading the
+      documents provided with the MIRA package (FAQs, READMEs, usage guide,
+      guides for specific sequencing technologies etc.). It's a lot, but then
+      again, they hopefully should cover 90% of all questions.
+    </para>
+    <para>
+      If you have a tough nut to crack or simply could not find what you were
+      searching for, you can subscribe to the MIRA talk mailing list and send
+      in your question (or comment, or suggestion), see <ulink
+      url="http://www.chevreux.org/mira_mailinglists.html"/> for more
+      information on that. Now that the number of subscribers has reached a
+      good level, there's a fair chance that someone could answer your
+      question before I have the opportunity or while I'm away from mail for a
+      certain time.
+    </para>
+    <note>
+      <para>
+	Please very seriously consider using the mailing list before mailing
+	me directly. Every question which can be answered by participants of
+	the list is time I can invest in development and documentation of
+	MIRA. I have a day job as bioinformatician which has nothing to do
+	with MIRA and after work hours are rare enough nowadays.
+      </para>
+      <para>
+	Furthermore, Google indexes the mailing list and every discussion /
+	question asked on the mailing list helps future users as they show up
+	in Google searches.
+      </para>
+      <para>
+	Only mail me directly (bach@chevreux.org) if you feel that there's
+	some information you absolutely do not want to share publicly.
+      </para>
+    </note>
+    <note>
+      Subscribing to the list <emphasis>before sending mails to it </emphasis>
+      is necessary as messages from non-subscribers will be stopped by the
+      system to keep the spam level low.
+    </note>
+    <para>
+      To report bugs or ask for new features, please use the GitHub issue tool
+      at: <ulink
+      url="http://github.com/bachev/mira/issues"/>. This ensures
+      that requests do not get lost <emphasis role="bold">and</emphasis> you
+      get the additional benefit to automatically know when a bug has been
+      fixed as I will not send separate emails, that's what bug trackers are
+      there for.
+    </para>
+    <para>
+      Finally, new or intermediate versions of MIRA will be announced on the
+      separate MIRA announce mailing list. Traffic is very low there as the
+      only one who can post there is me. Subscribe if you want to be informed
+      automatically on new releases of MIRA.
+    </para>
+  </sect1>
+  <sect1 id="sect_intro_author">
+    <title>
+      Author
+    </title>
+    <para>
+      Bastien Chevreux (mira): <email>bach@chevreux.org</email>
+    </para>
+    <para>
+      WWW:  <ulink url="http://www.chevreux.org/"/>
+    </para>
+    <para>
+      MIRA can use automatic editing routines for Sanger sequences which were
+      written by Thomas Pfisterer (EdIt):
+      <email>t.pfisterer@dkfz-heidelberg.de</email>
+    </para>
+  </sect1>
+  <sect1 id="sect_intro_miscellaneous">
+    <title>
+      Miscellaneous
+    </title>
+    <sect2 id="sect_intro_citations">
+      <title>
+	Citing MIRA
+      </title>
+      <para>
+	Please use these citations:
+      </para>
+      <variablelist>
+	<varlistentry>
+	  <term>
+	    For <command>mira</command>
+	  </term>
+	  <listitem>
+	    <para>
+	      Chevreux, B., Wetter, T. and Suhai, S. (1999): <emphasis>Genome
+	      Sequence Assembly Using Trace Signals and Additional Sequence
+	      Information</emphasis>. Computer Science and Biology:
+	      Proceedings of the German Conference on Bioinformatics (GCB) 99,
+	      pp. 45-56.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para> Chevreux, B., Pfisterer, T., Drescher, B., Driesel, A. J.,
+	    M&uuml;ller, W. E., Wetter, T. and Suhai, S. (2004): <emphasis>Using
+	    the miraEST Assembler for Reliable and Automated mRNA Transcript
+	    Assembly and SNP Detection in Sequenced ESTs</emphasis>. Genome
+	    Research, 14(6)
+	    </para>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+    </sect2>
+    <sect2 id="sect_intro_postcards_gold_and_jewellery">
+      <title>
+	Postcards, gold and jewellery
+      </title>
+      <para>
+	If you find this software useful, please send the author a postcard. If
+	postcards are not available, a treasure chest full of Spanish doubloons, gold
+	and jewellery will do nicely, thank you.
+      </para>
+    </sect2>
+  </sect1>
+
+</chapter>

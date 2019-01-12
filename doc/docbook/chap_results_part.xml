@@ -1,0 +1,1458 @@
+<?xml version="1.0" ?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.docbook.org/xml/4.5/docbookx.dtd">
+<chapter id="chap_results">
+  <chapterinfo>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="versionfile"/>
+    <author>
+      <firstname>Bastien</firstname>
+      <surname>Chevreux</surname>
+      <email>bach@chevreux.org</email>
+    </author>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="copyrightfile"/>
+  </chapterinfo>
+  <blockquote>
+    <attribution>Solomon Short</attribution>
+    <para>
+      <emphasis><quote>You have to know what you're looking for before you can find it.
+      </quote></emphasis>
+    </para>
+  </blockquote>
+  <title>Working with the results of MIRA</title>
+  <para>
+    MIRA makes results available in quite a number of formats: CAF, ACE, FASTA and
+    a few others. The preferred formats are CAF and MAF, as these format can be
+    translated into any other supported format.
+  </para>
+  <sect1 id="sect_res_looking_at_results">
+    <title>
+      MIRA output directories and files
+    </title>
+    <para>
+      For the assembly MIRA creates a directory named
+      <filename><replaceable>projectname</replaceable>_assembly</filename> in
+      which a number of sub-directories will have appeared.
+    </para>
+    <para>
+      These sub-directories (and files within) contain the results of the
+      assembly itself, general information and statistics on the results and
+      -- if not deleted automatically by MIRA -- a tmp directory with log
+      files and temporary data:
+    </para>
+    <itemizedlist>
+      <listitem>
+	<para>
+	  <filename><replaceable>projectname</replaceable>_d_results</filename>:
+	  this directory contains all the output files of the assembly in
+	  different formats.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  <filename><replaceable>projectname</replaceable>_d_info</filename>:
+	  this directory contains information files of the final
+	  assembly. They provide statistics as well as, e.g., information
+	  (easily parsable by scripts) on which read is found in which
+	  contig etc.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  <filename><replaceable>projectname</replaceable>_d_tmp</filename>:
+	  this directory contains log files and temporary assembly files. It
+	  can be safely removed after an assembly as there may be easily a
+	  few GB of data in there that are not normally not needed anymore.
+	</para>
+	<para>
+	  The default settings of MIRA are such that really big files are
+	  automatically deleted when they not needed anymore during an
+	  assembly.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  <filename><replaceable>projectname</replaceable>_d_chkpt</filename>:
+	  this directory contains checkpoint files needed to resume
+	  assemblies that crashed or were stopped.
+	</para>
+      </listitem>
+    </itemizedlist>
+    <sect2 id="sect_res_resultsdir">
+      <title>
+	The <filename>*_d_results</filename> directory
+      </title>
+      <para>
+	The following files in
+	<filename><replaceable>projectname</replaceable>_d_results</filename>
+	contain results of the assembly in different formats. Depending on the
+	output options you defined for MIRA, some files may or may not be
+	there. As long as the CAF or MAF format are present, you can translate
+	your assembly later on to about any supported format with the
+	<command>miraconvert</command> program supplied with the MIRA
+	distribution:
+      </para>
+      <itemizedlist>
+	<listitem>
+	  <para>
+	    <filename><replaceable>projectname</replaceable>_out.txt</filename>:
+	    this file contains in a human readable format the aligned assembly
+	    results, where all input sequences are shown in the context of the
+	    contig they were assembled into. This file is just meant as a
+	    quick way for people to have a look at their assembly without
+	    specialised alignment finishing tools.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    <filename><replaceable>projectname</replaceable>_out.padded.fasta</filename>:
+	    this file contains as FASTA sequence the consensus of the contigs
+	    that were assembled in the process.  Positions in the consensus
+	    containing gaps (also called 'pads', denoted by an asterisk) are
+	    still present. The computed consensus qualities are in the
+	    corresponding
+	    <filename><replaceable>projectname</replaceable>_out.padded.fasta.qual</filename>
+	    file.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    <filename><replaceable>projectname</replaceable>_out.unpadded.fasta</filename>:
+	    as above, this file contains as FASTA sequence the consensus of
+	    the contigs that were assembled in the process, put positions in
+	    the consensus containing gaps were removed. The computed consensus
+	    qualities are in the corresponding
+	    <filename><replaceable>projectname</replaceable>_out.unpadded.fasta.qual</filename>
+	    file.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    <filename><replaceable>projectname</replaceable>_out.caf</filename>:
+	    this is the result of the assembly in CAF format, which can be
+	    further worked on with, e.g., tools from the
+	    <emphasis>caftools</emphasis> package from the Sanger Centre and
+	    later on be imported into, e.g., the Staden gap4 assembly and
+	    finishing tool.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    <filename><replaceable>projectname</replaceable>_out.ace</filename>:
+	    this is the result of the assembly in ACE format. This format can
+	    be read by viewers like the TIGR clview or by consed from the
+	    phred/phrap/consed package.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    <filename><replaceable>projectname</replaceable>_out.gap4da</filename>:
+	    this directory contains the result of the assembly suited for the
+	    <emphasis>direct assembly</emphasis> import of the Staden gap4
+	    assembly viewer and finishing tool.
+	  </para>
+	</listitem>
+      </itemizedlist>
+      <sect3 id="sect_res_resultsdir_denovo">
+	<title>
+	  Additional 'large contigs' result files for de-novo assemblies of genomes
+	</title>
+	<para>
+	  For de-novo assemblies of genomes, MIRA makes a proposal regarding
+	  which contigs you probably want to have a look at ... and which ones
+	  you can probably forget about.
+	</para>
+	<para>
+	  This proposal relies on the <emphasis>largecontigs</emphasis> file
+	  in the info directory (see section below) and MIRA automatically
+	  extracted these contigs into all the formats you wanted to have your
+	  results in.
+	</para>
+	<itemizedlist>
+	  <listitem>
+	    <para>
+	      The result files for 'large contigs' are all named:
+	      <filename><replaceable>projectname</replaceable>_<emphasis>LargeContigs</emphasis>_out.<replaceable>resulttype</replaceable></filename>:
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      <filename>extractLargeContigs.sh</filename>: this is a small
+	      shell script which just contains the call
+	      to <command>miraconvert</command> with which MIRA extracted the
+	      large contigs for you. In case you want to redefine what large
+	      contigs are for you, feel free to use this as template.
+	    </para>
+	  </listitem>
+	</itemizedlist>
+      </sect3>
+    </sect2>
+    <sect2 id="sect_res_infodir">
+      <title>
+	The <filename>*_d_info</filename> directory
+      </title>
+      <para>
+	The following files in
+	<filename><replaceable>projectname</replaceable>_info</filename>
+	contain statistics and other information files of the assembly:
+      </para>
+      <itemizedlist>
+	<listitem>
+	  <para>
+	    <filename><replaceable>projectname</replaceable>_info_assembly.txt</filename>:
+	    This file should be your first stop after an assembly. It will
+	    tell you some statistics as well as whether or not problematic
+	    areas remain in the result.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    <filename><replaceable>projectname</replaceable>_info_callparameters.txt</filename>:
+	    This file contains the parameters as given on the mira command
+	    line when the assembly was started.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    <filename><replaceable>projectname</replaceable>_info_consensustaglist.txt</filename>:
+	    This file contains information about the tags (and their position)
+	    that are present in the consensus of a contig.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    <filename><replaceable>projectname</replaceable>_info_contigreadlist.txt</filename>:
+	    This file contains information which reads have been assembled
+	    into which contigs (or singlets).
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    <filename><replaceable>projectname</replaceable>_info_contigstats.txt</filename>:
+	    This file contains in tabular format statistics about the contigs
+	    themselves, their length, average consensus quality, number of
+	    reads, maximum and average coverage, average read length, number
+	    of A, C, G, T, N, X and gaps in consensus.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    <filename><replaceable>projectname</replaceable>_info_debrislist.txt</filename>:
+	    This file contains the names of all the reads which were not
+	    assembled into contigs (or singlets if appropriate MIRA parameters
+	    were chosen). The file has two columns: first column is the name
+	    of the read, second column is a code showing the reason and stage
+	    at which the read was put into the debris category.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    <filename><replaceable>projectname</replaceable>_info_largecontigs.txt</filename>:
+	    This file contains as simple list the names of all the contigs
+	    MIRA thinks to be more or less important at the end of the
+	    assembly. To be present in this list, a contig needed to reach a
+	    certain length (usually 500, but see <arg>-MI:lcs</arg>) and had a
+	    coverage of at least 1/3 of the average coverage (per sequencing
+	    technology) of the complete project.
+	  </para>
+	  <para>
+	    Note: only present for de-novo assemblies of genomes.
+	  </para>
+	  <warning>
+	    The default heuristics (500bp length and 1/3 coverage per
+	    sequencing technology) generally work well enough for most
+	    projects. However, Projects with extremely different coverage
+	    numbers per sequencing technology may need to use different
+	    numbers. E.g.: a project with 80x Illumina and 6x Sanger would
+	    have contigs consisting only of 2 or 3 Sanger sequence but with
+	    the average coverage >= 2 also in this list although clearly no
+	    one would look at these under normal circumstances.
+	  </warning>
+	</listitem>
+	<listitem>
+	  <para>
+	    <filename><replaceable>projectname</replaceable>_info_groups.txt</filename>:
+	    This file contains information about readgroups as determined by
+	    MIRA. Most interesting will probably be statistics concerning
+	    read-pair sizes.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    <filename><replaceable>projectname</replaceable>_info_readrepeats</filename>:
+	    This file helps to find out which parts of which reads are quite
+	    repetitive in a project. Please consult the chapter on how to
+	    tackle "hard" sequencing projects to learn how this file can help
+	    you in spotting sequencing mistakes and / or difficult parts in a
+	    genome or EST / RNASeq project.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    <filename><replaceable>projectname</replaceable>_info_readstooshort</filename>:
+	    A list containing the names of those reads that have been sorted
+	    out of the assembly only due to the fact that they were too short,
+	    before any processing started.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    <filename><replaceable>projectname</replaceable>_info_readtaglist.txt</filename>:
+	    This file contains information about the tags and their position
+	    that are present in each read.  The read positions are given
+	    relative to the forward direction of the sequence (i.e. as it was
+	    entered into the the assembly).
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    <filename><replaceable>projectname</replaceable>_error_reads_invalid</filename>:
+	    A list of sequences that have been found to be invalid due to
+	    various reasons (given in the output of the assembler).
+	  </para>
+	</listitem>
+      </itemizedlist>
+    </sect2>
+  </sect1>
+
+
+  <sect1 id="sect_res_first_look:the_assembly_info">
+    <title>
+      First look: the assembly info
+    </title>
+    <para>
+      Once finished, have a look at the file
+      <filename>*_info_assembly.txt</filename> in the info directory. The
+	assembly information given there is split in three major parts:
+    </para>
+    <orderedlist>
+      <listitem>
+	<para>
+	  some general assembly information (number of reads assembled etc.). This
+	    part is quite short at the moment, will be expanded in future
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  assembly metrics for 'large' contigs.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  assembly metrics for all contigs.
+	  </para>
+      </listitem>
+    </orderedlist>
+
+    <para>
+      The first part for large contigs contains several sections. The first of
+      these shows what MIRA counts as large contig for this particular
+      project. As example, this may look like this:
+    </para>
+    <screen>
+Large contigs:
+--------------
+With    Contig size             >= 500
+        AND (Total avg. Cov     >= 19
+             OR Cov(san)        >= 0
+             OR Cov(454)        >= 8
+             OR Cov(pbs)        >= 0
+             OR Cov(sxa)        >= 11
+             OR Cov(sid)        >= 0
+            )</screen>
+    <para>
+      The above is for a 454 and Solexa hybrid assembly in which MIRA
+      determined large contigs to be contigs
+    </para>
+    <orderedlist>
+      <listitem>
+	<para>
+	  of length of at least 500 bp and
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  having a total average coverage of at least 19x or an
+	  average 454 coverage of 8 or an average Solexa coverage of 11
+	</para>
+      </listitem>
+    </orderedlist>
+    <para>
+      The second section is about length assessment of large contigs:
+    </para>
+    <screen>
+  Length assessment:
+  ------------------
+  Number of contigs:    44
+  Total consensus:      3567224
+  Largest contig:       404449
+  N50 contig size:      186785
+  N90 contig size:      55780
+  N95 contig size:      34578</screen>
+    <para>
+      In the above example, 44 contigs totalling 3.56 megabases were built,
+      the largest contig being 404 kilobases long and the N50/N90 and N95
+      numbers give the respective lengths.
+    </para>
+    <para>
+      The next section shows information about the coverage assessment of
+      large contigs. An example:
+    </para>
+    <screen>
+  Coverage assessment:
+  --------------------
+  Max coverage (total): 563
+  Max coverage
+        Sanger: 0
+        454:    271
+        PacBio: 0
+        Solexa: 360
+        Solid:  0
+  Avg. total coverage (size >= 5000): 57.38
+  Avg. coverage (contig size >= 5000)
+        Sanger: 0.00
+        454:    25.10
+        PacBio: 0.00
+        Solexa: 32.88
+        Solid:  0.00</screen>
+    <para>
+      Maximum coverage attained was 563, maximum for 454 alone 271 and for
+      Solexa alone 360. The average total coverage (computed from contigs with
+      a size &ge; 5000 bases is 57.38. The average coverage by sequencing
+      technology (in contigs &ge; 5000) is 25.10 for 454 and 32.88 for Solexa
+      reads.
+    </para>
+    <note>
+      <para>
+	For genome assemblies, the value for <emphasis>Avg. total coverage
+	(size >= 5000)</emphasis> is currently always calculated for contigs
+	having 5000 or more consensus bases. While this gives a very effective
+	measure for genome assemblies, assemblies of EST or RNASeq will often
+	have totally irrelevant values here: even if the default of MIRA is to
+	use smaller contig sizes (1000) for EST / RNASeq assemblies, the
+	coverage values for lowly and highly expressed genes can easily span a
+	factor of 10000 or more.
+      </para>
+    </note>
+    <para>
+      The last section contains some numbers useful for quality assessment. It
+      looks like this:
+    </para>
+    <screen>
+  Quality assessment:
+  -------------------
+  Average consensus quality:                    90
+  Consensus bases with IUPAC:                   11      (you might want to check these)
+  Strong unresolved repeat positions (SRMc):    0       (excellent)
+  Weak unresolved repeat positions (WRMc):      19      (you might want to check these)
+  Sequencing Type Mismatch Unsolved (STMU):     0       (excellent)
+  Contigs having only reads wo qual:            0       (excellent)
+  Contigs with reads wo qual values:            0       (excellent)</screen>
+    <para>
+      Beside the average quality of the contigs and whether they contain reads
+      without quality values, MIRA shows the number of different tags in the
+      consensus which might point at problems.
+    </para>
+    <para>
+      The above mentioned sections (length assessment, coverage assessment and
+      quality assessment) for <emphasis>large</emphasis> contigs will then be
+      re-iterated for <emphasis>all</emphasis> contigs, this time including
+      also contigs which MIRA did not take into account as large contig.
+    </para>
+  </sect1>
+  <sect1 id="sect_res_converting_results">
+    <title>
+      Converting results
+    </title>
+    <sect2 id="sect_res_converting_miraconvert">
+      <title>
+	Converting to and from other formats:<command>miraconvert</command>
+      </title>
+      <para>
+	<command>miraconvert</command> is tool in the MIRA package which
+	reads and writes a number of formats, ranging from full assembly
+	formats like CAF and MAF to simple output view formats like HTML or
+	plain text.
+      </para>
+      <figure id="chap_res::results_miraconvert.png">
+	<title><command>miraconvert</command> supports a wide range of
+	format conversions to simplify export / import of results to and from
+	other programs</title>
+	<titleabbrev>
+	  Format conversions with <command>miraconvert</command>
+	</titleabbrev>
+	<mediaobject>
+	  <imageobject>
+	    <imagedata fileref="bookfigures/results_miraconvert.png" width="90%"/>
+	  </imageobject>
+	</mediaobject>
+      </figure>
+      </sect2>
+    <sect2 id="sect_res_converting_reach_other_programs">
+      <title>
+	Steps for converting data from / to other tools
+      </title>
+      <para>
+	The question "How Do I convert to / from other tools?" is complicated
+	by the plethora of file formats and tools available. This section
+	gives an overview on what is needed to reach the most important ones.
+      </para>
+      <figure id="chap_res::results_mira2other.png">
+	<title>
+	  Conversion steps, formats and programs needed to reach some tools
+	  like assembly viewers, editors or scaffolders.
+	</title>
+	<titleabbrev>
+	  Conversions needed for other tools.
+	</titleabbrev>
+	<mediaobject>
+	  <imageobject>
+	    <imagedata fileref="bookfigures/results_mira2other.png" width="90%"/>
+	  </imageobject>
+	</mediaobject>
+      </figure>
+      <para>
+	Please also read the chapter on MIRA utilities in this manual to learn
+	more on <command>miraconvert</command> and have a look at
+	<literal>miraconvert -h</literal> which lists all possible formats
+	and other command line options.
+      </para>
+      <sect3 id="sect_res_converting_to_from_staden">
+	<title>
+	  Example: converting to and from the Staden package (gap4 / gap5)
+	</title>
+	<para>
+	  The <command>gap4</command> program (and its
+	  successor <command>gap5</command> from the Staden package are pretty
+	  useful finishing tools and assembly viewers. They have an own
+	  database format which MIRA does not read or write, but there are
+	  interconversion possibilities using the CAF format (for gap4) and
+	  SAM format (for gap5)
+	</para>
+	<variablelist>
+	  <varlistentry>
+	    <term>
+	      <arg>gap4</arg>
+	    </term>
+	    <listitem>
+	      <para>
+		You need the <command>caf2gap</command>
+		and <command>gap2caf</command> utilities for this, which are
+		distributed separately from the Sanger Centre
+		<ulink url="http://www.sanger.ac.uk/Software/formats/CAF/"/>).
+		Conversion is pretty straightforward. From MIRA to gap4, it's
+		like this:
+	      </para>
+	      <screen>
+<prompt>$</prompt> caf2gap -project <replaceable>YOURGAP4PROJECTNAME</replaceable> -ace <replaceable>mira_result.caf</replaceable> &gt;&amp;/dev/null</screen>
+	      <note>
+		Don't be fooled by the <literal>-ace</literal> parameter of
+		<command>caf2gap</command>. It needs a CAF file as input, not
+		an ACE file.
+	      </note>
+	      <para>
+		From gap4 to CAF, it's like this:
+	      </para>
+	      <screen>
+<prompt>$</prompt> gap2caf -project <replaceable>YOURGAP4PROJECTNAME</replaceable> &gt;tmp.caf
+<prompt>$</prompt> miraconvert -r c tmp.caf <replaceable>somenewname</replaceable>.caf</screen>
+	      <note>
+		Using <command>gap2caf</command>, be careful to use the simple
+		<literal>&gt;</literal> redirection to file and
+		<emphasis>not</emphasis> the <literal>&gt;&amp;</literal>
+		redirection.
+	      </note>
+	      <note>
+		Using first <command>gap2caf</command> and then
+		<command>miraconvert</command> is needed as gap4 writes an
+		own consensus to the CAF file which is not necessarily the
+		best. Indeed, gap4 does not know about different sequencing
+		technologies like 454 and treats everything as
+		Sanger. Therefore, using
+		<command>miraconvert</command> with the <arg>-r c</arg> option
+		recalculates a MIRA consensus during the "conversion" from CAF to CAF.
+	      </note>
+	      <note>
+		If you work with a 32 bit executable of caf2gap, it might very
+		well be that the converter needs more memory than can be
+		handled by 32 bit. Only solution: switch to a 64 bit
+		executable of caf2gap.
+	      </note>
+	      <warning>
+		<title>
+		  caf2gap bug for sequence annotations in reverse direction
+		</title>
+		<para>
+		  caf2gap has currently (as of version 2.0.2) a bug that turns
+		  around all features in reverse direction during the
+		  conversion from CAF to a gap4 project. There is a fix
+		  available, please contact me for further information (until
+		  I find time to describe it here).
+		</para>
+	      </warning>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term>
+	      <arg>gap5</arg>
+	    </term>
+	    <listitem>
+	      <para>
+		The <command>gap5</command> program is the successor for
+		gap4. It comes with on own import utility
+		(<command>tg_index</command>) which can import SAM and CAF
+		files, and gap5 itself has an export function which also
+		writes SAM and CAF. It is suggested to use the SAM format to
+		export data gap5 as it is more efficient and conveys more
+		information on sequencing technologies used.
+	      </para>
+	      <para>
+		Conversion is pretty straightforward. From MIRA to gap5, it's like
+		this:
+	      </para>
+	      <screen>
+<prompt>$</prompt> tg_index <replaceable>INPUT</replaceable>_out.sam</screen>
+	      <para>
+		This creates a gap5 database named
+		<filename><replaceable>INPUT</replaceable>_out.g5d</filename>
+		which can be directly loaded with gap5 like this:
+	      </para>
+	      <screen>
+<prompt>$</prompt> gap5 <replaceable>INPUT</replaceable>_out.g5d</screen>
+	      <para>
+		Exporting back to SAM or CAF is done in gap5 via
+		the <emphasis>File-&gt;Export Sequences</emphasis> menu there.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+	</variablelist>
+      </sect3>
+      <sect3 id="sect_res_converting_to_from_sam">
+	<title>
+	  Example: converting to and from SAM (for samtools, tablet etc.)
+	</title>
+	<para>
+	  Converting to SAM is done by
+	  using <command>miraconvert</command> on a MIRA MAF file, like this:
+	</para>
+	<screen>
+<prompt>$</prompt> miraconvert maf -t sam <replaceable>INPUT</replaceable>.maf <replaceable>OUTPUT</replaceable></screen>
+	<para>
+	  The above will create a file named <filename>OUTPUT.sam</filename>.
+	</para>
+	<para>
+	  Converting from SAM to a format which either <command>mira</command>
+	  or <command>miraconvert</command> can understand takes a few
+	  more steps. As neither tool currently reads SAM natively, you need
+	  to go via the <command>gap5</command> editor of the Staden package:
+	  convert the SAM via <command>tg_index</command> to a gap5 database,
+	  load that database in gap5 and export it there to CAF.
+	</para>
+      </sect3>
+    </sect2>
+  </sect1>
+  <sect1 id="sect_res_filtering_of_results">
+    <title>
+      Filtering results
+    </title>
+    <para>
+      It is important to remember that, depending on assembly options, MIRA
+      will also include very small contigs (with eventually very low coverage)
+      made out of reads which were rejected from the "good" contigs for
+      quality or other reasons. You probably do not want to have a look at
+      this contig debris when finishing a genome unless you are really,
+      really, really picky.
+    </para>
+    <para>
+      Many people prefer to just go on with what would be large
+      contigs. Therefore, in de-novo assemblies, MIRA writes out separate
+      files of what it thinks are "good", large contigs. In case you want to
+      extract contigs differently, the <command>miraconvert</command> program
+      from the MIRA package can selectively filter CAF or MAF files for
+      contigs with a certain size, average coverage or number of reads.
+    </para>
+    <para>
+      The file <filename>*_info_assembly.txt</filename> in the info directory
+      at the end of an assembly might give you first hints on what could be
+      suitable filter parameters. As example, for "normal" assemblies
+      (whatever this means), one could want to consider only contigs larger
+      than 500 bases and which have at least one third of the average coverage
+      of the N50 contigs.
+    </para>
+    <para>
+      Here's an example: In the "Large contigs" section, there's a "Coverage
+      assessment" subsection. It looks a bit like this:
+    </para>
+    <screen>
+...
+Coverage assessment:
+--------------------
+Max coverage (total): 43
+Max coverage
+Sanger: 0
+454:    43
+Solexa: 0
+Solid:  0
+Avg. total coverage (size &ge; 5000): 22.30
+Avg. coverage (contig size &ge; 5000)
+Sanger: 0.00
+454:    22.05
+Solexa: 0.00
+Solid:  0.00
+...</screen>
+    <para>
+      This project was obviously a 454 only project, and the average coverage
+      for it is ~22. This number was estimated by MIRA by taking only contigs
+      of at least 5kb into account, which for sure left out everything which
+      could be categorised as debris. Normally it's a pretty solid number.
+    </para>
+    <para>
+      Now, depending on how much time you want to invest performing some manual
+      polishing, you should extract contigs which have at least the following
+      fraction of the average coverage:
+    </para>
+    <itemizedlist>
+      <listitem>
+	<para>
+	  2/3 if a quick and "good enough" is what you want and you don't want
+	  to do some manual polishing. In this example, that would be around
+	  14 or 15.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  1/2 if you want to have a "quick look" and eventually perform some
+	  contig joins. In this example the number would be 11.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  1/3 if you want quite accurate and for sure not loose any possible
+	  repeat. That would be 7 or 8 in this example.
+	</para>
+      </listitem>
+    </itemizedlist>
+    <para>
+      Example (useful with assemblies of Sanger data): extracting only contigs &ge;
+      1000 bases and with a minimum average coverage of 4 into FASTA format:
+    </para>
+    <screen>
+<prompt>$</prompt> <userinput>miraconvert -x 1000 -y 4 <replaceable>sourcefile.maf targetfile.fasta</replaceable></userinput></screen>
+    <para>
+      Example (useful with assemblies of 454 data): extracting only contigs
+      &ge; 500 bases into FASTA format:
+    </para>
+    <screen>
+<prompt>$</prompt> <userinput>miraconvert -x 500 <replaceable>sourcefile.maf targetfile.fasta</replaceable></userinput></screen>
+    <para>
+      Example (e.g. useful with Sanger/454 hybrid assemblies): extracting only
+      contigs &ge; 500 bases and with an average coverage &ge; 15 reads into
+      CAF format, then converting the reduced CAF into a Staden GAP4 project:
+    </para>
+    <screen>
+<prompt>$</prompt> <userinput>miraconvert -x 500 -y 15 <replaceable>sourcefile.maf tmp.caf</replaceable></userinput>
+<prompt>$</prompt> <userinput>caf2gap -project <replaceable>somename</replaceable> -ace <replaceable>tmp.caf</replaceable></userinput></screen>
+    <para>
+      Example (e.g. useful with Sanger/454 hybrid assemblies): extracting only
+      contigs &ge; 1000 bases and with &ge; 10 reads from MAF into CAF format,
+      then converting the reduced CAF into a Staden GAP4 project:
+    </para>
+    <screen>
+<prompt>$</prompt> <userinput>miraconvert -x 500 -z 10 <replaceable>sourcefile.maf tmp.caf</replaceable></userinput>
+<prompt>$</prompt> <userinput>caf2gap -project <replaceable>somename</replaceable> -ace <replaceable>tmp.caf</replaceable></userinput></screen>
+  </sect1>
+  <sect1 id="sect_res_places_of_importance_in_a_de_novo_assembly">
+    <title>
+      Places of importance in a de-novo assembly
+    </title>
+    <sect2 id="sect_res_tags_set_by_mira">
+      <title>
+	Tags set by MIRA
+      </title>
+      <para>
+        MIRA sets a number of different tags in resulting assemblies. They can be set in reads
+        (in which case they mostly end with a <emphasis>r</emphasis>) or in the consensus.(then
+        ending with a <emphasis>c</emphasis>).
+      </para>
+      <note>
+	<para>
+	  If you use the
+	  Staden <command>gap4</command>, <command>gap5</command> or
+	  <command>consed</command> assembly editor to tidy up the assembly, you
+	  can directly jump to places of interest that MIRA marked for further
+	  analysis by using the search functionality of these programs.
+	</para>
+	<para>
+	  However, you need to tell these programs that these tags exist. For
+	  that you must change some configuration files. More information on
+	  how to do this can be found in the
+	  <filename>support/README</filename> file of the MIRA distribution.
+	</para>
+      </note>
+      <para>
+	You should search for the following "consensus" tags for finding places of importance
+	(in this order).
+      </para>
+      <itemizedlist>
+	<listitem>
+	  <para>
+	    IUPc
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    UNSc
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    SRMc
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    WRMc
+	    </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    STMU (only hybrid assemblies)
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    MCVc (only when assembling different strains, i.e., mostly relevant for mapping assemblies)
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    SROc (only when assembling different strains, i.e., mostly relevant for mapping assemblies)
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    SAOc (only when assembling different strains, i.e., mostly relevant for mapping assemblies)
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    SIOc (only when assembling different strains, i.e., mostly relevant for mapping assemblies)
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    STMS (only hybrid assemblies)
+	  </para>
+	</listitem>
+      </itemizedlist>
+      <para>
+      </para>
+      <para>
+	of lesser importance are the "read" versions of the tags above:
+      </para>
+      <itemizedlist>
+	<listitem>
+	  <para>
+	    UNSr
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    SRMr
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    WRMr
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    SROr (only when assembling different strains, i.e., mostly relevant for mapping assemblies)
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    SAOr (only when assembling different strains, i.e., mostly relevant for mapping assemblies)
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    SIOr (only when assembling different strains, i.e., mostly relevant for mapping assemblies)
+	    </para>
+	</listitem>
+      </itemizedlist>
+      <para>
+      </para>
+      <para>
+	In normal assemblies (only one sequencing technology, just one
+	strain), search for the IUPc, UNSc, SRMc and WRMc tags.
+      </para>
+      <para>
+	In hybrid assemblies, searching for the IUPc, UNSc, SRMc, WRMc, and
+	STMU tags and correcting only those places will allow you to have a
+	qualitatively good assembly in no time at all.
+      </para>
+      <para>
+	Columns with SRMr tags (SRM in <emphasis role="bold">R</emphasis>eads)
+	in an assembly without a SRMc tag at the same consensus position show
+	where mira was able to resolve a repeat during the different passes of
+	the assembly ... you don't need to look at these. SRMc and WRMc tags
+	however mean that there may be unresolved trouble ahead, you should take a
+	look at these.
+      </para>
+      <para>
+	Especially in mapping assemblies, columns with the MCVc, SROx, SIOx and SAOx tags are
+	extremely helpful in finding places of interest. As they are only set if you
+	gave strain information to MIRA, you should always do that.
+      </para>
+      <para>
+	For more information on tags set/used by MIRA and what they exactly mean, please look up the
+	according section in the reference chapter.
+      </para>
+    </sect2>
+    <sect2 id="sect_res_other_places_of_importance">
+      <title>
+	Other places of importance
+      </title>
+      <para>
+	The read coverage histogram as well as the template display of gap4
+	will help you to spot other places of potential interest. Please consult the
+	gap4 documentation.
+      </para>
+    </sect2>
+    <sect2 id="sect_res_joining_contigs">
+      <title>
+	Joining contigs
+      </title>
+      <para>
+	I recommend to invest a couple of minutes (in the best case) to a few
+	hours in joining contigs, especially if the uniform read distribution
+	option of MIRA was used (but first filter for large contigs). This
+	way, you will reduce the number of "false repeats" in improve the
+	overall quality of your assembly.
+      </para>
+      <sect3 id="sect_res_joining_truerepeats">
+	<title>
+	  Joining contigs at true repetitive sites
+	</title>
+	<para>
+	  Joining contigs at repetitive sites of a genome is always a
+	  difficult decision. There are, however, two rules which can help:
+	  <orderedlist>
+	    <listitem>
+	      If the sequencing was done without a paired-end library, don't join.
+	    </listitem>
+	    <listitem>
+	      If the sequencing was done with a paired-end library, but no
+	      pair (or template) span the join site, don't join.
+	    </listitem>
+	  </orderedlist>
+	  <para>
+	    The following screen shot shows a case where one should not join as
+	    the finishing program (in this case <command>gap4</command>) warns
+	    that no template (read-pair) span the join site:
+	  </para>
+	  <figure id="haf_danger_join_notok.png">
+	    <title>
+	      Join at a repetitive site which should not be performed due to
+	      missing spanning templates.
+	    </title>
+	    <mediaobject>
+	      <imageobject>
+		<imagedata fileref="bookfigures/haf_danger_join_notok.png" width="90%"/>
+	      </imageobject>
+	    </mediaobject>
+	  </figure>
+	  <para>
+	    The next screen shot shows a case where one should join as the
+	    finishing program (in this case <command>gap4</command>) finds
+	    templates spanning the join site and all of them are good:
+	  </para>
+	  <figure id="haf_danger_join_ok.png">
+	    <title>
+	      Join at a repetitive site which should be performed due to
+	      spanning templates being good.
+	    </title>
+	    <mediaobject>
+	      <imageobject>
+		<imagedata fileref="bookfigures/haf_danger_join_ok.png" width="90%"/>
+	      </imageobject>
+	    </mediaobject>
+	  </figure>
+	</para>
+      </sect3>
+      <sect3 id="sect_res_joining_FALSErepeats">
+	<title>
+	  Joining contigs at "wrongly discovered" repetitive sites
+	</title>
+      </sect3>
+      <para>
+	Remember that MIRA takes a very cautious approach in contig building,
+	and sometimes creates two contigs when it could have created
+	one. Three main reasons can be the cause for this:
+      </para>
+      <orderedlist>
+	<listitem>
+	  <para>
+	    when using <emphasis>uniform read distribution</emphasis>, some
+	    non-repetitive areas may have generated so many more reads that
+	    they start to look like repeats (so called pseudo-repeats). In
+	    this case, reads that are above a given coverage are
+	    <emphasis>shaved off</emphasis> (see <arg>-AS:urdcm</arg> and kept
+	    in reserve to be used for another copy of that repeat ... which in
+	    case of a non-repetitive region will of course never arrive. So at
+	    the end of an assembly, these shaved-off reads will form short,
+	    low coverage contig debris which can more or less be safely
+	    ignored and sorted out via the filtering options (<arg>-x -y
+	    -z</arg>) of <command>miraconvert</command>.
+	  </para>
+	  <para>
+	    Some 454 library construction protocols -- especially, but not
+	    exclusively, for paired-end reads -- create pseudo-repeats quite
+	    frequently. In this case, the pseudo-repeats are characterised by
+	    several reads starting at exact the same position but which can
+	    have different lengths. Should MIRA have separated these reads
+	    into different contigs, these can be -- most of the time -- safely
+	    joined. The following figure shows such a case:
+	  </para>
+	  <figure id="454_stacks_join.png">
+	    <title>
+	      Pseudo-repeat in 454 data due to sequencing artifacts
+	    </title>
+	    <mediaobject>
+	      <imageobject>
+		<imagedata fileref="bookfigures/454_stacks_join.png" width="90%"/>
+	      </imageobject>
+	    </mediaobject>
+	  </figure>
+	  <para>
+	    For Solexa data, a non-negligible GC bias has been reported in
+	    genome assemblies since late 2009. In genomes with moderate to
+	    high GC, this bias actually favours regions with lower
+	    GC. Examples were observed where regions with an average GC of 10%
+	    less than the rest of the genome had between two and four times
+	    more reads than the rest of the genome, leading to false
+	    "discovery" of duplicated genome regions.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    when using unpaired data, the above described possibility of
+	    having "too many" reads in a non-repetitive region can also lead
+	    to a contig being separated into two contigs in the region of the
+	    pseudo-repeat.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    a number of reads (sometimes even just one) can contain "high
+	    quality garbage", that is, nonsense bases which got - for some
+	    reason or another - good quality values.  This garbage can be
+	    distributed on a long stretch in a single read or concern just a
+	    single base position across several reads.
+	  </para>
+	  <para>
+	    While MIRA has some algorithms to deal with the disrupting effects
+	    of reads like, the algorithms are not always 100% effective and
+	    some might slip through the filters.
+	  </para>
+	</listitem>
+      </orderedlist>
+    </sect2>
+  </sect1>
+  <sect1 id="sect_res_places_of_interest_in_a_mapping_assembly">
+    <title>
+      Places of interest in a mapping assembly
+    </title>
+    <para>
+      This section just give a short overview on the tags you might find
+      interesting. For more information, especially on how to configure gap4
+      or consed, please consult the <emphasis>mira usage</emphasis> document
+      and the <emphasis>mira</emphasis> manual.
+    </para>
+    <para>
+      In file types that allow tags (CAF, MAF, ACE), SNPs and other
+      interesting features will be marked by MIRA with a number of tags. The
+      following sections give a brief overview. For a description of what
+      the tags are (SROc, WRMc etc.), please read up the section "Tags used
+      in the assembly by MIRA and EdIt" in the main manual.
+    </para>
+    <note>
+      Screen shots in this section are taken from the walk-through with
+      Lenski data (see below).
+    </note>
+    <sect2 id="sect_res_poi_where_are_snps?">
+      <title>
+	Where are SNPs?
+      </title>
+      <itemizedlist>
+	<listitem>
+	  <para>
+	    the <emphasis role="bold">SROc</emphasis> tag will point to most
+	    SNPs. Should you assemble sequences of more than one strain (I
+	    cannot really recommend such a strategy), you also might
+	    encounter <emphasis role="bold">SIOc</emphasis> and <emphasis
+	    role="bold">SAOc</emphasis> tags.
+	  </para>
+	  <figure id="chap_sol::sxa_sroc_lenski1.png">
+	    <title>
+	      "SROc" tag showing a SNP position in a Solexa mapping
+	      assembly.
+	    </title>
+	    <mediaobject>
+	      <imageobject>
+		<imagedata fileref="bookfigures/sxa_sroc_lenski1.png" width="90%"/>
+	      </imageobject>
+	    </mediaobject>
+	  </figure>
+	  <figure id="chap_sol::sxa_sroc_lenski2.png">
+	    <title>
+	      "SROc" tag showing a SNP/indel position in a Solexa mapping
+	      assembly.
+	    </title>
+	    <mediaobject>
+	      <imageobject>
+		<imagedata fileref="bookfigures/sxa_sroc_lenski2.png" width="90%"/>
+	      </imageobject>
+	    </mediaobject>
+	  </figure>
+	</listitem>
+	<listitem>
+	  <para>
+	    the <emphasis role="bold">WRMc</emphasis> tags might sometimes
+	    point SNPs to indels of one or two bases.
+	  </para>
+	</listitem>
+      </itemizedlist>
+      <para>
+      </para>
+    </sect2>
+    <sect2 id="sect_res_poi_where_are_insertions_deletions_or_genome_rearrangements?">
+      <title>
+	Where are insertions, deletions or genome re-arrangements?
+      </title>
+      <itemizedlist>
+	<listitem>
+	  <para>
+	    Large deletions: the <emphasis role="bold">MCVc</emphasis> tags
+	    point to deletions in the resequenced data, where no read is
+	    covering the reference genome.
+	  </para>
+	  <figure id="chap_sol::sxa_mcvc_lenski.png">
+	    <title>
+	      "MCVc" tag (dark red stretch in figure) showing a genome
+	      deletion in Solexa mapping assembly.
+	    </title>
+	    <mediaobject>
+	      <imageobject>
+		<imagedata fileref="bookfigures/sxa_mcvc_lenski.png" width="90%"/>
+	      </imageobject>
+	    </mediaobject>
+	  </figure>
+	</listitem>
+	<listitem>
+	  <para>
+	    Insertions, small deletions and re-arrangements: these are
+	    harder to spot. In unpaired data sets they can be found looking
+	    at clusters of <emphasis role="bold">SROc</emphasis>, <emphasis
+	    role="bold">SRMc</emphasis>, <emphasis
+	    role="bold">WRMc</emphasis>, and / or <emphasis
+	    role="bold">UNSc</emphasis> tags.
+	  </para>
+	  <figure id="chap_sol::sxa_wrmcsrmc_hiding_lenski1.png">
+	    <title>
+	      An IS150 insertion hiding behind a WRMc and a SRMc tags
+	    </title>
+	    <mediaobject>
+	      <imageobject>
+		<imagedata fileref="bookfigures/sxa_wrmcsrmc_hiding_lenski1.png" width="90%"/>
+	      </imageobject>
+	    </mediaobject>
+	  </figure>
+	  <para>
+	    more massive occurrences of these tags lead to a rather colourful
+	    display in finishing programs, which is why these clusters are
+	    also sometimes called Xmas-trees.
+	  </para>
+	  <figure id="chap_sol::sxa_xmastree_lenski1.png">
+	    <title>
+	      A 16 base pair deletion leading to a SROc/UNsC xmas-tree
+	    </title>
+	    <mediaobject>
+	      <imageobject>
+		<imagedata fileref="bookfigures/sxa_xmastree_lenski1.png" width="90%"/>
+	      </imageobject>
+	    </mediaobject>
+	  </figure>
+	  <figure id="chap_sol::sxa_xmastree_lenski2.png">
+	    <title>
+	      An IS186 insertion leading to a SROc/UNsC xmas-tree
+	    </title>
+	    <mediaobject>
+	      <imageobject>
+		<imagedata fileref="bookfigures/sxa_xmastree_lenski2.png" width="90%"/>
+	      </imageobject>
+	    </mediaobject>
+	  </figure>
+	  <para>
+	    In sets with paired-end data, post-processing software (or
+	    alignment viewers) can use the read-pair information to guide
+	    you to these sites (MIRA doesn't set tags at the moment).
+	  </para>
+	</listitem>
+      </itemizedlist>
+      <para>
+      </para>
+    </sect2>
+    <sect2 id="sect_res_poi_other_tags_of_interest">
+      <title>
+	Other tags of interest
+      </title>
+      <itemizedlist>
+	<listitem>
+	  <para>
+	    the <emphasis role="bold">UNSc</emphasis> tag points to areas
+	    where the consensus algorithm had troubles choosing a base. This
+	    happens in low coverage areas, at places of insertions (compared
+	    to the reference genome) or sometimes also in places where
+	    repeats with a few bases difference are present. Often enough,
+	    these tags are in areas with problematic sequences for the
+	    Solexa sequencing technology like, e.g., a
+	    <literal>GGCxG</literal> or even <literal>GGC</literal> motif in
+	    the reads.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    the <emphasis role="bold">SRMc</emphasis> tag points to places
+	    where repeats with a few bases difference are present. Here too,
+	    sequence problematic for the Solexa technology are likely to
+	    have cause base calling errors and subsequently setting of this
+	    tag.
+	  </para>
+	</listitem>
+      </itemizedlist>
+      <para>
+      </para>
+    </sect2>
+  </sect1>
+  <sect1 id="sect_res_postprocessing_mapping_assemblies">
+    <title>
+      Post-processing mapping assemblies
+    </title>
+    <para>
+      This section is a bit terse, you should also read the chapter on
+      <emphasis>working with results</emphasis> of MIRA.
+    </para>
+    <sect2 id="sect_res_pp_manual_cleanup">
+      <title>
+	Manual cleanup and validation (optional)
+      </title>
+      <para>
+	When working with resequencing data and a mapping assembly, I always
+	load finished projects into an assembly editor and perform a quick
+	cleanup of the results. SNP or small indels normally do not need
+	cleanups, but every mapper will get larger indels mostly wrong, and
+	MIRA is no exception to this.
+      </para>
+      <para>
+	For close relatives of the reference strain this doesn't take long as
+	MIRA will have set tags (see section earlier in this document) at all
+	sites you should have a look at. For example, very close mutant
+	bacteria with just SNPs or simple deletions and no genome
+	reorganisation, I usually clean up in 10 to 15 minutes. That gives the
+	last boost to data quality and your users (biologists etc.) will thank
+	you for that as it reduces their work in analysing the data (be it
+	looking at data or performing wet-lab experiments).
+      </para>
+      <para>
+        The general workflow I use is to convert the CAF file to a gap4 or gap5
+        database. Then, in gap4 or gap5, I
+      </para>
+      <orderedlist>
+	<listitem>
+	  <para>
+	    quickly search for the UNSc and WRMc tags and check whether they
+	    could be real SNPs that were overseen by MIRA. In that case, I
+	    manually set a SROc (or SIOc) tag in gap4 via hotkeys that were
+	    defined to set these tags.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    sometimes also quickly clean up reads that are causing trouble in
+	    alignments and lead to wrong base calling. These can be found at
+	    sites with UNSc tags, most of the time they have the 5' to 3'
+	    <literal>GGCxG</literal> motif which can cause trouble to Solexa.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    look at sites with deletions (tagged with MCVc) and look whether I
+	    should clean up the borders of the deletion.
+	  </para>
+	</listitem>
+      </orderedlist>
+      <para>
+	After this, I convert the gap4 or gap5 database back to CAF format.
+	But beware: gap4 does not have the same consensus calling routines as
+	MIRA and will have saved it's own consensus in the new CAF. In fact,
+	gap4 performs rather badly in projects with multiple sequencing
+	technologies. So I use miraconvert from the MIRA package to recall
+	a good consensus (and save it in MAF as it's more compact and a lot
+	faster in handling than CAF):
+      </para>
+      <para>
+	And from this MAF file I can then convert with miraconvert to any
+	other format I or my users need: CAF, FASTA, ACE, WIG (for coverage
+	analysis), SNP and coverage analysis (see below), HTML etc.pp.
+      </para>
+    </sect2>
+    <sect2 id="sect_res_poi_comprehensive_snp_analysis_spreadsheet_tables_for_excel_or_oocalc">
+      <title>
+	Comprehensive SNP analysis spreadsheet tables (for Excel or OOcalc)
+      </title>
+      <para>
+	Biologists are not really interested in SNPs coordinates, and why
+	should they? They're more interested where SNPs are, how good they
+	are, which genes or other elements they hit, whether they have an
+	effect on a protein sequence, whether they may be important etc. For
+	organisms without intron/exon structure or splice variants, MIRA can
+	generate pretty comprehensive tables and files if an annotated
+	GenBank file was used as reference and strain information was given
+	to MIRA during the assembly.
+      </para>
+      <para>
+	Well, MIRA does all that automatically for you if the reference
+	sequence you gave was annotated.
+      </para>
+      <para>
+	For this, <command>miraconvert</command> should be used with the
+	<emphasis>asnp</emphasis> format as target and a MAF (or CAF) file as
+	input:
+      </para>
+      <screen><prompt>$</prompt> <userinput>miraconvert -t asnp <replaceable>input.maf output</replaceable></userinput></screen>
+      <para>
+	Note that it is strongly suggested to perform a quick manual cleanup
+	of the assembly prior to this: for rare cases (mainly at site of
+	small indels of one or two bases), MIRA will not tag SNPs with a SNP
+	tag (SROc, SAOc or SIOc) but will be fooled into a tag denoting
+	unsure positions (UNSc). This can be quickly corrected manually. See
+	further down in this manual in the section on post-processing.
+      </para>
+      <para>
+	After conversion, you will have four files in the directory which
+	you can all drag-and-drop into spreadsheet applications like
+	OpenOffice Calc or Excel.
+      </para>
+      <para>
+	The files should be pretty self-explanatory, here's just a short overview:
+      </para>
+      <orderedlist>
+	<listitem>
+	  <para>
+	    <filename>output_info_snplist.txt</filename> is a simple list of
+	    the SNPs, with their positions compared to the reference
+	    sequence (in bases and map degrees on the genome) as well as the
+	    GenBank features they hit.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    <filename>output_info_featureanalysis.txt</filename> is a much
+	    extended version of the list above. It puts the SNPs into
+	    context of the features (proteins, genes, RNAs etc.) and gives a
+	    nice list, SNP by SNP, what might cause bigger changes in
+	    proteins.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    <filename>output_info_featuresummary.txt</filename> looks at the
+	    changes (SNPs, indels) from the other way round. It gives an
+	    excellent overview which features (genes, proteins, RNAs,
+	    intergenic regions) you should investigate.
+	  </para>
+	  <para>
+	    There's one column (named 'interesting') which pretty much
+	    summarises up everything you need into three categories: yes,
+	    no, and perhaps. 'Yes' is set if indels were detected, an amino
+	    acid changed, start or stop codon changed or for SNPs in
+	    intergenic regions and RNAs. 'Perhaps' is set for SNPs in
+	    proteins that change a codon, but not an amino acid (silent
+	    SNPs). 'No' is set if no SNP is hitting a feature.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    <filename>output_info_featuresequences.txt</filename> simply
+	    gives the sequences of each feature of the reference sequence
+	    and the resequenced strain.
+	  </para>
+	</listitem>
+      </orderedlist>
+    </sect2>
+    <sect2 id="sect_res_poi_html_files_depicting_snp_positions_and_deletions">
+      <title>
+	HTML files depicting SNP positions and deletions
+      </title>
+      <para>
+	I've come to realise that people who don't handle data from NextGen
+	sequencing technologies on a regular basis (e.g., many biologists)
+	don't want to be bothered with learning to handle specialised
+	programs to have a look at their resequenced strains. Be it because
+	they don't have time to learn how to use a new program or because
+	their desktop is not strong enough (CPU, memory) to handle the data
+	sets.
+      </para>
+      <para>
+	Something even biologist know to operate are browsers. Therefore,
+	miraconvert has the option to load a MAF (or CAF) file of a
+	mapping assembly at output to HTML those areas which are interesting
+	to biologists. It uses the tags SROc, SAOc, SIOc and MCVc and outputs
+	the surrounding alignment of these areas together with a nice overview
+	and links to jump from one position to the previous or next.
+      </para>
+      <para>
+	This is done with the '<literal>-t hsnp</literal>' option of
+	miraconvert:
+      </para>
+      <screen><prompt>$</prompt> <userinput>miraconvert -t hsnp <replaceable>input.maf output</replaceable></userinput></screen>
+      <note>
+	I recommend doing this only if the resequenced strain is a very close
+	relative to the reference genome, else the HTML gets pretty big. But
+	for a couple of hundred SNPs it works great.
+      </note>
+    </sect2>
+    <sect2 id="sect_res_poi_wig_files">
+      <title>
+	WIG files depicting contig coverage or GC content
+      </title>
+      <para>
+	<command>miraconvert</command> can also dump a coverage file in WIG
+	format (using '<literal>-t wig</literal>') or a WIG file for GC
+	content (using '<literal>-t gcwig</literal>'). This comes pretty handy
+	for searching genome deletions or duplications in programs like the
+	Affymetrix Integrated Genome Browser (IGB, see <ulink
+	url="http://igb.bioviz.org/"/>) or when looking for foreign sequence
+	in a genome.
+      </para>
+    </sect2>
+    <sect2 id="sect_res_poi_tables_for_feature_coverage">
+      <title>
+	Comprehensive spreadsheet tables for gene expression values / genome deletions &amp; duplications
+      </title>
+      <para>
+	When having data mapped against a reference with annotations (either
+	from GenBank formats or GFF3 formats),
+	<command>miraconvert</command> can generate tables depicting
+	either expression values (in RNASeq/EST data mappings) or probable
+	genome multiplication and deletion factors (in genome mappings). For
+	this to work, you must use a MAF or CAF file as input, specify
+	<emphasis>fcov</emphasis> as output format and the reference sequence
+	must have had annotations during the mapping with MIRA.
+      </para>
+      <para>TODO: add example</para>
+      <screen><userinput>miraconvert -t fcov <replaceable>mira_out.maf myfeaturetable</replaceable></userinput></screen>
+    </sect2>
+  </sect1>
+</chapter>

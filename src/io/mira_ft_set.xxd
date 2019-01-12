@@ -1,0 +1,54 @@
+# A simple list of tags which MIRA sets or uses somewhere
+# List used to quickly decide whether an unknown tag identifier is a MIRA tag
+#  as those are encountered way more often in MAF files written by MIRA it's
+#  worth it.
+
+SRMc
+SRMr
+WRMc
+WRMr
+ORMB
+CRMr
+MNRr
+UNSr
+UNSc
+
+IUPc
+MCVc
+
+SROr
+SROc
+SAOr
+SAOc
+SIOr
+SIOc
+
+ED_I
+ED_D
+ED_C
+
+R454
+PSHP
+STMS
+STMU
+
+HAF0
+HAF1
+HAF2
+HAF3
+HAF4
+HAF5
+HAF6
+HAF7
+
+Q454
+P454
+T454
+H454
+
+MINF
+MIT2
+
+ESDN
+
+MIRA

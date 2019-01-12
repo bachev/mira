@@ -1,0 +1,24 @@
+# This is not an entirely regular FASTA file
+# Every name and every sequence must be on just one line
+# Furthermore, comment lines are (obviously) allowed as they
+#  will be stripped before processing with xxd, but restrain
+#  from adding comments to FASTA names (e.g. ">s1 some comment")
+#
+# Note that if you want to have sequences searched in
+# reverse complement direction, then the reverse complemented
+# sequences must be included extra in this file
+#
+# Derived from first test set
+>ion_adaptor1
+TGAGCATCGATCGATGTACAGCTACGTACGTC
+# Derived from set B14_387_CR_0.05
+# Confirmed by BEL-335 (Eco K12)
+>ion_adaptor2
+ATCACCGACTGCCCATAGAGAGGCTGAGACTGCCAAGGCACACAGGGGATAGG
+# Derived from C11-127_40X
+# (Eco shotgun)
+# maybe broken ion_adaptor2, misses 7 bases in the middle
+# 26256 occurrences
+# 45270 occurrences for truncated CCATCTG...
+>ion_adaptor2_broken
+ATCACCGACTGCCCATCTGAGACTGCCAAGGCACACAGGGGATAGG

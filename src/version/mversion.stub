@@ -1,0 +1,15 @@
+
+
+#ifdef PUBLICQUIET
+#define MLV_QUIET
+#else
+#define MLV_QUIET "(debugmsg) "
+#endif
+
+#ifdef TIMERESTRICTED
+#define MLV_TIME "(time restricted) "
+#else
+#define MLV_TIME
+#endif
+
+

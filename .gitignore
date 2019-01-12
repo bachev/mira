@@ -1,0 +1,44 @@
+# version files
+.version
+.tarball-version
+
+# Files and directories from bootstrap.sh
+
+Makefile.in
+aclocal.m4
+configure
+config.guess
+config.sub
+install-sh
+ltmain.sh
+missing
+
+autom4te.cache
+config
+m4
+
+
+# Files and directories from ./configure
+
+Makefile
+config.status
+libtool
+compile
+depcomp
+
+.deps
+
+
+# special files
+
+# Files and directories from make
+
+*.cc
+*.itxt
+*.itxt.H
+me_step*.par.H
+ttt
+
+# MacOS specific
+._*
+*.dSYM

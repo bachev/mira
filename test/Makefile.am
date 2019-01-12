@@ -1,0 +1,1 @@
+EXTRA_DIST=U13a01g08.t1SCF U13a03f09.t1    U13a05h03.t1SCF bla_in.caf  U13a03f07.t1  U13a03f09.t1SCF   U13a08c07.t1    bla_in.fasta U13a01g08.t1    U13a03f07.t1SCF U13a05h03.t1    U13a08c07.t1SCF fofn.txt

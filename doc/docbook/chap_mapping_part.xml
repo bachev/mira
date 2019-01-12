@@ -1,0 +1,878 @@
+<?xml version="1.0" ?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.docbook.org/xml/4.5/docbookx.dtd">
+<chapter id="chap_mapping">
+  <chapterinfo>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="versionfile"/>
+    <author>
+      <firstname>Bastien</firstname>
+      <surname>Chevreux</surname>
+      <email>bach@chevreux.org</email>
+    </author>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="copyrightfile"/>
+  </chapterinfo>
+  <blockquote>
+    <attribution>Solomon Short</attribution>
+    <para>
+      <emphasis><quote>You have to know what you're looking for before you can find it.</quote></emphasis>
+    </para>
+  </blockquote>
+  <title>Cookbook: Mapping</title>
+  <sect1 id="sect_map_introduction">
+    <title>
+      Introduction
+    </title>
+    <para>
+      This guide assumes that you have basic working knowledge of Unix systems, know
+      the basic principles of sequencing (and sequence assembly) and what assemblers
+      do.
+    </para>
+    <para>
+      While there are step by step instructions on how to setup your data and
+      then perform an assembly, this guide expects you to read at some point in time
+    </para>
+    <itemizedlist>
+      <listitem>
+	<para>
+	  Before the mapping, <xref xrefstyle="select: label quotedtitle
+	  pageabbrev" linkend="chap_dataprep"/> to know what to do (or not to
+	  do) with the sequencing data before giving it to MIRA.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Generally, the <xref xrefstyle="select: label quotedtitle
+	  pageabbrev" linkend="chap_results"/> to know what to do with the
+	  results of the assembly. More specifically, <xref xrefstyle="select: label quotedtitle
+	  pageabbrev" linkend="sect_res_converting_results"/> <xref xrefstyle="select: label quotedtitle
+	  pageabbrev" linkend="sect_res_places_of_interest_in_a_mapping_assembly"/> <xref xrefstyle="select: label quotedtitle
+	  pageabbrev" linkend="sect_res_postprocessing_mapping_assemblies"/>
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  And also <xref xrefstyle="select: label quotedtitle pageabbrev"
+	  linkend="chap_reference"/> to look up how manifest files should be
+	  written (<xref xrefstyle="select: label quotedtitle pageabbrev"
+	  linkend="sect_ref_manifest_basics"/> and <xref xrefstyle="select: label quotedtitle pageabbrev"
+	  linkend="sect_ref_manifest_readgroups"/> and <xref xrefstyle="select: label quotedtitle pageabbrev"
+	  linkend="sect_ref_manifest_parameters"/>), some command line options as well as general information on
+	  what tags MIRA uses in assemblies, files it generates etc.pp
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Last but not least, you may be interested in some observations about
+	  the different sequencing technologies and the traps they may
+	  contain, see <xref xrefstyle="select: label quotedtitle pageabbrev"
+	  linkend="chap_seqtechdesc"/> for that. For advice on what to pay
+	  attention to <emphasis>before</emphasis> going into a sequencing
+	  project, have a look at <xref xrefstyle="select: label quotedtitle
+	  pageabbrev" linkend="chap_seqadvice"/>.
+	</para>
+      </listitem>
+    </itemizedlist>
+  </sect1>
+  <sect1 id="sect_map_general">
+    <title>
+      General steps
+    </title>
+    <para>
+      This part will introduce you step by step how to get your data together for a
+      simple mapping assembly.
+    </para>
+    <para>
+      I'll make up an example using an imaginary bacterium: <emphasis>Bacillus chocorafoliensis</emphasis> (or short: <emphasis>Bchoc</emphasis>).
+    </para>
+    <para>
+      In this example, we assume you have two strains: a wild type strain of
+      <emphasis>Bchoc_wt</emphasis> and a mutant which you perhaps got from mutagenesis or other
+      means. Let's imagine that this mutant needs more time to eliminate a given
+      amount of chocolate, so we call the mutant <emphasis>Bchoc_se</emphasis> ... SE for
+      <emphasis role="bold">s</emphasis>low <emphasis role="bold">e</emphasis>ater
+    </para>
+    <para>
+      You wanted to know which mutations might be responsible for the observed
+      behaviour. Assume the genome of <emphasis>Bchoc_wt</emphasis> is available to you as it was
+      published (or you previously sequenced it), so you resequenced <emphasis>Bchoc_se</emphasis>
+      with Solexa to examine mutations.
+    </para>
+    <sect2 id="sect_map_ge_copying_and_naming_the_sequence_data">
+      <title>
+	Copying and naming the sequence data
+      </title>
+      <para>
+	You need to create (or get from your sequencing provider) the sequencing data
+	in either FASTQ or FASTA + FASTA quality format. The following walkthrough
+	uses what most people nowadays get: FASTQ.
+      </para>
+      <para>
+	Create a new project directory (e.g. <filename>myProject</filename>) and a subdirectory of this which will hold the sequencing data (e.g. <filename>data</filename>).
+      </para>
+      <screen><prompt>arcadia:/path/to</prompt> <userinput>mkdir myProject</userinput>
+<prompt>arcadia:/path/to</prompt> <userinput>cd myProject</userinput>
+<prompt>arcadia:/path/to/myProject$</prompt> <userinput>mkdir data</userinput></screen>
+      <para>
+	Put the FASTQ data into that <filename>data</filename> directory so that it now looks perhaps like this:
+      </para>
+      <screen><prompt>arcadia:/path/to/myProject$</prompt> <userinput>ls -l data</userinput>
+-rw-r--r-- 1 bach users 263985896 2008-03-28 21:49 bchocse_lane6.solexa.fastq
+-rw-r--r-- 1 bach users 264823645 2008-03-28 21:51 bchocse_lane7.solexa.fastq</screen>
+    </sect2>
+    <note>
+      I completely made up the file names above. You can name them anyway you
+      want. And you can have them live anywhere on the hard disk, you do not
+      need to put them in this <filename>data</filename> directory. It's just
+      the way I do it ... and it's where the example manifest files a bit further down
+      in this chapter will look for the data files.
+    </note>
+    <sect2 id="sect_map_ma_copying_and_naming_the_reference_sequence">
+      <title>
+	Copying and naming the reference sequence
+      </title>
+      <para>
+	The reference sequence (the backbone) can be in a number of different
+	formats: GFF3, GenBank (.gb, .gbk, .gbf, .gbff), MAF, CAF, FASTA. The
+	first three have the advantage of being able to carry additional
+	information like, e.g., annotation. In this example, we will use a
+	GFF3 file like the ones one can download from the NCBI.
+      </para>
+      <note>
+	TODO: Write why GFF3 is better and where to get them at the NCBI.
+      </note>
+      <para>
+	So, let's assume that our wild type
+	strain is in the following file:
+	<filename>NC_someNCBInumber.gff3</filename>.
+      </para>
+      <para>
+	You do not need to copy the reference sequence to your directory, but
+	I normally copy also the reference file into the directory with my
+	data as I want to have, at the end of my work, a nice little
+	self-sufficient directory which I can archive away and still be sure
+	that in 10 years time I have all data I need together.
+      </para>
+      <screen><prompt>arcadia:/path/to/myProject$</prompt> <userinput>cp /somewhere/NC_someNCBInumber.gff3 data</userinput>
+<prompt>arcadia:/path/to/myProject$</prompt> <userinput>ls -l data</userinput>
+-rw-r--r-- 1 bach users   6543511 2008-04-08 23:53 NC_someNCBInumber.gff3
+-rw-r--r-- 1 bach users 263985896 2008-03-28 21:49 bchocse_lane6.solexa.fastq
+-rw-r--r-- 1 bach users 264823645 2008-03-28 21:51 bchocse_lane7.solexa.fastq</screen>
+    <para>
+      We're almost finished with the setup. As I like to have things neatly separated, I always create a directory called <filename>assemblies</filename> which will hold my assemblies (or different trials) together. Let's quickly do that:
+    </para>
+    <screen><prompt>arcadia:/path/to/myProject$</prompt> <userinput>mkdir assemblies</userinput>
+<prompt>arcadia:/path/to/myProject$</prompt> <userinput>mkdir assemblies/1sttrial</userinput>
+<prompt>arcadia:/path/to/myProject$</prompt> <userinput>cd assemblies/1sttrial</userinput></screen>
+    </sect2>
+    <sect2 id="sect_map_ge_writing_a_simple_manifest_file">
+      <title>
+	Writing a simple manifest file
+      </title>
+      <para>
+	A manifest file is a configuration file for MIRA which tells it what
+	type of assembly it should do and which data it should load. In this
+	case we have unpaired sequencing data which we want to map to a
+	reference sequence, the manifest file for that is pretty simple:
+      </para>
+      <screen># Example for a manifest describing a mapping assembly with
+# unpaired Illumina data
+
+# First part: defining some basic things
+# In this example, we just give a name to the assembly
+#  and tell MIRA it should map a genome in accurate mode
+
+<userinput>project = <replaceable>MyFirstMapping</replaceable>
+job = <replaceable>genome,mapping,accurate</replaceable></userinput>
+
+# The second part defines the sequencing data MIRA should load and assemble
+# The data is logically divided into "readgroups"
+
+# first, the reference sequence
+<userinput>readgroup
+is_reference
+data = <replaceable>../../data/NC_someNCBInumber.gff3</replaceable>
+strain = <replaceable>bchoc_wt</replaceable></userinput>
+
+# now the Illumina data
+
+<userinput>readgroup = <replaceable>SomeUnpairedIlluminaReadsIGotFromTheLab</replaceable>
+data = <replaceable>../../data/*fastq</replaceable>
+technology = <replaceable>solexa</replaceable>
+strain = <replaceable>bchoc_se</replaceable></userinput></screen>
+      <note>
+	<para>
+	  Please look up the parameters of the manifest file in the main
+	  manual or the example manifest files in the following section.
+	</para>
+	<para>
+	  The ones above basically say: make an accurate mapping of Solexa
+	  reads against a genome; in one pass; the name of the backbone strain
+	  is 'bchoc_wt'; the data with the backbone sequence (and maybe
+	  annotations) is in a specified GFF3 file; for Solexa data: assign
+	  default strain names for reads which have not loaded ancillary data
+	  with strain info and that default strain name should be 'bchoc_se'.
+	</para>
+      </note>
+    </sect2>
+    <sect2 id="sect_map_ge_starting_assembly">
+      <title>Starting the assembly</title>
+      <para>
+	Starting the assembly is now just a matter of a simple command line:
+      </para>
+      <screen><prompt>arcadia:/path/to/myProject/assemblies/1sttrial$</prompt> <userinput>mira <replaceable>manifest.conf &gt;&amp;log_assembly.txt</replaceable></userinput></screen>
+      <para>
+	For this example - if you followed the walk-through on how to prepare the data
+	- everything you might want to adapt in the first time are the following thing in the manifest file:
+	options:
+      </para>
+      <itemizedlist>
+	<listitem>
+	  <para>
+	    project= (for naming your assembly project)
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    strain_name= to give the names of your reference and mapping strain
+	  </para>
+	</listitem>
+      </itemizedlist>
+      <para>
+	Of course, you are free to change any option via the extended parameters, but
+	this is the topic of another part of this manual.
+      </para>
+    </sect2>
+  </sect1>
+  <sect1 id="sect_map_manifest_files_use_cases">
+    <title>
+      Manifest files for different use cases
+    </title>
+    <para>
+      This section will introduce you to manifest files for different use
+      cases. It should cover the most important uses, but as always you are
+      free to mix and match the parameters and readgroup definitions to suit
+      your specific needs.
+    </para>
+    <para>
+      Taking into account that there may be <emphasis>a lot</emphasis> of
+      combinations of sequencing technologies, sequencing libraries (shotgun,
+      paired-end, mate-pair, etc.) and input file types (FASTQ, FASTA,
+      GenBank, GFF3, etc.pp), the example manifest files just use Illumina and
+      454 as technologies, GFF3 as input file type for the reference sequence,
+      FASTQ as input type for sequencing data ... and they do not show the
+      multitude of more advanced features like, e.g., using ancillary clipping
+      information in XML files, ancillary masking information in SSAHA2 or
+      SMALT files etc.pp.
+    </para>
+    <para>
+      I'm sure you will be able to find your way by scanning through the
+      corresponding section on manifest files in the reference chapter :-)
+    </para>
+    <sect2 id="sect_map_mf_mapping_with_shotgun_data">
+      <title>
+	Mapping with shotgun data
+      </title>
+      <para>
+	Well, we've seen that already in the section above, but here it is
+	again ... this time with Ion Torrent data though.
+      </para>
+      <screen># Example for a manifest describing a mapping assembly with
+# unpaired Ion data
+
+# First part: defining some basic things
+# In this example, we just give a name to the assembly
+#  and tell MIRA it should map a genome in accurate mode
+
+<userinput>project = <replaceable>MyFirstMapping</replaceable>
+job = <replaceable>genome,mapping,accurate</replaceable></userinput>
+
+# The second part defines the sequencing data MIRA should load and assemble
+# The data is logically divided into "readgroups"
+
+# first, the reference sequence
+<userinput>readgroup
+is_reference
+data = <replaceable>../../data/NC_someNCBInumber.gff3</replaceable>
+strain = <replaceable>bchoc_wt</replaceable></userinput>
+
+# now the Ion Torrent data
+
+<userinput>readgroup = <replaceable>SomeUnpairedIonReadsIGotFromTheLab</replaceable>
+data = <replaceable>../../data/someiondata.fastq</replaceable>
+technology = <replaceable>iontor</replaceable>
+strain = <replaceable>bchoc_se</replaceable></userinput></screen>
+    </sect2>
+    <sect2 id="sect_map_mf_manifest_for_pairedend_data">
+      <title>
+	Manifest for data sets with paired reads
+      </title>
+      <para>
+      </para>
+      <para>
+	When using paired-end data in mapping, you must decide whether you want
+      </para>
+      <orderedlist>
+	<listitem>
+	  <para>
+	    use the MIRA feature to create long 'coverage equivalent reads'
+	    (CERs) which saves a lot of memory (both in the assembler and
+	    later on in an assembly editor). However, you then
+	    <emphasis>loose information about read pairs!</emphasis>
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    or whether you want to <emphasis>keep information about read
+	    pairs</emphasis> at the expense of larger memory requirements both
+	    in MIRA and in assembly finishing tools or viewers afterwards.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    or a mix of the two above
+	  </para>
+	</listitem>
+      </orderedlist>
+      <para>
+	The Illumina pipeline generally normally gives you two files for paired-end
+	data: a <filename>project-1.fastq</filename> and
+	<filename>project-2.fastq</filename>. The first file containing the
+	first read of a read-pair, the second file the second read. Depending
+	on the preprocessing pipeline of your sequencing provider, the names
+	of the reads are either the very same in both files or already have
+	a <literal>/1</literal> or <literal>/2</literal> appended. Also, your
+	sequencing provider may give you one big file where the reads from
+	both ends are present.
+      </para>
+      <note>
+	<para>
+	  MIRA can read all FASTQ variants produced by various Illumina
+	  pipelines, be they with or without the /1 and /2 already appended to
+	  the names. You generally do not need to do any name mangling before
+	  feeding the data to MIRA. However, MIRA will shell out a warning if read names are longer than 40 characters.
+	</para>
+      </note>
+
+      <para>
+	When using paired-end data, you should know
+      </para>
+      <orderedlist>
+	<listitem>
+	  <para>
+	    the orientation of the reads toward each other. This is specific
+	    to sequencing technologies and / or the sequencing library preparation.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    at which distance these reads should be. This is specific to the
+	    sequencing library preparation and the sequencing lab should tell
+	    you this.
+	  </para>
+	</listitem>
+      </orderedlist>
+      <para>
+	In case you do not know one (or any) of the above, don't panic! MIRA
+	is able to estimate the needed values during the assembly if you tell
+	it to.
+      </para>
+      <para>
+	The following manifest shows you the most laziest way to define a
+	paired data set by simply adding <emphasis>autopairing</emphasis> as keyword to a
+	readgroup (using Illumina just as example):
+      </para>
+      <screen># Example for a lazy manifest describing a mapping assembly with
+# one library of paired reads
+
+# First part: defining some basic things
+# In this example, we just give a name to the assembly
+#  and tell MIRA it should map a genome in accurate mode
+
+<userinput>project = <replaceable>MyFirstMapping</replaceable>
+job = <replaceable>genome,mapping,accurate</replaceable></userinput>
+
+# The second part defines the sequencing data MIRA should load and assemble
+# The data is logically divided into "readgroups"
+
+# first the reference sequence
+<userinput>readgroup
+is_reference
+data = <replaceable>../../data/NC_someNCBInumber.gff3</replaceable>
+strain = <replaceable>bchoc_wt</replaceable></userinput>
+
+# now the Illumina paired-end data
+
+<userinput>readgroup = <replaceable>DataIlluminaPairedLib</replaceable>
+<replaceable>autopairing</replaceable>
+data = <replaceable>../../data/project_1.fastq ../../data/project_2.fastq</replaceable>
+technology = <replaceable>solexa</replaceable>
+strain = <replaceable>bchoc_se1</replaceable>
+</userinput></screen>
+      <para>
+	See? Wasn't hard and it did not hurt, did it? One just needs to tell
+	MIRA it should expect paired reads via
+	the <emphasis>autopairing</emphasis> keyword and that is everything you
+	need.
+      </para>
+      <para>
+	If you are lazy, or want to efficiently include multiple FASTQ files,
+	you can use regular expressions in the line which defines the data to
+	load. E.g., if there were only two FASTQ files in the directory named
+	_1 and _2, you can write this:
+      </para>
+      <screen><userinput>data = <replaceable>../../data/project_?.fastq</replaceable></userinput></screen>
+      <para>
+	Notice the question mark in the above line? Read more about how to use
+	this and other shortcuts in
+	<xref xrefstyle="select: label quotedtitle pageabbrev"
+	linkend="sect_ref_manifest_readgroups_data"/>
+      </para>
+      <para>
+	If you know the orientation of the reads and/or the library size, you
+	can tell this MIRA the following way (just showing the readgroup
+	definition here):
+      </para>
+      <screen><userinput>readgroup = <replaceable>DataIlluminaPairedEnd500Lib</replaceable>
+data = <replaceable>../../data/project_1.fastq ../../data/project_2.fastq</replaceable>
+technology = <replaceable>solexa</replaceable>
+template_size = <replaceable>250 750</replaceable>
+segment_placement = <replaceable>---&gt; &lt;---</replaceable></userinput></screen>
+      <para>
+	In cases you are not 100% sure about, e.g., the size of the DNA
+	template, you can also give a (generous) expected range and then tell
+	MIRA to automatically refine this range during the assembly based on
+	real, observed distances of read pairs. Do this with <emphasis>autorefine</emphasis>
+	modifier like this:
+      </para>
+      <screen><userinput>template_size = <replaceable>50 1000 autorefine</replaceable></userinput></screen>
+      <para>
+	The following manifest file is an example for mapping a 500 bp
+	paired-end and a 3kb mate-pair library of a strain
+	called <emphasis>bchoc_se1</emphasis> against a GenBank reference
+	file containing a strain called <emphasis>bchoc_wt</emphasis>:
+      </para>
+      <screen># Example for a manifest describing a mapping assembly with
+# paired Illumina data, not merging reads and therefore keeping
+# all pair information
+
+# First part: defining some basic things
+# In this example, we just give a name to the assembly
+#  and tell MIRA it should map a genome in accurate mode
+# As special parameter, we want to switch off merging of Solexa reads
+
+<userinput>project = <replaceable>MyFirstMapping</replaceable>
+job = <replaceable>genome,mapping,accurate</replaceable>
+parameters = <replaceable>SOLEXA_SETTINGS -CO:msr=no</replaceable></userinput>
+
+# The second part defines the sequencing data MIRA should load and assemble
+# The data is logically divided into "readgroups"
+
+# first, the reference sequence
+<userinput>readgroup
+is_reference
+data = <replaceable>../../data/NC_someNCBInumber.gff3</replaceable>
+strain = <replaceable>bchoc_wt</replaceable></userinput>
+
+# now the Illumina data
+
+<userinput>readgroup = <replaceable>DataForPairedEnd500bpLib</replaceable>
+<replaceable>autopairing</replaceable>
+data = <replaceable>../../data/project500bp-1.fastq ../../data/project500bp-2.fastq</replaceable>
+technology = <replaceable>solexa</replaceable>
+strain = <replaceable>bchoc_se1</replaceable></userinput>
+
+<userinput>readgroup = <replaceable>DataForMatePair3kbLib</replaceable>
+data = <replaceable>../../data/project3kb-1.fastq ../../data/project3kb-2.fastq</replaceable>
+technology = <replaceable>solexa</replaceable>
+strain = <replaceable>bchoc_se1</replaceable>
+template_size = <replaceable>2000 4000 autorefine</replaceable>
+segment_placement = <replaceable>&lt;--- ---&gt;</replaceable></userinput></screen>
+      <para>
+	Please look up the parameters used in the main manual. The ones
+	above basically say: make an accurate mapping of Solexa reads
+	against a genome. Additionally do not merge short short Solexa
+	reads to the contig.
+      </para>
+      <para>
+	For the paired-end library, be lazy and let MIRA find out everything
+	it needs. However, that information should be treated as
+	"information only" by MIRA, i.e., it is not used for deciding whether
+	a pair is well mapped.
+      </para>
+      <para>
+	For the mate-pair library, assume a DNA template template size of
+	2000 to 4000 bp (but let MIRA automatically refine this using observed
+	distances) and the segment orientation of the read pairs follows
+	the reverse / forward scheme. That information should be treated as
+	"information only" by MIRA, i.e., it is not used for deciding whether
+	a pair is well mapped.
+      </para>
+      <para>
+	Comparing this manifest with a manifest for unpaired-data, two
+	parameters were added in the section for Solexa data:
+      </para>
+      <orderedlist>
+	<listitem>
+	  <para>
+	    <literal>-CO:msr=no</literal> tells MIRA not to merge reads that
+	    are 100% identical to the backbone. This also allows to keep the
+	    template information (distance and orientation) for the reads.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    <literal>template_size</literal> tells MIRA at which distance the
+	    two reads should normally be placed from each other.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    <literal>segment_placement</literal> tells MIRA how the different
+	    segments (reads) of a DNA template have to be ordered to form a
+	    valid representation of the sequenced DNA.
+	  </para>
+	</listitem>
+      </orderedlist>
+      <note>
+	<para>
+	  Note that in mapping assemblies, these
+	  <literal>template_distance</literal> and
+	  <literal>segment_placement</literal> parameters are normally treated
+	  as <emphasis>information only</emphasis>, i.e., MIRA will map the
+	  reads regardless whether the distance and orientation criterions are
+	  met or not. This enables post-mapping analysis programs to hunt for
+	  genome rearrangements or larger insertions/deletion.
+	</para>
+      </note>
+      <warning>
+	<para>
+	  If template size and segment placement checking were on, the
+	  following would happen at, e.g. sites of re-arrangement: MIRA would
+	  map the first read of a read-pair without problem. However, it would
+	  very probably reject the second read because it would not map at the
+	  specified distance or orientation from its partner. Therefore, in
+	  mapping assemblies with paired-end data, checking of the template
+	  size must be switched off to give post-processing programs a chance
+	  to spot re-arrangements.
+	</para>
+      </warning>
+    </sect2>
+    <sect2 id="sect_map_mf_mapping_with_multiple_technologies">
+      <title>
+	Mapping with multiple sequencing technologies (hybrid mapping)
+      </title>
+      <para>
+	I'm sure you'll have picked up the general scheme of manifest files by
+	now. Hybrid mapping assemblies follow the general scheme: simply add
+	as separate readgroup the information MIRA needs to know to find the
+	data and off you go. Just for laughs, here's a manifest for 454
+	shotgun with Illumina paired-end
+      </para>
+      <screen># Example for a manifest describing a mapping assembly with
+# shotgun 454 and paired-end Illumina data, not merging reads and therefore keeping
+# all pair information
+
+# First part: defining some basic things
+# In this example, we just give a name to the assembly
+#  and tell MIRA it should map a genome in accurate mode
+# As special parameter, we want to switch off merging of Solexa reads
+
+<userinput>project = <replaceable>MyFirstMapping</replaceable>
+job = <replaceable>genome,mapping,accurate</replaceable>
+parameters = <replaceable>SOLEXA_SETTINGS -CO:msr=no</replaceable></userinput>
+
+# The second part defines the sequencing data MIRA should load and assemble
+# The data is logically divided into "readgroups"
+
+# first, the reference sequence
+<userinput>readgroup
+is_reference
+data = <replaceable>../../data/NC_someNCBInumber.gff3</replaceable>
+strain = <replaceable>bchoc_wt</replaceable></userinput>
+
+# now the shotgun 454 data
+<userinput>readgroup = <replaceable>DataForShotgun454</replaceable>
+data = <replaceable>../../data/project454data.fastq</replaceable>
+technology = <replaceable>454</replaceable>
+strain = <replaceable>bchoc_se1</replaceable></userinput>
+
+# now the paired-end Illumina data
+
+<userinput>readgroup = <replaceable>DataForPairedEnd500bpLib</replaceable>
+data = <replaceable>../../data/project500bp-1.fastq ../../data/project500bp-2.fastq</replaceable>
+technology = <replaceable>solexa</replaceable>
+strain = <replaceable>bchoc_se1</replaceable>
+template_size = <replaceable>250 750</replaceable>
+segment_placement = <replaceable>---&gt; &lt;---</replaceable></userinput></screen>
+    </sect2>
+    <sect2 id="sect_map_mf_mapping_with_multiple_strains">
+      <title>
+	Mapping with multiple strains
+      </title>
+      <para>
+	MIRA will make use of ancillary information present in the manifest
+	file. One of these is the information to which strain (or organism or
+	cell line etc.pp) the generated data belongs.
+      </para>
+      <para>
+	You just need to tell in the manifest file which data comes from which
+	strain. Let's assume that in the example from above, the "lane6" data
+	were from a first mutant named <emphasis>bchoc_se1</emphasis> and the
+	"lane7" data were from a second mutant
+	named <emphasis>bchoc_se2</emphasis>. Here's the manifest file you
+	would write then:
+      </para>
+      <screen># Example for a manifest describing a mapping assembly with
+# unpaired Illumina data
+
+# First part: defining some basic things
+# In this example, we just give a name to the assembly
+#  and tell MIRA it should map a genome in accurate mode
+
+<userinput>project = <replaceable>MyFirstMapping</replaceable>
+job = <replaceable>genome,mapping,accurate</replaceable></userinput>
+
+# The second part defines the sequencing data MIRA should load and assemble
+# The data is logically divided into "readgroups"
+
+# first, the reference sequence
+<userinput>readgroup
+is_reference
+data = <replaceable>../../data/NC_someNCBInumber.gff3</replaceable>
+strain = <replaceable>bchoc_wt</replaceable></userinput>
+
+# now the Illumina data
+
+<userinput>readgroup = <replaceable>DataForSE1</replaceable>
+data = <replaceable>../../data/bchocse_lane6.solexa.fastq</replaceable>
+technology = <replaceable>solexa</replaceable>
+strain = <replaceable>bchoc_se1</replaceable></userinput>
+
+<userinput>readgroup = <replaceable>DataForSE2</replaceable>
+data = <replaceable>../../data/bchocse_lane7.solexa.fastq</replaceable>
+technology = <replaceable>solexa</replaceable>
+strain = <replaceable>bchoc_se2</replaceable></userinput></screen>
+      <note>
+	While mapping (or even assembling de-novo) with multiple strains is
+	possible, the interpretation of results may become a bit daunting in
+	some cases. For many scenarios it might therefore be preferable to
+	successively use the data sets in own mappings or assemblies.
+      </note>
+      <para>
+	This <emphasis>strain</emphasis> information for each readgroup is really the only change you need to perform to tell MIRA everything it needs for handling strains.
+      </para>
+    </sect2>
+    <sect2 id="sect_map_mf_mapping_rna">
+      <title>
+	Mapping EST / RNASeq data
+      </title>
+      <para>
+	For bacteria you can map EST / RNASeq data against any reference
+	sequence(s), be it a genome reference or transcriptome reference.
+      </para>
+      <para>
+	For eukaryotes, I recommend mapping against transcriptome sequences
+	only as MIRA does not handle splice sites very well. You can get away
+	mapping RNASeq data against 'simple' eukaryotes which have very few
+	and small introns, like <emphasis>S. cerevisiae</emphasis> or simple fungi; but
+	just note that the expression level for exons near larger introns will
+	be slightly lower than the rest of the gene.
+      </para>
+      <note>
+	<para>
+	  The standard MIRA parameters are geared towards handling difficult
+	  mapping cases where the reference sequence can be quite different to
+	  what is actually mapped against it (10% average difference, up to
+	  15% locally).
+	</para>
+	<para>
+	  If the data you are mapping is actually from a strain which is very
+	  similar to your reference (give or take a couple of SNPs, genome
+	  reorganisations and / or insertions and deletions), you can save a
+	  lot of time in the mapping process by relaxing a few parameters like
+	  <arg>-SK:kms=(high-value)</arg>, <arg>-SB:bnb=no</arg>,
+	  <arg>-FM:mte=(low-value)</arg>.
+	</para>
+      </note>
+      <para>
+	Here's a very simple, albeit powerful manifest which will allow you to
+	retrieve both SNPs and feature coverage data from the mapping results:
+      </para>
+      <screen># Example for a lazy manifest describing a mapping assembly with
+# one library of paired reads
+
+# First part: defining some basic things
+# In this example, we just give a name to the assembly
+#  and tell MIRA it should map EST / RNASeq data in accurate mode
+# Accurate mode may be "too good" for mapping, see next example
+
+<userinput>project = <replaceable>MyFirstMapping</replaceable>
+job = <replaceable>est,mapping,accurate</replaceable></userinput>
+
+# The second part defines the sequencing data MIRA should load and assemble
+# The data is logically divided into "readgroups"
+
+# first the reference sequence
+<userinput>readgroup
+is_reference
+data = <replaceable>../../data/NC_someNCBInumber.gff3</replaceable>
+strain = <replaceable>bchoc_wt</replaceable></userinput>
+
+# now the Illumina data
+
+<userinput>readgroup
+data = <replaceable>../../data/project_1.fastq ../../data/project_2.fastq</replaceable>
+technology = <replaceable>solexa</replaceable>
+strain = <replaceable>bchoc_se1</replaceable>
+</userinput></screen>
+      <para>
+	If you compare the above manifest to a manifest for a simple genome
+	mapping, the only line which really changed is the
+	<emphasis>job=...</emphasis> line, which changed from
+	<emphasis>genome,mapping,accurate</emphasis> to
+	<emphasis>est,mapping,accurate</emphasis>
+      </para>
+      <para>
+	As already alluded to, the standard MIRA mapping parameters are made
+	to find almost anything that maps, and that takes time. In case you
+	are mapping data which is very closely related to the reference
+	sequence you are using, you can save time by changing the manifest
+	slightly. Start it like this:
+      </para>
+      <screen># Example for a lazy manifest describing a mapping assembly with
+# one library of paired reads which is close to your reference sequence
+
+# First part: defining some basic things
+
+<userinput>project = <replaceable>MyFirstMapping</replaceable>
+job = <replaceable>est,mapping,accurate</replaceable></userinput>
+
+# Accurate mode may be "too good" for mapping, therefore these parameters to
+# speed up things
+<userinput>parameters = -SK:kms=20 SOLEXA_SETTINGS -SB:bnb=no -FM:mte=6
+
+# remaining manifest as above
+# ...</userinput></screen>
+    </sect2>
+  </sect1>
+  <sect1 id="sect_map_walkthroughs">
+    <title>
+      Walkthroughs
+    </title>
+    <sect2 id="sect_map_walkthrough:_mapping_of_ecoli_from_lenski_lab_against_ecoli_b_rel606">
+      <title>
+	Walkthrough: mapping of E.coli from Lenski lab against E.coli B REL606
+      </title>
+      <para>
+	TODO: Sorry, needs to be re-written for the relatively new SRR format
+	distributed at the NCBI ... and changes in MIRA 3.9.x. Please come
+	back later.
+      </para>
+    </sect2>
+  </sect1>
+  <sect1 id="sect_map_useful_about_reference_sequences">
+    <title>
+      Useful things to know about reference sequences
+    </title>
+    <para>
+      There are a few things to consider when using reference sequences:
+    </para>
+    <orderedlist>
+      <listitem>
+	<para>
+	  MIRA is not really made to handle a big amount of reference
+	  sequences as they currently need inane amounts of memory. Use other
+	  programs for mapping against more than, say, 200 megabases.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Reference sequences can be as long as needed! They are not subject
+	  to normal read length constraints of a maximum of 32k bases. That
+	  is, if one wants to load one or several entire chromosomes of a
+	  bacterium or lower eukaryote as backbone sequence(s), this is just
+	  fine.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Reference sequences can be single sequences like provided in, e.g.,
+	  FASTA, FASTQ, GFF or GenBank files. But reference sequences also can
+	  be whole assemblies when they are provided as, e.g., MAF or CAF
+	  format. This opens the possibility to perform semi-hybrid assemblies
+	  by assembling first reads from one sequencing technology de-novo
+	  (e.g. PacBio) and then map reads from another sequencing technology
+	  (e.g. Solexa) to the whole PacBio alignment instead of mapping it to
+	  the PacBio consensus.
+	</para>
+	<para>
+	  A semi-hybrid assembly will therefore contain, like a hybrid
+	  assembly, the reads of both sequencing technologies.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Reference sequences will not be reversed! They will always appear in
+	  forward direction in the output of the assembly. Please note: if the
+	  backbone sequence consists of a MAF or CAF file that contain contigs
+	  which contain reversed reads, then the contigs themselves will be in
+	  forward direction. But the reads they contain that are in reverse
+	  complement direction will of course also stay reverse complement
+	  direction.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Reference sequences will not not be assembled together! That is,
+	  even if a reference sequence has a perfect overlap with another
+	  reference sequence, they will still not be merged.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Reads are assembled to reference sequences in a first come, first
+	  served scattering strategy.
+	</para>
+	<para>
+	  Suppose you have two identical reference sequences and a read which
+	  would match both, then the read would be mapped to the first
+	  backbone. If you had two identical reads, the first read would go to
+	  the first backbone, the second read to the second backbone. With
+	  three identical reads, the first backbone would get two reads, the
+	  second backbone one read. Etc.pp.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Only in references loaded from MAF or CAF files: contigs made out of
+	  single reads (singlets) loose their status as reference sequence and
+	  will be returned to the normal read pool for the assembly
+	  process. That is, these sequences will be assembled to other
+	  reference sequences or with each other.
+	</para>
+      </listitem>
+    </orderedlist>
+  </sect1>
+  <sect1 id="sect_map_known_bugs_problems">
+    <title>
+      Known bugs / problems
+    </title>
+    <para>
+      These are actual for version 4.0 of MIRA and might or might not have been
+      addressed in later version.
+    </para>
+    <para>
+      Bugs:
+    </para>
+    <orderedlist>
+      <listitem>
+	<para>
+	  mapping of paired-end reads with one read being in non-repetitive
+	  area and the other in a repeat is not as effective as it should
+	  be. The optimal strategy to use would be to map first the
+	  non-repetitive read and then the read in the repeat. Unfortunately,
+	  this is not yet implemented in MIRA.
+	</para>
+      </listitem>
+    </orderedlist>
+  </sect1>
+</chapter>

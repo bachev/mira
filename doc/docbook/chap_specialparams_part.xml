@@ -1,0 +1,79 @@
+<?xml version="1.0" ?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.docbook.org/xml/4.5/docbookx.dtd">
+<chapter id="chap_specialparams">
+  <chapterinfo>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="versionfile"/>
+    <author>
+      <firstname>Bastien</firstname>
+      <surname>Chevreux</surname>
+      <email>bach@chevreux.org</email>
+    </author>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="copyrightfile"/>
+  </chapterinfo>
+  <blockquote>
+    <attribution>Solomon Short</attribution>
+    <para>
+      <emphasis><quote>... .
+      </quote></emphasis>
+    </para>
+  </blockquote>
+  <title>Parameters for special situations</title>
+  <sect1 id="sect_sp_introduction">
+    <title>
+      Introduction
+    </title>
+    <para>
+      Most of this chapter and many sections are just stubs at the moment.
+    </para>
+  </sect1>
+  <sect1 id="sect_sp_pacbio">
+    <title>
+      PacBio
+    </title>
+    <sect2 id="sect_sp_pacbio_ccs">
+      <title>
+	PacBio CCS reads
+      </title>
+      <para>
+	Declare the sequencing technology to be high-quality PacBio (<emphasis
+	role="bold">PCBIOHQ</emphasis>). The last time I worked with CCS, the
+	ends of the reads were not really clean, so using the proposed end
+	clipping (which needs to be manually switched on for PCBIOHQ reads)
+	may be advisable.
+      </para>
+      <screen><userinput>...
+parameters = PCBIOHQ_SETTINGS -CL:pec=yes
+...
+
+readgroup
+technology=pcbiohq
+data=...
+...</userinput></screen>
+    </sect2>
+    <sect2 id="sect_sp_pacbio_ec">
+      <title>
+	PacBio error corrected reads
+      </title>
+      <para>
+	Declare the sequencing technology to be high-quality PacBio (<emphasis
+	role="bold">PCBIOHQ</emphasis>). For self-corrected data or data
+	corrected with other sequencing technologies, it is recommended to
+	change the <arg>-CO:mrpg</arg> setting to a value which is 1/4th to
+	1/5th of the average coverage of the corrected PacBio reads across the
+	genome. E.g.:
+      </para>
+      <screen><userinput>...
+parameters = PCBIOHQ_SETTINGS -CO:mrpg=5
+...
+
+readgroup
+technology=pcbiohq
+data=...
+...</userinput></screen>
+      <para>
+	for a project which has ~24x coverage. This necessity may change in
+	later versions of MIRA though.
+      </para>
+    </sect2>
+  </sect1>
+</chapter>

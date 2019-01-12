@@ -1,0 +1,839 @@
+      <para>
+	With introduction of PacBio strobed reads, MIRA also got an editor to
+	handle "elastic dark inserts" (stretches of unread bases where the
+	length is known only approximately). How this editor works is
+	explained in the chapter on PacBio data, but in essence it allows to
+	transform this:
+      </para>
+      <figure id="chap_intro::pb_elasticdarkinserts01.png">
+	<title>
+	  Multiple alignmen of PacBio elastic dark inserts without automatic editing
+	</title>
+	<mediaobject>
+	  <imageobject>
+	    <imagedata fileref="bookfigures/pb_elasticdarkinserts01.png" width="90%"/>
+	  </imageobject>
+	</mediaobject>
+      </figure>
+      <para>
+	into this:
+      </para>
+      <figure id="chap_intro::pb_elasticdarkinserts02.png">
+	<title>
+	  Multiple alignment of PacBio elastic dark inserts with automatic editing
+	</title>
+	<mediaobject>
+	  <imageobject>
+	    <imagedata fileref="bookfigures/pb_elasticdarkinserts02.png" width="90%"/>
+	  </imageobject>
+	</mediaobject>
+      </figure>
+
+
+
+
+
+    <sect2 id="sect_pb_terminology">
+      <title>Terminology</title>
+    </sect2>
+
+    <sect2 id="sect_pb_strobed_sequencing">
+      <title>What is strobed sequencing?</title>
+
+      <para>Let's first have a look at what sequencing (either paired or
+      unpaired) meant until now. I won't go into the details of conventional
+      sequencing as this is covered elsewhere in the MIRA manuals (and in the
+      Web).</para>
+
+      <sect3 id="sect_pb_normal_sequencing">
+        <title>Conventional way of sequencing a DNA template with Sanger, 454,
+        Solexa, ...</title>
+
+        <para>In conventional, unpaired sequencing, you have a piece of DNA (a
+        DNA <emphasis>template</emphasis>) which a machine reads out and then
+        gives you the sequence back. Assume your piece of DNA to be 10
+        kilo-bases long, but your machine can read only 1000 bases. Then what
+        you get back (<literal>DNA</literal> below is the DNA template,
+        <literal>R1</literal> is a read) is this:</para>
+
+        <screen>
+DNA: actgttg...gtgcatgctgatgactgact.........gactgtgacgtactgcttga...actggatctg
+
+R1 : actgttg...gtgcatgct
+     \_________________/
+              |
+         ~1000 bases</screen>
+
+        <para>In conventional paired-end sequencing, you still can read only
+        1000 bases, but you can do it at the beginning and at the end of a DNA
+        template. This looks like that:</para>
+
+        <screen>
+DNA: actgttg...gtgcatgctgatgactgact.........gactgtgacgtactgcttga...actggatctg
+
+R1 : actgttg...gtgcatgct
+     \_________________/                             R2 : gcttga...actggatctg
+              |                                           \_________________/
+         ~1000 bases                                               |
+                                                              ~1000 bases</screen>
+
+        <para>While you still have just two reads of approximately 1000 bases,
+        you know one additional thing: these two reads are approximately 10000
+        bases apart. This additional information is very useful in assembly as
+        it helps to resolve problematic areas.</para>
+      </sect3>
+
+      <sect3 id="sect_pb_bp_sequencing">
+        <title>Sequencing a DNA template with Pacific Biosciences</title>
+
+        <para>Enter Pacific Biosciences with their strobed sequencing. With
+        this approach, you can sequence also a given number of bases (they
+        claim between 1000 and 3000), but you can sort of "distribute" the
+        bases you want to read across the DNA template.</para>
+
+        <warning>
+           Overly simplified and probably totally inaccurate description
+           ahead! Furthermore, the extremely short read and gap lengths in
+           these examples serve only for demonstration purposes.
+        </warning>
+
+        <para>Here's a simple example: assume you could read around 40 bases
+        with your machinery, but that the DNA template is some ~80 bases. And
+        assume you could tell your machine to read between 6 and 8 bases at a
+        time, then leave out the next 6 to 8 bases, then read again etc. Like
+        so:</para>
+
+        <screen>
+DNA: actgttggtgcatgctgatgactgactgactgtgacgtacttgactgactggatctgtgactgactgtgactgactg
+
+R1a: actgttg
+R1b:                 gatgactgac
+R1c:                                    cgtacttga
+R1d:                                                     atctgtgac
+R1e:                                                                     gactgactg</screen>
+
+        <para>While in the example above we still read only 44 bases, these 44
+        bases span 77 bases on the DNA template. Furthermore, we have the
+        additional information that the sequence of reads is R1a, R1b, R1c,
+        R1d and R1e and, because we asked the machine to read in such a
+        pattern, we expect the gaps between the reads to be between 6 and 8
+        bases wide.</para>
+
+        <para>This is actually possible with the system of PacBio. It streams
+        the DNA template through a detection system which reads out the bases
+        only, and only if, a light source (a laser) is switched on. Therefore,
+        while streaming the template through the system, you read the DNA
+        while the laser is on and you don't read anything while it's off ...
+        meanwhile the template is still streamed through.</para>
+
+        <para>Now, why would one want to turn the laser off?</para>
+
+        <para>It seems as if the light source is actually also the major
+        limitation factor, as it has as nasty side-effect the degradation of
+        DNA it should still read. A real bummer: after 1000 to 3000 bases
+        (sometimes more, sometimes less), the DNA you read is probably so
+        degraded and error ridden (eventually even physically broken) that it
+        makes no sense to continue reading.</para>
+
+        <para>Here comes the trick: instead of reading, say, 1000 bases in a
+        row, you can read them in <emphasis>strobes</emphasis>: you switch the
+        light on and start reading a couple of bases (say: 100), switch the
+        light off, wait a bit until some bases (again, let's say approximately
+        100) have passed by, switch the light back on and read again ~100
+        bases, then switch off ... etc.pp until you have read your 1000 bases,
+        or, more likely, as long as you can. But, as shown in the example
+        above, these 1000 bases will be distributed across a much larger span
+        on the original DNA template: in a pattern of ~100 bases read and ~100
+        bases not read, the smaller read-fragments span ~1800 to ~2000
+        bases.</para>
+
+        <para>Cool ... this is actually something an assembler can make real
+        use of.</para>
+
+        <para>A more conventional approach could be: you switch the light on
+        and start reading a couple of bases (say: 500), switch the light off,
+        wait a bit until some bases (again, let's say approximately 10000)
+        have passed by, switch the light back on and read again ~500 bases.
+        This would be equivalent to a "normal" paired-end read with an insert
+        size of 11Kb. But assemblers also can make good use of that.</para>
+      </sect3>
+    </sect2>
+
+
+
+
+  <sect1 id="sect_pb_howmirahandlesstrobes">
+    <title>How MIRA handles strobes with "elastic dark inserts"</title>
+    <para>MIRA currently knows two ways to handle strobed reads:
+    </para>
+    <orderedlist>
+      <listitem>
+	<para>
+	  a more traditional approach by using two strobes at a time as read pair
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  the "elastic dark insert" approach where all strobes are put in one
+	  read and connected by stretches of <literal>N</literal> representing
+	  the dark inserts. "Elastic" means that -- the initial lengths of the
+	  dark inserts being a rough estimate -- the length of the inserts are
+	  then corrected in the iterative assembly passes of MIRA.
+	</para>
+      </listitem>
+    </orderedlist>
+    <para>
+      The elastic dark insert approach has an invaluable advantage: it keeps
+      the small strobes connected in order in a read. This considerably
+      reduces sources of errors when highly repetitive data is to be
+      assembled where paired-end approaches also have limits.
+    </para>
+    <para>
+      Keeping the dark inserts as integral part of the reads however also
+      poses a couple of problems. Traditional Smith-Waterman alignments are
+      likely to give some of these alignments a bad score as there will
+      invariably be a number of overlaps where the true length of the dark
+      stretch is so different from the real length that an alignment algorithm
+      needs to counterbalance this with a considerable number of inserted
+      gaps. Which in turn can lower Smith-Waterman score to a level where
+      needed identity thresholds are not met. The following example shows an
+      excerpt of a case where a read with dark insert which length was
+      estimated too low aligning against a read without dark insert:
+    </para>
+    <screen>
+...TGACTGA****************nnnnnnnnnnnnnnnnnnnnnTCAGTTGAT...
+...TGACTGATGACTTTATCTATGGAGCTTATATGCGTCGAGCTTGGTCAGTTGAT...</screen>
+    <para>
+      While MIRA algorithms have methods to counterbalance this kind of
+      scoring malus (e.g., by simply not counting gap scores in dark strobe
+      inserts), another effect then appears: multiple alignment
+      disorders. Like in many other assemblers the construction of multiple
+      alignments is done iteratively by aggregating new reads to an existing
+      contig by aligning it against a temporary consensus. As the
+      misestimation of dark insert lengths can reach comparatively high
+      numbers like 20 to 100 bases or more, problems can arise if several
+      misestimated dark inserts in reads come together at one place. A simple
+      example: assume the following scenario, where reads 1, 2, 3 and 4 get to
+      form a contig by being assembled in exactly this order (1,2,3,4):
+    </para>
+    <screen>
+Read1  ...TGACTGAnnnnnnnnnnnnnnnnnnnnnTCAGTTGAT...</screen>
+     <para>then</para>
+    <screen>
+Read1  ...TGACTGA****************nnnnnnnnnnnnnnnnnnnnnTCAGTTGAT...
+Read2  ...TGACTGATGACTTTATCTATGGAGCTTATATGCGTCGAGCTTGGTCAGTTGAT...</screen>
+    <para>then</para>
+    <screen>
+Read1  ...TGACTGA****************nnnnnnnnnnnnnnnnnnnnnTCAGTTGAT...
+Read2  ...TGACTGATGACTTTATCTATGGAGCTTATATGCGTCGAGCTTGGTCAGTTGAT...
+Read3  ...TGACTGATGACTTTATCTATGGAGCTTATATGCGTCGAGCTTGGTCAGTTGAT...</screen>
+    <para>then</para>
+    <screen>
+Read1  ...TGACT*****GA****************nnnnnnnnnnnnnnnnnnnnnTCAGTTGAT...
+Read2  ...TGACT*****GATGACTTTATCTATGGAGCTTATATGCGTCGAGCTTGGTCAGTTGAT...
+Read3  ...TGACT*****GATGACTTTATCTATGGAGCTTATATGCGTCGAGCTTGGTCAGTTGAT...
+Read4  ...TGACTnnnnnnnnnnnnnnnnnnnnnnnnnnnnnATGCGTCGAGCTTGGTCAGTTGAT...</screen>
+    <sidebar><title>Why multiple alignments sometimes look funny</title>
+    <para>
+      You will note that the above alignment does not seem optimal as the
+      following would certainly look better:
+    </para>
+    <screen>
+Read1  ...TGACTGA*********************nnnnnnnnnnnnnnnnnnnnnTCAGTTGAT...
+Read2  ...TGACTGA*****TGACTTTATCTATGGAGCTTATATGCGTCGAGCTTGGTCAGTTGAT...
+Read3  ...TGACTGA*****TGACTTTATCTATGGAGCTTATATGCGTCGAGCTTGGTCAGTTGAT...
+Read4  ...TGACTnnnnnnnnnnnnnnnnnnnnnnnnnnnnnATGCGTCGAGCTTGGTCAGTTGAT...</screen>
+    <para>
+      However, remember that assembler add reads sequentially to a contig
+      without prior knowledge of the complete multiple alignment. This leads
+      to the necessity of using temporary consensus sequences as target for a
+      new read to align.
+    </para>
+    <para>
+      MIRA knows a lot of tricks to mitigate the detrimental effects of
+      iteratively building multiple alignments, one of which is to use an
+      extended genetic code with weights hinting at potential gaps. This
+      however does not always suffice to resolve every problem.
+    </para>
+    <para>
+      Here's what happens step by step in for this example. First, read 1
+      forms the contig, then read 2 is aligned and both form a new contig with
+      a new temporary consensus (named TCONS2 below) like this:
+    </para>
+    <screen>
+Read1  ...TGACTGA****************nnnnnnnnnnnnnnnnnnnnnTCAGTTGAT...
+Read2  ...TGACTGATGACTTTATCTATGGAGCTTATATGCGTCGAGCTTGGTCAGTTGAT...
+
+TCONS2 ...TGACTGATGACTTTATCTATGGAGCTTATATGCGTCGAGCTTGGTCAGTTGAT...</screen>
+    <para>
+      Read 3 is then added and as it is equal to read 3 (at least in this part
+      of the sequence), things go smoothly as the alignment of TCONS2 and read
+      3 is without difference and the alignment of
+    </para>
+    <screen>
+TCONS2 ...TGACTGATGACTTTATCTATGGAGCTTATATGCGTCGAGCTTGGTCAGTTGAT...
+Read3  ...TGACTGATGACTTTATCTATGGAGCTTATATGCGTCGAGCTTGGTCAGTTGAT...</screen>
+    <para>
+      leads to the multiple alignment of the three reads like this:
+    </para>
+    <screen>
+Read1  ...TGACTGA****************nnnnnnnnnnnnnnnnnnnnnTCAGTTGAT...
+Read2  ...TGACTGATGACTTTATCTATGGAGCTTATATGCGTCGAGCTTGGTCAGTTGAT...
+Read3  ...TGACTGATGACTTTATCTATGGAGCTTATATGCGTCGAGCTTGGTCAGTTGAT...
+
+TCONS3 ...TGACTGATGACTTTATCTATGGAGCTTATATGCGTCGAGCTTGGTCAGTTGAT...</screen>
+    <para>
+      Note that a new temporary consensus TCONS3 is formed against which the
+      next read (read 4) will have to align:
+    </para>
+    <screen>
+TCONS3 ...TGACT*****GATGACTTTATCTATGGAGCTTATATGCGTCGAGCTTGGTCAGTTGAT...
+Read4  ...TGACTnnnnnnnnnnnnnnnnnnnnnnnnnnnnnATGCGTCGAGCTTGGTCAGTTGAT...</screen>
+    <para>
+      which then leads to the sub-optimal multiple alignment seen in the beginning:
+    </para>
+    <screen>
+Read1  ...TGACT*****GA****************nnnnnnnnnnnnnnnnnnnnnTCAGTTGAT...
+Read2  ...TGACT*****GATGACTTTATCTATGGAGCTTATATGCGTCGAGCTTGGTCAGTTGAT...
+Read3  ...TGACT*****GATGACTTTATCTATGGAGCTTATATGCGTCGAGCTTGGTCAGTTGAT...
+Read4  ...TGACTnnnnnnnnnnnnnnnnnnnnnnnnnnnnnATGCGTCGAGCTTGGTCAGTTGAT...</screen>
+    <para>
+      It would have been totally illogical for a Smith-Waterman alignment to
+      align the temporary consensus TCONS3 with read 4 like this:
+    </para>
+    <screen>
+TCONS3 ...TGACTGA*****TGACTTTATCTATGGAGCTTATATGCGTCGAGCTTGGTCAGTTGAT...
+Read4  ...TGACTnnnnnnnnnnnnnnnnnnnnnnnnnnnnnATGCGTCGAGCTTGGTCAGTTGAT...</screen>
+    <para>
+      as from purely mathematical point of view, the score of this alignment is
+      lower than for the previous alignment.
+    </para>
+    </sidebar>
+    <para>
+      This can lead to severe misaligns in multiple alignments with several
+      reads as the following screenshot shows exemplarily.
+    </para>
+    <figure id="pb_elasticdarkinserts01">
+      <title>Multiple alignment with PacBio elastic dark inserts, initial
+      status with severe misalignments</title>
+      <mediaobject>
+	<imageobject>
+<!--
+	  <imagedata fileref="bookfigures/pb_elasticdarkinserts01.png" width="4.8in"/>
+-->
+	  <imagedata fileref="bookfigures/pb_elasticdarkinserts01.png" width="90%"/>
+	</imageobject>
+      </mediaobject>
+    </figure>
+    <para>
+      However, MIRA is an iterative assembler working in multiple passes and
+      iterations within a pass. This allows for a strategy of iterative
+      correction of the estimation of dark length inserts. Like with every
+      sequencing technology it knows, MIRA analyses the multiple alignment of
+      a contig in several ways and searches for, e.g., misassembled repeats
+      (for more information on this, please refer to the MIRA manual). When
+      having reads with the technology from Pacific Biosciences, MIRA also
+      analyses the elastic dark inserts whether or not their length as
+      measured in the multiple alignment fits the estimated length. If not,
+      the length of the dark insert will be corrected up or down for the next
+      pass, the correction factor being of two thirds of the estimated
+      difference between true and measured length of the dark insert.
+    </para>
+    <para>
+      Coming back to the example used previously:
+    </para>
+    <screen>
+Read1  ...TGACT*****GA****************nnnnnnnnnnnnnnnnnnnnnTCAGTTGAT...
+Read2  ...TGACT*****GATGACTTTATCTATGGAGCTTATATGCGTCGAGCTTGGTCAGTTGAT...
+Read3  ...TGACT*****GATGACTTTATCTATGGAGCTTATATGCGTCGAGCTTGGTCAGTTGAT...
+Read4  ...TGACTnnnnnnnnnnnnnnnnnnnnnnnnnnnnnATGCGTCGAGCTTGGTCAGTTGAT...</screen>
+    <para>
+      You will note that there are basically two elastic dark insert
+      stretches. The first in read 1 has an underestimation of of the dark
+      insert size of 16 bases, the second has an overestimation of five
+      bases.
+    </para>
+    <sidebar>
+      <para>
+	While it is not depicted in this simple example, the calculation of how
+	many bases away the estimated length of a dark insert is from the real
+	value is not always simple as multiple misaligns can make this task
+	challenging. If taken without precautions, errors in this calculation
+	can lead to even more false estimation of dark insert lengths and
+	self-enhancing errors. During experimentation with simulated strobed
+	projects, MIRA built the best contigs and needed the least iterations
+	when applying a factor of two thirds to the calculated estimation of
+	dark insert length error.
+      </para>
+    </sidebar>
+    <para>
+	Accordingly, MIRA will add two thirds of 16 =
+	10 <literal>N</literal>s to the estimated dark insert in read 1 and
+	remove 3 <literal>N</literal>s (two thirds of 5) from read 4:
+    </para>
+    <screen>
+Read1 old  ...TGACTGAnnnnnnnnnnnnnnnnnnnnnTCAGTTGAT...
+Read1 new  ...TGACTGANNNNNNNNNNnnnnnnnnnnnnnnnnnnnnnTCAGTTGAT...
+
+Read4 old  ...TGACTnnnnnnnnnnnnnnnnnnnnnnnnnnnnnATGCGTCGAGCTTGGTCAGTTGAT...
+Read4 new  ...TGACTnnnnnnnnnnnnnnnnnnnnnnnnnnATGCGTCGAGCTTGGTCAGTTGAT...</screen>
+    <para>
+      These new reads will be used in the next (sub-)passes of MIRA. Continuing the example from above, the next multiple alignment of all four reads would look like this:
+    </para>
+    <screen>
+Read1  ...TGACT**GA******NNNNNNNNNNnnnnnnnnnnnnnnnnnnnnnTCAGTTGAT...
+Read2  ...TGACT**GATGACTTTATCTATGGAGCTTATATGCGTCGAGCTTGGTCAGTTGAT...
+Read3  ...TGACT**GATGACTTTATCTATGGAGCTTATATGCGTCGAGCTTGGTCAGTTGAT...
+Read4  ...TGACTnnnnnnnnnnnnnnnnnnnnnnnnnnATGCGTCGAGCTTGGTCAGTTGAT...</screen>
+    <para>
+      Again, the dark inserts would be corrected by MIRA, this time adding 4
+      <literal>N</literal>s to read 1 and removing one <literal>N</literal>
+      from read 4., so that the next multiple alignment is this:
+    </para>
+    <screen>
+Read1  ...TGACT*GA**NNNNNNNNNNNNNNnnnnnnnnnnnnnnnnnnnnnTCAGTTGAT...
+Read2  ...TGACT*GATGACTTTATCTATGGAGCTTATATGCGTCGAGCTTGGTCAGTTGAT...
+Read3  ...TGACT*GATGACTTTATCTATGGAGCTTATATGCGTCGAGCTTGGTCAGTTGAT...
+Read4  ...TGACTnnnnnnnnnnnnnnnnnnnnnnnnnATGCGTCGAGCTTGGTCAGTTGAT...</screen>
+    <para>
+      From there it is trivial to see one just needs two more iterations to
+      replace the initial estimated length of the dark insert by the true
+      length of it. The next screenshot continues the live example shown
+      previously after the second pass of MIRA (remember that each pass can
+      have multiple sub-passes):
+    </para>
+    <figure id="pb_elasticdarkinserts02">
+      <title>Assembly with PacBio dark inserts, status after second pass of MIRA</title>
+      <mediaobject>
+	<imageobject>
+	  <imagedata fileref="bookfigures/pb_elasticdarkinserts02.png" width="90%"/>
+	</imageobject>
+      </mediaobject>
+    </figure>
+    <para>
+      One pass (and multiple sub-passes) later, the elastic dark inserts in
+      this example have reached their true lengths. The multiple alignment is
+      as good as it can get as the following figure shows:
+    </para>
+    <figure id="pb_elasticdarkinserts03">
+      <title>Assembly with PacBio dark inserts, status after third pass of MIRA</title>
+      <mediaobject>
+	<imageobject>
+	  <imagedata fileref="bookfigures/pb_elasticdarkinserts03.png" width="90%"/>
+	</imageobject>
+      </mediaobject>
+    </figure>
+    <para>
+      The elastic dark insert strategy is quite successful for resolving most
+      problems but sometimes also fails to find a perfect solution. However,
+      the remaining multiple alignment is -- in most cases -- good enough for
+      a consensus algorithm to find the correct consensus as the next
+      screenshot shows:
+    </para>
+    <figure id="pb_elasticdarkinserts04">
+      <title>Assembly with PacBio dark inserts, example where elastic correction failed partially</title>
+      <mediaobject>
+	<imageobject>
+	  <imagedata fileref="bookfigures/pb_elasticdarkinserts04.png" width="90%"/>
+	</imageobject>
+      </mediaobject>
+    </figure>
+  </sect1>
+
+
+  <sect1 id="sect_pb_walkthrough_simulated">
+    <title>Walkthroughs: assembly examples with simulated PacBio data</title>
+    <para>
+      Whole genome sequencing of bacteria will probably be amongst the first
+      for which the long PacBio reads will have an impact. Simply put: the
+      repeat structure -- like rRNA stretches, (pro)phages and or duplicated
+      genes/operons -- of bacteria is such that most genomes known so far can
+      be assembled and or scaffolded with paired-end libraries between 6Kb and
+      10Kb.  <emphasis role="bold">Cite paper ...!</emphasis>
+    </para>
+    <para>
+      Well, using strobed reads where a DNA template is sequenced in several
+      strobes and the dark inserts have approximately the same length as a
+      strobe, the initial PacBio data should be capable to generate strobed
+      data from DNA templates a total span between 2000 and 6000 bases.
+    </para>
+    <para>
+      Furthermore, strobed reads can be used to generate traditional
+      paired-end sequence with large insert sizes like 10Kb or more.
+    </para>
+    <para>
+      In the first few examples showing assembly with only PacBio data, we
+      will use the genome of the <emphasis>Bacillus subtilis</emphasis> 168,
+      which is a long standing model organism for systems biology and also
+      used in biotechnology. From a complexity point of view, the genome has
+      some interesting things in. As example, there are 11 rRNA stretches,
+      some of them clustered together, which probably comes from the fact that
+      <emphasis>Bsub</emphasis> evolved under laboratory conditions to become
+      a fast grower. The most awful multiple rRNA cluster is the one starting
+      at ...Kb and is ... Kb long.
+    </para>
+    <para>
+      The examples afterwards we will work with <emphasis>Escherichia
+      coli</emphasis> ... (Eco), another model organism in the bacterial
+      community. That time we will mix simulated low coverage PacBio data with
+      real data from Solexa deposited at the NCBI Short read Archive (SRA).
+    </para>
+    <note>
+      <para>
+	Currently this section contains examples with real Solexa reads but
+	only simulated PacBio reads as I do not have early access to real
+	PacBio data. However, I think that these examples show the
+	possibilities such a technology could have.
+      </para>
+    </note>
+  <sect2 id="sect_pb_exsd_generalnotes">
+    <title>Some general notes on how directories and data are set-up in these examples</title>
+    <para>
+      Everyone (or every sequencing group / center) has more or less an own
+      standard on how to organise directories and data prior to an
+      assembly. Here's how I normally do it and how the following examples
+      will be -- more or less -- set up: one top directory with the name of
+      the project containing three specific sub-directories; one for original
+      data, one for eventually reformated data and one for assemblies. That
+      looks a bit like this:
+    </para>
+<screen>
+<prompt>$</prompt> <userinput>mkdir myproject</userinput>
+<prompt>$</prompt> <userinput>cd myproject</userinput>
+<prompt>myproject$</prompt> <userinput>mkdir origdata data assemblies</userinput>
+</screen>
+    <para>
+      The <emphasis>origdata</emphasis> directory contains whatever data file
+      (or links to those) I have for that project: sequencing files from the
+      provider, reference genomes from databases etc.pp. The general rule: no
+      other files, and these files are generally write protected and unchanged
+      from the state of delivery.
+    </para>
+    <para>
+      The <emphasis>data</emphasis> directory contains the files as MIRA will
+      want to use them, eventually reformatted or reworked or bundled together
+      with other data. E.g.: if your provider delivered several data files
+      with sequence data for PacBio, you currently need to combine them into
+      one file as MIRA currently reads only one input file per sequencing
+      technology.
+    </para>
+    <para>
+      The <emphasis>assemblies</emphasis> directory finally contains
+      sub-directories with different assembly trials I make. Every sub-directory
+      is quickly set-up by creating it, linking data files from the
+      <filename>data</filename> directory to it and then start
+      MIRA. Continuing the example from above:
+    </para>
+<screen>
+<prompt>myproject$</prompt> <userinput>cd assemblies</userinput>
+<prompt>myproject/assemblies$</prompt> <userinput>mkdir firstassembly</userinput>
+<prompt>myproject/assemblies$</prompt> <userinput>cd firstassembly</userinput>
+<prompt>myproject/assemblies/firstassembly$</prompt> <userinput>lndir ../../data</userinput>
+<prompt>myproject/assemblies/firstassembly$</prompt> <userinput>mira --project=...</userinput></screen>
+    <para>
+      That strategy keeps things nice and tidy in place and allows for a
+      maximum flexibility while testing out a couple of settings.
+    </para>
+  </sect2>
+  <sect2 id="sect_pb_exsd_pe">
+    <title>PacBio only: Bacterial whole genome, 1Kb "paired-end", 10Kb insert size</title>
+    <para>
+      Set up directories and fetch genome of Bacillus subtilis 168 from GenBank
+    </para>
+    <screen>
+<prompt>$</prompt> <userinput>mkdir bsubdemo1</userinput>
+<prompt>$</prompt> <userinput>cd bsubdemo1</userinput>
+<prompt>bsubdemo1$</prompt> <userinput>mkdir origdata data assemblies</userinput>
+<prompt>bsubdemo1$</prompt> <userinput>cd origdata</userinput>
+<prompt>bsubdemo1/origdata$</prompt> <userinput>wget ftp://ftp.ncbi.nih.gov/genbank/genomes/Bacteria/Bacillus_subtilis/AL009126.fna</userinput>
+<prompt>bsubdemo1/origdata$</prompt> <userinput>ls -l</userinput>
+-rw-r--r-- 1 bach bach 4275918 2010-06-06 00:34 AL009126.fna</screen>
+    <para>
+      After that, we'll prepare the the simulated PacBio data by running a
+      script which creates paired reads like we would expect from a sequencing
+      with PacBio with the following properties: DNA templates have 10k bases
+      or more, we sequence the first 1000 bases in a strobe, let approximately
+      8000 bases pass, then sequence another 1000 bases.
+    </para>
+    <screen>
+<prompt>bsubdemo1/origdata$</prompt> <userinput>cd ../data</userinput>
+<prompt>bsubdemo1/data$</prompt> <userinput>fasta2frag.tcl  -l 1000 -i 230 -p 1 -insert_size 10000 -pairednaming 454 -P 0 -r 2 -infile ../origdata/AL009126.fna -outfile bs168pe1k_10k_in.pacbio.fasta</userinput>
+no ../origdata/AL009126.fna.qual
+fragging gi|225184640|emb|AL009126.3|
+<prompt>bsubdemo1/data$</prompt> <userinput>ls -l</userinput>
+-rw-r--r-- 1 bach bach  38971051 2010-06-06 18:27 bs168pe1k_10k_in.pacbio.fasta
+-rw-r--r-- 1 bach bach   1642208 2010-06-06 18:27 bs168pe1k_10k_in.pacbio.fasta.bambus
+-rw-r--r-- 1 bach bach   1440988 2010-06-06 18:27 bs168pe1k_10k_in.pacbio.fasta.pairs
+-rw-r--r-- 1 bach bach 111214374 2010-06-06 18:27 bs168pe1k_10k_in.pacbio.fasta.qual</screen>
+    <para>
+      The command line given above will create an artificial data set with
+      equally distributed PacBio "paired-end" reads with an average coverage
+      of 8.6 across the genome. Note that the <filename>*.bambus</filename>
+      and <filename>*.pairs</filename> files are not needed for MIRA, but the
+      Tcl script generates these for some other use cases.
+    </para>
+    <para>
+      Next, we move to the assembly directory, make a new one to run a first
+      assembly and link all the needed input files for MIRA into this new
+      directory:
+    </para>
+    <screen>
+<prompt>bsubdemo1/data$</prompt> <userinput>cd ../assemblies</userinput>
+<prompt>bsubdemo1/assemblies$</prompt> <userinput>mkdir firsttest</userinput>
+<prompt>bsubdemo1/assemblies$</prompt> <userinput>cd firsttest</userinput>
+<prompt>bsubdemo1/assemblies/firsttest$</prompt> <userinput>ln -s ../../data/bs168pe1k_10k_in.pacbio.fasta .</userinput>
+<prompt>bsubdemo1/assemblies/firsttest$</prompt> <userinput>ln -s ../../data/bs168pe1k_10k_in.pacbio.fasta.qual .</userinput>
+<prompt>bsubdemo1/assemblies/firsttest$</prompt> <userinput>ls -l</userinput>
+lrwxrwxrwx 1 bach bach 39 2010-06-06 01:01 bs168pe1k_10k_in.pacbio.fasta -> ../../data/bs168pe1k_10k_in.pacbio.fasta
+lrwxrwxrwx 1 bach bach 44 2010-06-06 01:01 bs168pe1k_10k_in.pacbio.fasta.qual -> ../../data/bs168pe1k_10k_in.pacbio.fasta.qual</screen>
+    <para>
+      We're all set up now, just need to start the assembly:
+    </para>
+    <screen>
+<prompt>bsubdemo1/assemblies/firsttest$</prompt> <userinput>mira
+  --project=bs168pe1k_10k --job=genome,denovo,accurate,pacbio
+  --notraceinfo -GE:not=4
+  PACBIO_SETTINGS
+  -GE:tpbd=1:tismin=9000:tismax=11000 -LR:rns=fr
+  >&amp;log_assembly.txt</userinput></screen>
+    <para>
+      The command above told MIRA
+    </para>
+    <itemizedlist>
+      <listitem>
+	<para>the <emphasis>name</emphasis> (<literal>bs168pe1k_10k</literal>)
+	you chose for your project. MIRA will search input files with this
+	prefix as well as write output files and directories with that prefix.
+	</para>
+      </listitem>
+      <listitem>
+	<para>the <emphasis>assembly job</emphasis> MIRA should perform. In this
+	case a de-novo genome assembly at accurate level with PacBio data.
+	</para>
+      </listitem>
+      <listitem>
+	<para>some additional information that MIRA should not search for
+	additional ancillary information in NCBI TRACEINFO XML files
+	</para>
+      </listitem>
+      <listitem>
+	<para>the <emphasis>number of threads</emphasis> which MIRA should run at most in parallel.
+	</para>
+      </listitem>
+      <listitem>
+	<para>then tell MIRA that the following switches apply to reads in the
+	assembly which are from Pacific Biosciences
+	</para>
+      </listitem>
+      <listitem>
+	<para> both reads of a PacBio read-pair should assemble in the same direction in a contig.. the minimum distance between the outer read ends should be at minimum 9000 bases and at maximum 11000 bases.
+	</para>
+      </listitem>
+      <listitem>
+	<para>the <emphasis>read naming scheme</emphasis> for a PacBio read-pair is "forward/reverse", i.e., the first read has ".f" appended to its name, the second read ".r".
+	</para>
+      </listitem>
+      <listitem>
+	<para>the standard output of MIRA should be <emphasis>redirected</emphasis> to a file name <filename>log_assembly.txt</filename>
+	</para>
+      </listitem>
+    </itemizedlist>
+    <para>
+      Some 12 to 13 minutes later, the data set will be assembled. Though you
+      should note that in real life projects with sequencing errors, MIRA will
+      take perhaps 3 to 4 times longer. Have a look at the information files
+      in directory <filename>bs168pe1k_10k_assembly /
+      bs168pe1k_10k_d_info/</filename>, there especially to the files
+      <filename>bs168pe1k_10k_info_assembly.txt</filename> and
+      <filename>bs168pe1k_10k_info_contigstats.txt</filename> which give a
+      first overview on how the assembly went.
+    </para>
+    <para>
+      In short: this assembly went -- unsurprisingly -- quite well: the
+      complete chromosome of <emphasis>Bacillus subtilis</emphasis> 168 has
+      been reconstructed into one complete contig. There are just two minor
+      flaws disturbing just a little bit. First, a few (twelve) repetitive
+      reads could not be placed and form a second small contig of 2Kb. Second,
+      the reconstructed chromosome contains 4 single-base differences with
+      respect to the original Bsub chromosome. It is an exercise left to the
+      reader to find out that this is due to almost identical rRNA repeats
+      where two almost adjacent elements lie within the expected template
+      insert size of the simulated PacBio Reads and therefore troubled the
+      assembler a bit.
+    </para>
+    <para>
+      Your next stop would then be the directory
+      <filename>bs168pe1k_10k_assembly / bs168pe1k_10k_d_results/</filename>
+      which contains the assembly results in all kind of formats. If a format
+      you need is missing, have a look at <command>convert_project</command>
+      from the MIRA package, it may be that the format you need can be
+      generated with it.
+    </para>
+  </sect2>
+  <sect2 id="sect_pb_exsd_3kstrobes">
+    <title>PacBio only: Bacterial whole genome, 3Kb strobed bases (6Kb with
+    elastic dark inserts)</title>
+
+    <para>
+      Set up directories and fetch genome of Bacillus subtilis 168 from GenBank
+    </para>
+    <screen>
+<prompt>$</prompt> <userinput>mkdir bsubdemo2</userinput>
+<prompt>$</prompt> <userinput>cd bsubdemo2</userinput>
+<prompt>bsubdemo2$</prompt> <userinput>mkdir origdata data assemblies</userinput>
+<prompt>bsubdemo2$</prompt> <userinput>cd origdata</userinput>
+<prompt>bsubdemo2/origdata$</prompt> <userinput>wget ftp://ftp.ncbi.nih.gov/genbank/genomes/Bacteria/Bacillus_subtilis/AL009126.fna</userinput>
+<prompt>bsubdemo2/origdata$</prompt> <userinput>ls -l</userinput>
+-rw-r--r-- 1 bach bach 4275918 2010-06-06 00:34 AL009126.fna</screen>
+    <para>
+      After that, we'll prepare the the simulated PacBio data by running a
+      script which creates strobed reads like we would expect from a sequencing
+      with PacBio with the following properties: DNA templates are 6k bases
+      or more, we sequence the first ~100 bases in a strobe, let approximately
+      100 bases pass, and repeat until we have 3000 bases in strobes.
+    </para>
+    <screen>
+<prompt>bsubdemo2/origdata$</prompt> <userinput>cd ../data</userinput>
+<prompt>bsubdemo2/data$</prompt> <userinput>fasta2frag.tcl -l 3000 -i 150 -r 2 -s 1 -strobeon 100 -strobeoff 100 -infile ../origdata/AL009126.fna -outfile bs168_3ks_100_100_in.pacbio.fasta</userinput>
+no ../origdata/AL009126.fna.qual
+fragging gi|225184640|emb|AL009126.3|
+<prompt>bsubdemo2/data$</prompt> <userinput>ls -l</userinput>
+-rw-r--r-- 1 bach bach 166909136 2010-06-06 19:18 bs168_3ks_100_100_in.pacbio.fasta
+-rw-r--r-- 1 bach bach 416614472 2010-06-06 19:18 bs168_3ks_100_100_in.pacbio.fasta.qual</screen>
+    <para>
+      The command line given above will create an artificial data set with
+      equally distributed PacBio strobed reads with an average coverage of ~20
+      across the genome, of which only half is filled with sequence data so
+      that the "real" coverage is ~10.
+    </para>
+    <para>
+      Next, we move to the assembly directory, make a new one to run a first
+      assembly and link all the needed input files for MIRA into this new
+      directory:
+    </para>
+    <screen>
+<prompt>bsubdemo2/data$</prompt> <userinput>cd ../assemblies</userinput>
+<prompt>bsubdemo2/assemblies$</prompt> <userinput>mkdir firsttest</userinput>
+<prompt>bsubdemo2/assemblies$</prompt> <userinput>cd firsttest</userinput>
+<prompt>bsubdemo2/assemblies/firsttest$</prompt> <userinput>ln -s ../../data/bs168_3ks_100_100_in.pacbio.fasta .</userinput>
+<prompt>bsubdemo2/assemblies/firsttest$</prompt> <userinput>ln -s ../../data/bs168_3ks_100_100_in.pacbio.fasta.qual .</userinput>
+<prompt>bsubdemo2/assemblies/firsttest$</prompt> <userinput>ls -l</userinput>
+lrwxrwxrwx 1 bach bach 39 2010-06-06 01:01 bs168_3ks_100_100_in.pacbio.fasta -> ../../data/bs168_3ks_100_100_in.pacbio.fasta
+lrwxrwxrwx 1 bach bach 44 2010-06-06 01:01 bs168_3ks_100_100_in.pacbio.fasta -> ../../data/bs168_3ks_100_100_in.pacbio.fasta</screen>
+    <para>
+      We're all set up now, just need to start the assembly:
+    </para>
+    <screen>
+<prompt>bsubdemo1/assemblies/firsttest$</prompt> <userinput>mira
+  --project=bs168_3ks_100_100 --job=genome,denovo,accurate,pacbio
+  --notraceinfo --noclipping
+  -GE:not=4
+  -GO:mr=no
+  PACBIO_SETTINGS
+  -AL:egp=no
+  >&amp;log_assembly.txt</userinput></screen>
+    <para>
+      The command above told MIRA
+    </para>
+    <itemizedlist>
+      <listitem>
+	<para>the <emphasis>name</emphasis> (<literal>bs168_3ks_100_100</literal>)
+	you chose for your project. MIRA will search input files with this
+	prefix as well as write output files and directories with that prefix.
+	</para>
+      </listitem>
+      <listitem>
+	<para>the <emphasis>assembly job</emphasis> MIRA should perform. In this
+	case a de-novo genome assembly at accurate level with PacBio data.
+	</para>
+      </listitem>
+      <listitem>
+	<para>some additional information that MIRA should not search for
+	additional ancillary information in NCBI TRACEINFO XML files
+	</para>
+      </listitem>
+      <listitem>
+	<para>the <emphasis>number of threads</emphasis> which MIRA should run
+	at most in parallel.
+	</para>
+      </listitem>
+      <listitem>
+	<para>a MIRA parameter called <emphasis>mark repeats</emphasis> should
+	be switched off for PacBio reads. This is absolutely necessary when
+	you have strobed reads with elastic dark inserts as MIRA otherwise
+	gets somewhat confused due to alignment problems shown earlier in this
+	guide.
+	</para>
+      </listitem>
+      <listitem>
+	<para>then tell MIRA that the following switches apply to reads in the
+	assembly which are from Pacific Biosciences
+	</para>
+      </listitem>
+      <listitem>
+	<para>a MIRA parameter called <emphasis>extra gap penalty</emphasis>
+	should be switched off for PacBio reads. This is necessary when you
+	have strobed reads with elastic dark inserts as otherwise alignment
+	problems with larger gaps lead to unnecessary rejection of alignments.
+	</para>
+      </listitem>
+      <listitem>
+	<para>the standard output of MIRA should be
+	<emphasis>redirected</emphasis> to a file name
+	<filename>log_assembly.txt</filename>
+	</para>
+      </listitem>
+    </itemizedlist>
+    <para>
+      Wait for approximately 4.5hrs for MIRA to complete. Using elastic dark
+      inserts is a pretty expensive feature from a computation perspective:
+      all the passes and sub-passes of MIRA to move from an estimated length to
+      an actually correct value means to build and break apart all the contigs
+      and start from anew.
+    </para>
+    <para>
+      Bad news first: looking at the results and info directories, you will
+      see that one single contig with a length of 4199898 bases was
+      created. The original B. subtilis genome we used for this walkthrough is
+      4215426 bases, so it looks like some 15.5Kb are "missing." But, and this
+      is the good news, the contig which was created represents the
+      B. subtilis genome pretty faithfully: a check with MUMMER confirms that
+      no misassemblies respectively re-ordering event of genome elements
+      occurred.
+    </para>
+    <note>
+      <para>
+	The following will need MUMMER3 installed on your system. Fetch it here:
+	<ulink url="http://mummer.sourceforge.net/"/>
+      </para>
+    </note>
+    <screen>
+<prompt>bsubdemo2/assemblies/firsttest$</prompt> <userinput>cd bs168_3ks_100_100_assembly/bs168_3ks_100_100_d_results</userinput>
+<prompt>../bs168_3ks_100_100_d_results$</prompt> <userinput>ls -l</userinput>
+-rw-r--r-- 1 bach bach 280894715 2010-06-08 04:53 bs168_3ks_100_100_out.ace
+-rw-r--r-- 1 bach bach 776536315 2010-06-08 04:52 bs168_3ks_100_100_out.caf
+-rw-r--r-- 1 bach bach 461365272 2010-06-08 04:52 bs168_3ks_100_100_out.maf
+-rw-r--r-- 1 bach bach   4347658 2010-06-08 04:52 bs168_3ks_100_100_out.padded.fasta
+-rw-r--r-- 1 bach bach  13040564 2010-06-08 04:52 bs168_3ks_100_100_out.padded.fasta.qual
+-rw-r--r-- 1 bach bach 436189259 2010-06-08 04:53 bs168_3ks_100_100_out.tcs
+-rw-r--r-- 1 bach bach   4269919 2010-06-08 04:52 bs168_3ks_100_100_out.unpadded.fasta
+-rw-r--r-- 1 bach bach  12808422 2010-06-08 04:52 bs168_3ks_100_100_out.unpadded.fasta.qual
+-rw-r--r-- 1 bach bach   3203036 2010-06-08 04:53 bs168_3ks_100_100_out.wig
+<prompt>../bs168_3ks_100_100_d_results$</prompt> <userinput>nucmer -maxmatch -c 100 -p nucmer ../../../../origdata/AL009126.fna bs168_3ks_100_100_out.unpadded.fasta</userinput>
+1: PREPARING DATA
+2,3: RUNNING mummer AND CREATING CLUSTERS
+[... some lines left out ...]
+4: FINISHING DATA
+<prompt>../bs168_3ks_100_100_d_results$</prompt> <userinput>delta-filter -q -l 1000 nucmer.delta > nucmer.delta.q</userinput>
+<prompt>../bs168_3ks_100_100_d_results$</prompt> <userinput>show-coords -r -c -l nucmer.delta.q > nucmer.coords</userinput>
+<prompt>../bs168_3ks_100_100_d_results$</prompt> <userinput>cat nucmer.coords</userinput>
+NUCMER
+    [S1]     [E1]  |     [S2]     [E2]  |  [LEN 1]  [LEN 2]  |  [% IDY]  |  [LEN R]  [LEN Q]  |  [COV R]  [COV Q]  | [TAGS]
+===============================================================================================================================
+     181  4215606  |  4199698        1  |  4215426  4199698  |    99.62  |  4215606  4199898  |   100.00   100.00  | gi|225184640|emb|AL009126.3|      bs168_3ks_100_100_c1</screen>
+    <para>
+      As already said: not 100% perfect on a base by base basis, but good
+      enough for a using as reference sequence in subsequent mapping
+      assemblies to get all the bases right.
+    </para>
+  </sect2>

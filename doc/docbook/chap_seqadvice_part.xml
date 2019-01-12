@@ -1,0 +1,800 @@
+<?xml version="1.0" ?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.docbook.org/xml/4.5/docbookx.dtd">
+<chapter id="chap_seqadvice">
+  <chapterinfo>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="versionfile"/>
+    <author>
+      <firstname>Bastien</firstname>
+      <surname>Chevreux</surname>
+      <email>bach@chevreux.org</email>
+    </author>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="copyrightfile"/>
+  </chapterinfo>
+  <blockquote>
+    <attribution>Solomon Short</attribution>
+    <para>
+      <emphasis>
+	<quote>
+	  Reliable information lets you say 'I don't know' with real confidence.
+	</quote>
+      </emphasis>
+    </para>
+  </blockquote>
+  <title>Some advice when going into a sequencing project</title>
+  <sect1 id="sect_seqadv_seqprovider">
+    <title>
+      Talk to your sequencing provider(s) before sequencing
+    </title>
+    <para>
+      Well, duh! But it's interesting what kind of mails I sometimes get. Like in:
+    </para>
+    <blockquote><quote>We've sequenced a one gigabase, diploid eukaryote with
+    Solexa 36bp paired-end with 200bp insert size at 25x coverage. Could you
+    please tell us how to assemble this data set de-novo to get a finished
+    genome?</quote>
+    </blockquote>
+    <para>
+      A situation like the above should have never happened. Good sequencing
+      providers are interested in keeping customers long term and will
+      therefore try to find out what exactly your needs are. These folks
+      generally know their stuff (they're making a living out of it) and most
+      of the time propose you a strategy that fulfills your needs for a near
+      minimum amount of money.
+    </para>
+    <para>
+      Listen to them.
+    </para>
+    <para>
+      If you think they try to rip you off or are overselling their
+      competences (which most providers I know won't even think of trying,
+      but there are some), ask a quote from a couple of other
+      providers. You'll see pretty quickly if there are some things not being
+      right.
+    </para>
+    <note>
+      As a matter of fact, a rule which has saved me time and again for
+      finding sequencing providers is not to go for the cheapest provider,
+      especially if their price is far below quotes from other
+      providers. They're cutting corners somewhere others don't cut for a
+      reason.
+    </note>
+  </sect1>
+  <sect1 id="sect_seqadv_whichseqprovider">
+    <title>
+      Choosing a sequencing provider
+    </title>
+    <note>
+      This is a slightly reworked version of a post I made on the MIRA talk
+      mailing list.  The question <emphasis>"Could you please recommend me a
+      sequencing provider?"</emphasis> arrives every now and then in my
+      private inbox, often enough for me decide to make a collage of the
+      responses I gave in the past and post it to MIRA talk.
+    </note>
+    <para>
+      This response got, errrr, a little longer, but allow me to note that I
+      will not give you names. The reasons are manyfold:
+    </para>
+    <itemizedlist>
+      <listitem>
+	once upon a time I worked for a sequencing company
+      </listitem>
+      <listitem>
+	the company I am currently employed with is not in the sequencing
+	provider business, but the company uses more than one sequencing
+	provider on a regular base and I get to see quite some data
+      </listitem>
+      <listitem>
+	due to my development on MIRA in my free time, I'm getting insight
+	into a number of highs and lows of sequencing technologies at
+	different sequencing providers which I would not get if I were to
+	expose them publicly ... I do not want to jeopardise these
+	relationships.
+      </listitem>
+    </itemizedlist>
+    <para>
+      That being said, there are a number of general considerations which
+      could help you. Excuse me in case the detours I am going to make are
+      obvious to you, but I'm writing this also for future references. Also,
+      please bear with me if I look at "sequencing" a bit differently than you
+      might be accustomed to from academia, but I have worked for quite some
+      time now in industry ... and there cost-effectiveness respectively
+      "probability of success" of a project as whole is paramount to
+      everything else. I'll come back to that further down.
+    </para>
+    <para>
+      There's one -- and only one -- question which you, as sequencing
+      customer, need to be able to answer ... if necessary in every
+      excruciating detail, but you must know the answer. The question is:
+    </para>
+    <sect2 id="sect_seqadv_whichseqprovider_want">
+      <title>
+	WHAT DO YOU WANT?!
+      </title>
+      <sidebar>
+	<title>
+	  Detour - Sequencing -
+	</title>
+	<para>
+	  For me, every "sequencing project", be it genomic or transcriptomic,
+	  really consists of four major phases:
+	</para>
+	<orderedlist>
+	  <listitem>
+	    <para>
+	      <emphasis role="bold">data generation:</emphasis> This can be
+	      broadly seen as everything to get the DNA/RNA ready to be sent
+	      off to sequencing (usually something the client does), the
+	      library prep at the sequencing provider and finally the
+	      sequencing itself (including base calling). An area of thousand
+	      pitfalls where each step (and the communication) is crucial and
+	      even one slight inadvertence can make the difference between a
+	      "simple" project and a "hard" project. E.g.: taking DNA from
+	      growing cells (especially bacteria in exponential growing phase)
+	      might not be a good idea ... it makes assembly more
+	      difficult. Some DNA extraction methods generate more junk than
+	      good fragments etc.pp
+	    </para>
+	    <para>
+	      The reason I am emphasizing this is simple: nowadays, the
+	      "sequencing" itself is not the most expensive part of a
+	      sequencing project, the next two steps are (most of the time
+	      anyway).
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      <emphasis role="bold">assembly &amp; finishing:</emphasis> Still
+	      a hard problem. Even a "simple" bacterium can present weeks of
+	      effort to get right if its riddled with phages, prophages,
+	      transposon elements, genetically engineered repeats etc.pp. And
+	      starting with eukaryotes the real fun starts: ploidy,
+	      retrotransposons etc. make for an unbelievable genome plasticity
+	      and almost always have their own surprises. I've seen "simple"
+	      Saccharomyces cerevisiae - where biologist swore to high heaven
+	      they were "close to the publicly sequenced strains" - being
+	      *very* different from what they were expected to be, both on the
+	      DNA level and the genome organisation level.
+	    </para>
+	    <para>
+	      Getting eukaryotes right "down to the last base" might cost
+	      quite some money, especially when looping back to step 1 (data
+	      generation) to tackle difficult areas.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      <emphasis role="bold">annotation:</emphasis> Something many
+	      people forget: give the sequence a meaning. Here too, things can
+	      get quite costly if done "right", i.e., with hand
+	      curation. Especially on organism which are not part of the more
+	      commonly sequenced species or are generally more complex.
+	    </para>
+	    <para>
+	      Annotation of a de-novo transcriptome assembly is also not for
+	      the faint of heart, especially if done on short, unpaired read
+	      assemblies.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <emphasis role="bold">using the sequencing data:</emphasis>
+	    ... for whatever it was generated for.
+	  </listitem>
+	</orderedlist>
+      </sidebar>
+      <para>
+	The above makes it clear that, depending on what you are really
+	interested in within your project and what you expect to be able to do
+	with the sequencing data, one can cut corners and reduce cost here and
+	there (but not everywhere). And therefore, the above question "What do
+	you want?" is one which - after the initial chit-chat of "hi, hello,
+	nice to meet you, a pleasure to be here, etc." - every good
+	representative of respectable sequencing providers I have met so far
+	will ask as very first question. Usually in the form of "what do you
+	want to sequence and what will you want to use the data for (and what
+	not)?"
+      </para>
+    </sect2>
+    <sect2 id="sect_seqadv_whichseqprovider_need">
+      <title>
+	WHAT DO YOU NEED?!
+      </title>
+      <para>
+	... difference between "want" and "need" ...
+      </para>
+      <para>
+	Every other question - like where to sequence, which sequencing
+	technology to use, how to process the sequencing data afterwards - is
+	incidental and subordinated to your answer(s) to the question of "what
+	do you want?!" But often sequencing customers get their priorities
+	wrong by putting forward another question:
+      </para>
+    </sect2>
+    <sect2 id="sect_seqadv_whichseqprovider_cost">
+      <title>
+	WHAT WILL IT COST ME?
+      </title>
+      <para>
+	And its inevitable companion question "Can you make it cheaper?"
+      </para>
+      <sidebar>
+	<title>
+	  Detour - Putting things into perspective -
+	</title>
+	<para>
+	  Come to think of it, people sometimes have very interesting ideas
+	  regarding costs. Interesting as in "outright silly." It may be
+	  because they do not really know what they want or feel unsure on a
+	  terrain unbeknownst to them, and often instead focus their energy on
+	  single aspects of a wider project because they feel more at home
+	  there. And suddenly the focus lies on haggling and bartering for
+	  some prices because, after all, this is something everyone knows how
+	  to do, right?
+	</para>
+	<para>
+	  As I hinted earlier, the pure sequencing costs are nowadays probably
+	  not the biggest factor in any sequencing project: 454, Illumina,
+	  IonTorrent and other technology providers have seen to that. E.g.,
+	  in 2003/2004 it still cost somewhere between 150 - 200 k€ to get an
+	  8x Sanger coverage of a moderately sized bacterium (4 to 5
+	  mb). Nowadays, for the same organism, you get coverages in the
+	  hundreds (PacBio) or even thousands (going with Illumina) for a few
+	  hundred Euro.
+	</para>
+	<para>
+	  Cost for assembly, finishing and annotation have not followed the
+	  same decrease. Yes, advances in algorithms have made things easier
+	  in some parts, but not really on the same scale. Furthermore, the
+	  "short read" technologies have more than made up for algorithmical
+	  complexity when compared to the old Sanger reads. Maybe that
+	  "(ultra)long read" technologies will alleviate the problem, but I
+	  would not hold my breath for them to really work well.
+	</para>
+	<para>
+	  One thing however has almost not changed at all: your costs of
+	  actually doing followup experiments and data interpretation!
+	  Remember that sequencing in itself is most of the time not the
+	  ultimate goal, you actually want to gain something out of it. Be it
+	  abstract knowledge for a paper or concrete hints for producing some
+	  compounds or whatever, chances are that you will actually devote a
+	  substantial amount of your resources (time, manpower, mental health)
+	  into followup activities (lab experiments, genetic engineering,
+	  writing papers) to turn the abstract act of sequencing into
+	  something tangible, be it papers, fame, new products, money, or
+	  whatever you want to achieve.
+	</para>
+	<para>
+	  And this is the place where it pays to stop and think: "what do I
+	  want? what are my strengths and where are my weaknesses? where are
+	  my priorities?" The English have a nice saying: "Being penny-wise
+	  and pound-foolish is not wise." I may add: Especially not if you are
+	  basing man months / years of lab work and your career on the outcome
+	  of something like sequencing. Maybe I'm spoiled because I have left
+	  academia for quite some time now, but in sequencing I always prefer
+	  to throw a bit more money at the sequencing process itself to
+	  minimise risks of the later stages.
+	</para>
+      </sidebar>
+    </sect2>
+    <sect2 id="sect_seqadv_whichseqprovider_where">
+      <title>
+	WHERE TO SEQUENCE?
+      </title>
+      <para>
+	There's one last detour I'd like to make, and that is the question of "where to sequence?"
+      </para>
+      <sidebar>
+	<title>
+	  Detour - Public or private, old-timers or young-timers ? -
+	</title>
+	<para>
+	  Choosing a sequencing provider is highly dependent on your answer to
+	  "what do you want?" In case you want to keep the sequencing data (or
+	  the very act of sequencing) secret (even only for some time) will
+	  probably lead you to commercial sequencing companies. There you more
+	  or less have complete control on the data. Paranoid people might
+	  perhaps argue that you can have that only with own sequencing
+	  equipment and personnel, but I have the feeling that only a minority
+	  is able to cough-up the necessary money for purchasing sequencing
+	  equipment for a small one-time project.
+	</para>
+	<para>
+	  Instead of companies you could however also look whether one of the
+	  existing sequencing centers in the world might be a good cooperation
+	  candidate. Especially if you are doing this project within the scope
+	  of your university. Note however that there might be a number of
+	  gotchas lurking there, beside the obvious "the data is not really
+	  secret anymore": sometimes the raw sequencing data needs to be
+	  publicly released, maybe earlier than you would like; or the
+	  sequencing center imposes that each and every paper you publish with
+	  that data as basis has them as (co-)first author.
+	</para>
+	<para>
+	  A related problem is "whom do I trust to deliver good work?"
+	  Intuition says that institutes with a long sequencing history have
+	  amassed quite some knowledge in this field, making them experts in
+	  all three aspects (data generation, assembly &amp; finishing,
+	  annotation) of a sequencing project ... and intuition probably isn't
+	  wrong there. The same thing is probably true for sequencing
+	  companies which have existed for more than just a couple of years,
+	  though from what I have seen so far is that - due to size -
+	  sequencing companies sometimes really focus on the data generation
+	  and rely on partner companies for "assembly" and "annotation". This
+	  is not to say that younger companies are bad. Incidentally, it is my
+	  belief that in this field, people are still more important than
+	  technology ... and every once in a while good people split off a
+	  well known institute (or company) to try their luck in an own
+	  company. Always look for references there.
+	</para>
+	<para>
+	  The following statement is a personal opinion (and you can call me
+	  biased for that): Personally, I am however quite wary of sequencing
+	  done at locations where a sequencer exists because someone got a
+	  grant to buy one (because it was chic &amp; en-vogue to get a shiny
+	  new toy) but where the instrument then slowly starts to collect dust
+	  after the initial flurry ... and because people often do not
+	  calculate chemistry costs which arise in case they'd really thought
+	  of using the machine 24/7. I want to know that technicians actually
+	  work with those things every day, that they know the ins and outs of
+	  the work, the protocols, the chemistry, the moods of the machine
+	  (even an instrument can have a bad day). I honestly do not believe
+	  that one can build up enough expertise when operating these things
+	  "every once in a while".
+	</para>
+      </sidebar>
+    </sect2>
+    <sect2 id="sect_seqadv_whichseqprovider_summary">
+      <title>
+	Summary of all the above
+      </title>
+      <para>
+	All of the above means that depending on what I need the data for, I
+	have the freedom choose among different providers. In case I just need
+	masses of raw data and potential savings are substantial, I might go
+	with the cheapest whom I know to generate good data. If I want good
+	service and second round of data in case I am not 110% satisfied with
+	the first round (somehow people have stopped questioning me there),
+	this is usually not the cheapest provider ... but the additional costs
+	are not really high. If I wanted my data really really quick, I'd
+	search for a provider with Ion Torrent, or MiSeq (I am actually
+	looking for one with a MiSeq, so if anyone knows a good one,
+	preferably in Europe -> mail me). Though I already did transcriptomics
+	on eukaryotes, in case I needed larger eukaryotes assembled de-novo
+	&amp; also annotated, I would probably look for the help of a larger
+	sequencing center as this starts to get dangerously near the fringe of
+	my field of expertise.
+      </para>
+      <para>
+	In closing this part, here are a couple of guidelines which have not
+	failed me so far for choosing sequencing providers:
+      </para>
+      <itemizedlist>
+	<listitem>
+	  Building a good relationship helps. In case your institute /
+	  university already has good (or OK) experience with a provider, ask
+	  there first.
+	</listitem>
+	<listitem>
+	  It is a lot easier to build a good relationship with someone who
+	  speaks your language ... or a good(!) English.
+	</listitem>
+	<listitem>
+	  I will not haggle for a couple of hundred Euros in a single project,
+	  I'll certainly reconsider this when savings are in the tens of
+	  thousands.
+	</listitem>
+	<listitem>
+	  Managing expectations: some sequencing projects are high risk from
+	  the start, for lots of possible reasons (underfunded, bad starting
+	  material, unclear organism). This is *sometimes* (!) OK as long as
+	  everyone involved knows and acknowledges this. However, you should
+	  always have a clear target ("what am I looking for?") and preferably
+	  know in advance how to treat the data to get there.
+	</listitem>
+	<listitem>
+	  Errors occur, stay friendly at first. In case the expectations were
+	  clear (see above), the material and organism are not at fault but
+	  the data quality somehow is bad, it is not too difficult to have the
+	  sequencing provider acknowledge this and get additional sequencing
+	  for no added cost.
+	</listitem>
+      </itemizedlist>
+      <para>
+	Regarding the technologies you can use ... it really depends on what
+	you want to do :-) And note that I base my answers on technologies
+	available today without bigger problems: PacBio, Illumina, with
+	IonTorrent as Joker for quick projects. Since 2018, 454 can be considered
+	to be dead as the Newbler assembler is not availöable anymore and I am
+	not even sure sequencing kits are manufactured. Oxford Nanopore has
+	become a game changer with reads of several hundred Kb and even over a
+	megabase, but still requires quite some tinkering both in protocols
+	and on the bioinformatics side.
+      </para>
+    </sect2>
+  </sect1>
+  <sect1 id="sect_seqadv_specific">
+    <title>
+      Specific advice
+    </title>
+    <para>
+      Here's how I see things as of now (early 2019), which might not
+      necessarily be how others see them.
+    </para>
+    <sect2 id="sect_seqadv_technologies">
+      <title>
+	Technologies
+      </title>
+      <sect3 id="sect_seqadv_technologies_sanger">
+	<title>
+	  Sanger
+	</title>
+	<para>
+	  Use for: checking assemblies; closing gaps by PCR; checking for a couple of genes with
+	  known sequence (i.e., where you can design oligos for).
+	</para>
+	<para>
+	  Do not use for: anything else. In particular, if you find yourself
+	  designing oligos for a 96 well plate destined for Sanger sequencing
+	  of a single bacterial DNA sample, you (probably) are doing something
+	  wrong.
+	</para>
+      </sect3>
+      <sect3 id="sect_seqadv_technologies_pacbio">
+	<title>
+	  Pacific Biosciences
+	</title>
+	<para>
+	  Use for: de-novo of bacteria and lower eukaryotes (or higher
+	  eukaryotes if you have the money). PacBio should be seen as
+	  <emphasis>the</emphasis> technology to use when getting the best
+	  good quality sequence with least number of contigs is important to
+	  you. Also, resequencing of variants of known organisms with lots of
+	  genomic reorganisation flexibility due to high numbers of
+	  transposons (where short reads will not help in getting the
+	  chromosome assembled/mapped correctly).
+	</para>
+	<para>
+	  Do not use for: resequencing of "dull" organisms (where the only
+	  differences will be simple SNPs or simple insertion/deletions or
+	  simple contig reorganisations at non-repetitive places). Illumina
+	  will do a much better and cost effective job there.
+	</para>
+	<note>
+	  <para>
+	    As of Fall 2018: aim for at least 100x coverage of raw data,
+	    better 130x to 150x as pre-processing (quality clip, removal of
+	    adapters and other sequencing artefacts) will take its toll and
+	    reduce the data by up to 1/3. After that, the error
+	    correction/self-correction of raw reads into corrected reads will
+	    again reduce the data considerably.
+	  </para>
+	  <para>
+	    It's really a numbers game: the more data you have, the more
+	    likely you will also get many of those really long reads in the 5
+	    to 30 Kb range which are extremely useful to get over those nasty
+	    repeats.
+	  </para>
+	</note>
+	<note>
+	  MIRA should not be used to assemble PacBio. Use it to polish the
+	  results of Canu or Falcon/Quiver/Arrow with Illumina data.
+	</note>
+	<warning>
+	  For non-haploid organisms, you might need more coverage to get
+	  enough data at ploidy sites to get the reads correctly out of
+	  error correction. Aim for at least 80x to 100x per ploidy.
+	</warning>
+	<warning>
+	  Preparation of your DNA sample is not trivial as many methods will
+	  break your DNA into "small" chunks which are good enough for
+	  Sanger, 454, Illumina or Ion Torrents, but not for PacBio.
+	</warning>
+      </sect3>
+      <sect3 id="sect_seqadv_technologies_ont">
+	<title>
+	  Oxford Nanopore Technologies (ONT)
+	</title>
+	<para>
+	  I currently have no hands-on experience with ONT, but from what I
+	  see it gets you much longer reads than PacBio. At the moment I would
+	  go for it for de-novo of difficult eukaryotes or a quick and dirty
+	  first look bacteria with lots of repeats.
+	</para>
+      </sect3>
+      <sect3 id="sect_seqadv_technologies_illumina">
+	<title>
+	  Illumina
+	</title>
+	<para>
+	  Use for: general resequencing jobs (finding SNPs, indel locations of
+	  any size, copy number variations etc.); gene expression analysis;
+	  cheap test sequencing of unknown organisms to assess complexity;
+	  de-novo sequencing if you are OK with getting hundreds / thousands
+	  of contigs (depending on organism, some bacteria get only a few
+	  dozen).
+	</para>
+	<warning>
+	  Careful with high GC organisms, starting with 60% to 65% GC Illumina
+	  reads contain more errors: SNP detection may be less reliable if
+	  extreme care is not taken to perform good read clipping. Especially
+	  the dreaded GGCxG motif often leads to problems in Illumina reads.
+	</warning>
+	<warning>
+	  For de-novo assemblies, do <emphasis>NOT</emphasis> (never ever at
+	  all and under no circumstances) use the Nextera kit, take
+	  TruSeq. The non-random fragmentation behaviour of Nextera leads to
+	  all sorts of problems for assemblers (not only MIRA) which try to
+	  use kmer frequencies as a criterion for repetitiveness of a given
+	  sequence.
+	</warning>
+      </sect3>
+      <sect3 id="sect_seqadv_technologies_iontorrent">
+	<title>
+	  Ion Torrent
+	</title>
+	<para>
+	  Use for: like Illumina. With three notable exceptions: 1) SNP
+	  detection is not as good as with Illumina (more false positives and
+	  false negatives) 2) de-novo assemblies will contain more single-base
+	  indels and 3) Ion having problems with homopolymers, that technology
+	  is not as well suited as complimentary hybrid technology for PacBio
+	  as is Illumina (except for high-GC perhaps).
+	</para>
+	<para>
+	  Ion has a speed advantage on Illumina: if you have your own machine,
+	  getting from your sample to data takes less time than with Illumina.
+	</para>
+	<para>
+	  Also, it looks like as if Ion has less problems with GC content or
+	  sequence motifs than Illumina.
+	</para>
+      </sect3>
+      <sect3 id="sect_seqadv_technologies_454">
+	<title>
+	  Roche 454
+	</title>
+	<para>
+	  That technology is dead. Move on, nothing to see here anymore.
+	</para>
+      </sect3>
+    </sect2>
+    <sect2 id="sect_seqadv_denovo">
+      <title>
+	Sequencing de-novo
+      </title>
+      <itemizedlist>
+	<listitem>
+	  On a cheap gene fishing expedition? Probably Illumina HiSeq, at
+	  least 100bp, 150 to 250bp or 300bp if your provider supports it
+	  well. Paired-end definitely a plus. As alternative: Ion Torrent for
+	  small organism (maybe up to 100Mb) and when you need results quickly
+	  without caring for possible frameshifts.
+	</listitem>
+	<listitem>
+	  Want some larger contigs? PacBio. Add in cheap Illumina 100bp
+	  paired-end (150 to 300bp if provider supports it) to get rid of
+	  those last frameshifts which may remain.
+	</listitem>
+	<listitem>
+	  Even longer reads to resolve difficult areas? Some tinkering with
+	  Oxford Nanopore + polishing with Illumina should do wonders.
+	</listitem>
+      </itemizedlist>
+    </sect2>
+    <sect2 id="sect_seqadv_mapping">
+      <title>
+	Re-sequencing / mapping
+      </title>
+      <para>
+	There is a reason why Illumina currently dominates the market as it
+	does: a cheap Illumina run (preferably paired-end) will answer most of
+	your questions in 95% of the cases. Things will get difficult for
+	organisms with high numbers of repeats and/or frequent genome
+	re-arrangements. Then using longer read technologies and/or Illumina
+	mate-pair may be required.
+      </para>
+    </sect2>
+  </sect1>
+  <sect1 id="sect_seqadv_a_word_or_two_on_coverage">
+    <title>
+      A word or two on coverage ...
+    </title>
+    <sect2 id="sect_seqadv_lowcov">
+      <title>
+	Low coverage isn't worth it
+      </title>
+      <para>
+	There's one thing to be said about coverage and de-novo assembly:
+	especially for bacteria, getting more than 'decent' coverage is
+	<emphasis>cheap</emphasis> with any current day technology. Every
+	assembler I know will be happy to assemble de-novo genomes with
+	coverages of 25x, 30x, 40x ... and the number of contigs will still
+	drop dramatically between a 15x Ion Torrent and a 30x Ion Torrent
+	project.
+      </para>
+      <para>
+	In any case, do some calculations: if the coverage you expect to get
+	reaches 50x (e.g. 200MB raw sequence for a 4MB genome), then you
+	(respectively the assembler) can still throw away the worst 20% of the
+	sequence (with lots of sequencing errors) and concentrate on the
+	really, really good parts of the sequences to get you nice contigs.
+      </para>
+      <para>
+	Other example: the price for 1 gigabase Illumina paired-end of a
+	single DNA prep is way, way below USD 1000, even with commercial
+	providers. Then you just need to do the math: is it worth to invest
+	10, 20, 30 or more days of wet lab work, designing primers, doing PCR
+	sequencing etc. and trying to close remaining gaps or hunt down
+	sequencing errors when you went for a 'low' coverage or a non-hybrid
+	sequencing strategy? Or do you invest a few bucks more to get some
+	additional coverage and considerably reduce the uncertainties and gaps
+	which remain?
+      </para>
+      <para>
+	Remember, you probably want to do research on your bug and not
+	research on how to best assemble and close genomes. So even if you put
+	(PhD) students on the job, it's costing you time and money if you
+	wanted to save money earlier in the sequencing. Penny-wise and
+	pound-foolish is almost never a good strategy :-)
+      </para>
+      <para>
+	I do agree that with eukaryotes, things start to get a bit more
+	interesting from the financial point of view.
+      </para>
+    </sect2>
+    <sect2 id="sect_seqadv_highcov">
+      <title>
+	Catch-22: too high coverage
+      </title>
+      <para>
+	There is, however, a catch-22 situation with coverage: too much
+	coverage isn't good either. Without going into details: sequencing
+	errors sometimes interfere heavily when coverage exceeds ~60x to 80x
+	for 454 &amp; IonTorrent and approximately 150x to 200x for
+	Solexa/Illumina.
+      </para>
+      <para>
+	In those cases, do yourself a favour: there's more than enough data
+	for your project ... just cut it down to some reasonable amount: 40x
+	to 50x for 454 &amp; IonTorrent, 100x for Solexa/Illumina.
+      </para>
+    </sect2>
+  </sect1>
+  <sect1 id="sect_seqadv_when_sequencing_a_word_of_caution_regarding_your_dna">
+    <title>
+      A word of caution regarding your DNA in hybrid sequencing projects
+    </title>
+    <para>
+      So, you have decided that sequencing your bug with PacBio and Illumina
+      (or PacBio and Ion Torrent or whatever) may be a viable way to get the
+      best bang for your buck. Then please follow this advice: prepare enough
+      DNA <emphasis>in</emphasis> <emphasis>one</emphasis>
+      <emphasis>go</emphasis> for the sequencing provider so that they can
+      sequence it with all the technologies you chose without you having to
+      prepare another batch ... or even grow another culture!
+    </para>
+    <para>
+      The reason for that is that as soon as you do that, the probability that
+      there is a mutation somewhere that your first batch did not have is not
+      negligible. And if there is a mutation, even if it is only one base,
+      there is a >95% chance that MIRA will find it and thinks it is some
+      repetitive sequence (like a duplicated gene with a mutation in it) and
+      splits contigs at those places.
+    </para>
+    <para>
+      Now, there are times when you cannot completely be sure that different
+      sequencing runs did not use slightly different batches (or even strains).
+    </para>
+    <para>
+      One example: the SFF files for SRA000156 and SRA001028 from the NCBI
+      short trace archive should both contain E.coli K12 MG-16650 (two
+      unpaired half plates and a paired-end plate). However, they contain
+      DNA from different cultures. Furthermore, the DNA was prepared by
+      different labs. The net effect is that the sequences in the paired-end
+      library contain a few distinct mutations from the sequences in the two
+      unpaired half-plates. Furthermore, the paired-end sequences contain
+      sequences from phages that are not present in the unpaired sequences.
+    </para>
+    <para>
+      In those cases, provide strain information to the reads so that MIRA can
+      discern possible repeats from possible SNPs.
+    </para>
+  </sect1>
+  <sect1 id="sect_seqadv_for_bacteria">
+    <title>
+      Advice for bacteria
+    </title>
+    <sect2 id="sect_seqadv_for_bacteria_no_not_sample_in_exponential_phase">
+      <title>
+	Do not sample DNA from bacteria in exponential growth phase!
+      </title>
+      <para>
+	The reason is simple: some bacteria grow so fast that they start
+	replicating themselves even before having finished the first
+	replication cycle. This leads to more DNA around the origin of
+	replication being present in cells, which in turn fools assemblers and
+	mappers into believing that those areas are either repeats or that
+	there are copy number changes.
+      </para>
+      <para>
+	Sample. In. Stationary. Phase!
+      </para>
+      <para>
+	For de-novo assemblies, MIRA will warn you if it detects data which
+	points at exponential phase. In mapping assemblies, look at the
+	coverage profile of your genome: if you see a smile shape (or V
+	shape), you have a problem.
+      </para>
+    </sect2>
+    <sect2 id="sect_seqadv_for_bacteria:_beware_of_high_copy_number_plasmids">
+      <title>
+	Beware of (high copy number) plasmids!
+      </title>
+      <para>
+	This is a source of interesting problems and furthermore gets people
+	wondering why MIRA sometimes creates more contigs than other
+	assemblers when it usually creates less.
+      </para>
+      <para>
+	Here's the short story: there are data sets which include one ore
+	several high-copy plasmid(s). Here's a particularly ugly example:
+	SRA001028 from the NCBI short read archive which contains a plate of
+	paired-end reads for Ecoli K12 MG1655-G
+	(<ulink url="ftp://ftp.ncbi.nih.gov/pub/TraceDB/ShortRead/SRA001028/"/>).
+      </para>
+      <para>
+	The genome is sequenced at ~10x coverage, but during the assembly,
+	three intermediate contigs with ~2kb attain a silly maximum coverage
+	of ~1800x each.  This means that there were ~540 copies of this
+	plasmid (or these plasmids) in the sequencing.
+      </para>
+      <para>
+	When using the uniform read distribution algorithm - which is switched
+	on by default when using "--job=" and the quality level of 'accurate' -
+	MIRA will find out about the average coverage of the genome to be at
+	~10x.  Subsequently this leads MIRA to dutifully create ~500 additional
+	contigs (plus a number of contig debris) with various incarnations of
+	that plasmid at an average of ~10x, because it thought that these were
+	repetitive sites within the genome that needed to be disentangled.
+      </para>
+      <para>
+	Things get even more interesting when some of the plasmid / phage
+	copies are slightly different from each other. These too will be split
+	apart and when looking through the results later on and trying to join
+	the copies back into one contig, one will see that this should not be
+	done because there are real differences.
+      </para>
+      <para>
+	DON'T PANIC!
+      </para>
+      <para>
+	The only effect this has on your assembly is that the number of
+	contigs goes up. This in turn leads to a number of questions in my
+	mailbox why MIRA is sometimes producing more contigs than Newbler (or
+	other assemblers), but that is another story (hint: Newbler either
+	collapses repeats or leaves them completely out of the picture by not
+	assembling repetitive reads).
+      </para>
+      <para>
+	What you can do is the following:
+      </para>
+      <orderedlist>
+	<listitem>
+	  <para>
+	    either you assemble everything together and the join the plasmid
+	    contigs manually after assembly, e.g. in gap4 (drawback: on really
+	    high copy numbers, MIRA will work quite a bit longer ... and you
+	    will have a lot of fun joining the contigs afterwards)
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    or, after you found out about the plasmid(s) and know the sequence,
+	    you filter out reads in the input data which contain this sequence
+	    (you can use <command>mirabait</command> for this) and assemble the
+	    remaining reads.
+	  </para>
+	</listitem>
+      </orderedlist>
+    </sect2>
+  </sect1>
+</chapter>

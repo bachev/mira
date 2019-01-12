@@ -1,0 +1,3 @@
+I wrote converter.tcl to almost automatically convert latexman files to
+docbook. It's probably too simplistic and tailored to the former .tex-help
+files to be of general use, but did the job well enough.

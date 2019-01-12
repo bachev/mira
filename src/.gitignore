@@ -1,0 +1,7 @@
+
+#share directory
+share
+
+# transformed XXD files
+
+*.xxd.H

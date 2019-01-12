@@ -1,0 +1,1150 @@
+<?xml version="1.0" ?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.docbook.org/xml/4.5/docbookx.dtd">
+<chapter id="chap_faq">
+  <chapterinfo>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="versionfile"/>
+    <author>
+      <firstname>Bastien</firstname>
+      <surname>Chevreux</surname>
+      <email>bach@chevreux.org</email>
+    </author>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="copyrightfile"/>
+  </chapterinfo>
+  <blockquote>
+    <attribution>Solomon Short</attribution>
+    <para>
+      <emphasis><quote>Every question defines its own answer. Except perhaps 'Why a duck?'
+      </quote></emphasis>
+    </para>
+  </blockquote>
+
+  <title>Frequently asked questions</title>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="warning_frontofchapter.xml"/>
+  <para>
+    This list is a collection of frequently asked questions and answers
+    regarding different aspects of the MIRA assembler.
+  </para>
+  <note>
+    This document needs to be overhauled.
+  </note>
+  <sect1 id="sect_faq_assembly_quality">
+    <title>
+      Assembly quality
+    </title>
+
+    <qandaset>
+      <qandaentry>
+	<question>
+	  <para>Test question 1</para>
+	</question>
+	<answer>
+	  <para>Test answer 1</para>
+	</answer>
+      </qandaentry>
+      <qandaentry>
+	<question>
+	  <para>Test question 2</para>
+	</question>
+	<answer>
+	  <para>Test answer 2</para>
+	</answer>
+      </qandaentry>
+    </qandaset>
+
+    <para>
+    </para>
+    <sect2 id="sect_faq_what_is_the_effect_of_uniform_read_distribution_as:urd?">
+      <title>
+	What is the effect of uniform read distribution (-AS:urd)?
+      </title>
+      <para>
+      </para>
+      <screen>
+	I have a project which I once started quite normally via
+	&quot;--job=denovo,genome,accurate,454&quot;
+	and once with explicitly switching off the uniform read distribution
+	&quot;--job=denovo,genome,accurate,454 -AS:urd=no&quot;
+	I get less contigs in the second case and I wonder if that is not better.
+	Can you please explain?
+      </screen>
+      <para>
+      </para>
+      <para>
+	Since 2.9.24x1, MIRA has a feature called "uniform read distribution" which is
+	normally switched on. This feature reduces over-compression of repeats during
+	the contig building phase and makes sure that, e.g., a rRNA stretch which is
+	present 10 times in a bacterium will also be present approximately 10 times in
+	your result files.
+      </para>
+      <para>
+	It works a bit like this: under the assumption that reads in a project are
+	uniformly distributed across the genome, MIRA will enforce an average coverage
+	and temporarily reject reads from a contig when this average coverage
+	multiplied by a safety factor is reached at a given site.
+      </para>
+      <para>
+	It's generally a very useful tool disentangle repeats, but has some slight
+	secondary effects: rejection of otherwise perfectly good reads. The
+	assumption of read distribution uniformity is the big problem we have here:
+	of course it's not really valid. You sometimes have less, and sometimes more
+	than "the average" coverage. Furthermore, the new sequencing technologies -
+	454 perhaps but especially the microreads from Solexa &amp; probably also SOLiD -
+	show that you also have a skew towards the site of replication origin.
+      </para>
+      <para>
+	One example: let's assume the average coverage of your project is 8 and by
+	chance at one place you have 17 (non-repetitive) reads, then the following
+	happens:
+      </para>
+      <para>
+	$p$= parameter of -AS:urdsip
+      </para>
+      <para>
+	Pass 1 to $p-1$: MIRA happily assembles everything together and calculates a
+	number of different things, amongst them an average coverage of ~8. At the
+	end of pass '$p-1$', it will announce this average coverage as first estimate
+	to the assembly process.
+      </para>
+      <para>
+	Pass $p$: MIRA has still assembled everything together, but at the end of each
+	pass the contig self-checking algorithms now include an "average coverage
+	check". They'll invariably find the 17 reads stacked and decide (looking at
+	the -AS:urdct parameter which I now assume to be 2) that 17 is larger than
+	2*8 and that this very well may be a repeat. The reads get flagged as
+	possible repeats.
+      </para>
+      <para>
+	Pass $p+1$ to end: the "possibly repetitive" reads get a much tougher
+	treatment in MIRA. Amongst other things, when building the contig, the contig
+	now looks that "possibly repetitive" reads do not over-stack by an average
+	coverage multiplied by a safety value (-AS:urdcm) which I'll assume in this
+	example to be 1.5. So, at a certain point, say when read 14 or 15 of
+	that possible repeat want to be aligned to the contig at this given place, the
+	contig will just flatly refuse and tell the assembler to please find another
+	place for them, be it in this contig that is built or any other that will
+	follow. Of course, if the assembler cannot comply, the reads 14 to 17 will end
+	up as contiglet (contig debris, if you want) or if it was only one read that
+	got rejected like this, it will end up as singlet or in the debris file.
+      </para>
+      <para>
+	Tough luck. I do have ideas on how to re-integrate those reads at the and of an
+	assembly, but I had deferred doing this as in every case I had looked up,
+	adding those reads to the contigs wouldn't have changed anything ... there's
+	already enough coverage. What I do in those cases is simply filter away the
+	contiglets (defined as being of small size and having an average coverage
+	below the average coverage of the project / 3 (or 2.5)) from a project.
+      </para>
+    </sect2>
+    <sect2 id="sect_faq_there_are_too_many_contig_debris_when_using_uniform_read_distribution_how_do_i_filter_for_good_contigs?">
+      <title>
+	There are too many contig debris when using uniform read distribution, how do I filter for "good" contigs?
+      </title>
+      <para>
+      </para>
+      <screen>
+	When using uniform read distribution there are too many contig with low
+	coverage which I don&apos;t want to integrate by hand in the finishing process. How
+	do I filter for &quot;good&quot; contigs?
+      </screen>
+      <para>
+      </para>
+      <para>
+	OK, let's get rid of the cruft. It's easy, really: you just need to look up
+	one number, take two decisions and then launch a command.
+      </para>
+      <para>
+	The first decision you need to take is on the minimum average coverage the
+	contigs you want to keep should have. Have a look at the file
+	<filename>*_info_assembly.txt</filename> which is in the info directory after
+	assembly. In the "Large contigs" section, there's a "Coverage assessment"
+	subsection. It looks a bit like this:
+      </para>
+      <screen>
+	...
+	Coverage assessment:
+	--------------------
+	Max coverage (total): 43
+	Max coverage
+	Sanger: 0
+	454:    43
+	Solexa: 0
+	Solid:  0
+	Avg. total coverage (size &ge; 5000): 22.30
+	Avg. coverage (contig size &ge; 5000)
+	Sanger: 0.00
+	454:    22.05
+	Solexa: 0.00
+	Solid:  0.00
+	...
+      </screen>
+      <para>
+      </para>
+      <para>
+	This project was obviously a 454 only project, and the average coverage for it
+	is ~22. This number was estimated by MIRA by taking only contigs of at least
+	5Kb into account, which for sure left out everything which could be
+	categorised as debris. It's a pretty solid number.
+      </para>
+      <para>
+	Now, depending on how much time you want to invest performing some manual
+	polishing, you should extract contigs which have at least the following
+	fraction of the average coverage:
+      </para>
+      <itemizedlist>
+	<listitem>
+	  <para>
+	    2/3 if a quick and "good enough" is what you want and you don't want to
+	    do some manual polishing. In this example, that would be around 14 or 15.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    1/2 if you want to have a "quick look" and eventually perform some
+	    contig joins. In this example the number would be 11.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    1/3 if you want quite accurate and for sure not loose any possible
+	    repeat. That would be 7 or 8 in this example.
+	  </para>
+	</listitem>
+      </itemizedlist>
+      <para>
+      </para>
+      <para>
+	The second decision you need to take is on the minimum length your contigs
+	should have. This decision is a bit dependent on the sequencing technology you
+	used (the read length). The following are some rules of thumb:
+      </para>
+      <itemizedlist>
+	<listitem>
+	  <para>
+	    Sanger: 1000 to 2000
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    454 GS20: 500
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    454 FLX: 1000
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    454 Titanium: 1500
+	  </para>
+	</listitem>
+      </itemizedlist>
+      <para>
+      </para>
+      <para>
+	Let's assume we decide for an average coverage of 11 and a minimum length of
+	1000 bases. Now you can filter your project with miraconvert
+      </para>
+      <screen>
+	miraconvert -x 1000 -y 11 sourcefile.caf filtered.caf
+      </screen>
+      <para>
+      </para>
+    </sect2>
+    <sect2 id="sect_faq_when_finishing_which_places_should_i_have_a_look_at?">
+      <title>
+	When finishing, which places should I have a look at?
+      </title>
+      <para>
+      </para>
+      <screen>
+	I would like to find those places where MIRA wasn't sure and give it a quick
+	shot. Where do I need to search?
+      </screen>
+      <para>
+      </para>
+      <para>
+	Search for the following tags in gap4 or any other finishing program
+	for finding places of importance (in this order).
+      </para>
+      <itemizedlist>
+	<listitem>
+	  <para>
+	    IUPc
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    UNSc
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    SRMc
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    WRMc
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    STMU (only hybrid assemblies)
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    STMS (only hybrid assemblies)
+	  </para>
+	</listitem>
+      </itemizedlist>
+      <para>
+      </para>
+    </sect2>
+  </sect1>
+  <sect1 id="sect_faq_454_data">
+    <title>
+      454 data
+    </title>
+
+    <qandaset>
+      <qandaentry>
+	<question>
+	  <para>What are little boys made of?</para>
+	</question>
+	<answer>
+	  <para>Snips and snails and puppy dog tails.</para>
+	</answer>
+      </qandaentry>
+      <qandaentry>
+	<question>
+	  <para>What are little girls made of?</para>
+	</question>
+	<answer>
+	  <para>Sugar and spice and everything nice.</para>
+	</answer>
+      </qandaentry>
+    </qandaset>
+
+    <para>
+    </para>
+    <sect2 id="sect_faq_what_do_i_need_sffs_for?">
+      <title>
+	What do I need SFFs for?
+      </title>
+      <para>
+      </para>
+      <screen>
+	I need the .sff files for MIRA to load ...
+      </screen>
+      <para>
+      </para>
+      <para>
+	Nope, you don't, but it's a common misconception. MIRA does not load SFF
+	files, it loads FASTA, FASTA qualities, FASTQ, XML, CAF, EXP and PHD. The
+	reason why one should start from the SFF is: those files can be used to create
+	a XML file in TRACEINFO format. This XML contains the absolutely vital
+	information regarding clipping information of the 454 adaptors (the sequencing
+	vector of 454, if you want).
+      </para>
+      <para>
+	For 454 projects, MIRA will then load the FASTA, FASTA quality and the
+	corresponding XML. Or from CAF, if you have your data in CAF format.
+      </para>
+    </sect2>
+    <sect2 id="sect_faq_what's_sff_extract_and_where_do_i_get_it?">
+      <title>
+	What's sff_extract and where do I get it?
+      </title>
+      <para>
+      </para>
+      <screen>
+	How do I extract the sequence, quality and other values from SFFs?
+      </screen>
+      <para>
+      </para>
+      <para>
+	Use the <command>sff_extract</command> script from Jose Blanca at the
+	University of Valencia to extract everything you need from the SFF
+	files (sequence, qualities and ancillary information). The home of
+	sff_extract is: <ulink
+	url="http://bioinf.comav.upv.es/sff_extract/index.html"/> but I am
+	thankful to Jose for giving permission to distribute the script in the
+	MIRA 3rd party package (separate download).
+      </para>
+    </sect2>
+    <sect2 id="sect_faq_do_i_need_the_sfftools_from_the_roche_software_package?">
+      <title>
+	Do I need the sfftools from the Roche software package?
+      </title>
+      <para>
+	No, not anymore. Use the <command>sff_extract</command> script to
+	extract your reads. Though the Roche sfftools package contains a few
+	additional utilities which could be useful.
+      </para>
+    </sect2>
+    <sect2 id="sect_faq_combining_sffs">
+      <title>
+	Combining SFFs
+      </title>
+      <para>
+      </para>
+      <screen>
+	I am trying to use MIRA to assemble reads obtained with the 454 technology
+	but I can&apos;t combine my sff files since I have two files obtained with GS20
+	system and 2 others obtained with the GS-FLX system. Since they use
+	different cycles (42 and 100) I can&apos;t use the sfffile to combine both.
+      </screen>
+      <para>
+      </para>
+      <para>
+	You do not need to combine SFFs before translating them into something
+	MIRA (or other software tools) understands. Use
+	<command>sff_extract</command> which extracts data from the SFF files
+	and combines this into input files.
+      </para>
+    </sect2>
+    <sect2 id="sect_faq_adaptors_and_pairedend_linker_sequences">
+      <title>
+	Adaptors and paired-end linker sequences
+      </title>
+      <para>
+      </para>
+      <screen>
+	I have no idea about the adaptor and the linker sequences, could you send me
+	the sequences please?
+      </screen>
+      <para>
+      </para>
+      <para>
+	Here are the sequences as filed by 454 in their patent application:
+      </para>
+      <screen>
+	&gt;AdaptorA
+	CTGAGACAGGGAGGGAACAGATGGGACACGCAGGGATGAGATGG
+	&gt;AdaptorB
+	CTGAGACACGCAACAGGGGATAGGCAAGGCACACAGGGGATAGG
+      </screen>
+      <para>
+      </para>
+      <para>
+	However, looking through some earlier project data I had, I also retrieved the
+	following (by simply making a consensus of sequences that did not match the
+	target genome anymore):
+      </para>
+      <screen>
+	&gt;5prime454adaptor???
+	GCCTCCCTCGCGCCATCAGATCGTAGGCACCTGAAA
+	&gt;3prime454adaptor???
+	GCCTTGCCAGCCCGCTCAGATTGATGGTGCCTACAG
+      </screen>
+      <para>
+      </para>
+      <para>
+	Go figure, I have absolutely no idea where these come from as they also do not
+	comply to the "tcag" ending the adaptors should have.
+      </para>
+      <para>
+	I currently know one linker sequence (454/Roche also calls it <emphasis>spacer</emphasis>
+	for GS20 and FLX paired-end sequencing:
+      </para>
+      <screen>
+	&gt;flxlinker
+	GTTGGAACCGAAAGGGTTTGAATTCAAACCCTTTCGGTTCCAAC
+      </screen>
+      <para>
+      </para>
+      <para>
+	For Titanium data using standard Roche protocol, you need to screen for two
+	linker sequences:
+      </para>
+      <screen>
+	&gt;titlinker1
+	TCGTATAACTTCGTATAATGTATGCTATACGAAGTTATTACG
+	&gt;titlinker2
+	CGTAATAACTTCGTATAGCATACATTATACGAAGTTATACGA
+      </screen>
+      <para>
+      </para>
+      <warning>
+	Some sequencing labs modify the adaptor sequences for tagging and
+	similar things. Ask your sequencing provider for the exact adaptor
+	and/or linker sequences.
+      </warning>
+    </sect2>
+    <sect2 id="sect_faq_what_do_i_get_in_pairedend_sequencing?">
+      <title>
+	What do I get in paired-end sequencing?
+      </title>
+      <para>
+      </para>
+      <screen>
+	Another question I have is does the read pair sequences have further
+	adaptors/vectors in the forward and reverse strands?
+      </screen>
+      <para>
+      </para>
+      <para>
+	Like for normal 454 reads - the normal A and B adaptors can be present
+	in paired-end reads. That theory this could could look like this:
+      </para>
+      <para>
+	A-Adaptor - DNA1 - Linker - DNA2 - B-Adaptor.
+      </para>
+      <para>
+	It's possible that one of the two DNA fragments is *very* short or is missing
+	completely, then one has something like this:
+      </para>
+      <para>
+	A-Adaptor - DNA1 - Linker - B-Adaptor
+      </para>
+      <para>
+	or
+      </para>
+      <para>
+	A-Adaptor - Linker - DNA2 - B-Adaptor
+      </para>
+      <para>
+	And then there are all intermediate possibilities with the read not having one
+	of the two adaptors (or both). Though it appears that the majority of reads
+	will contain the following:
+      </para>
+      <para>
+	DNA1 - Linker - DNA2
+      </para>
+      <para>
+	There is one caveat: according to current paired-end protocols, the sequences
+	will <emphasis role="bold">NOT</emphasis> have the direction
+      </para>
+      <screen>
+	---&gt; Linker &lt;---
+      </screen>
+      <para>
+	as one might expect when being used to Sanger Sequencing, but rather in this
+	direction
+      </para>
+      <screen>
+	&lt;--- Linker ---&gt;
+      </screen>
+      <para>
+      </para>
+    </sect2>
+    <sect2 id="sect_faq_sequencing_protocol">
+      <title>
+	Sequencing protocol
+      </title>
+      <para>
+      </para>
+      <screen>
+	Is there a way I can find out which protocol was used?
+      </screen>
+      <para>
+      </para>
+      <para>
+	Yes. The best thing to do is obviously to ask your sequencing provider.
+      </para>
+      <para>
+	If this is - for whatever reason - not possible, this list might help.
+      </para>
+      <para>
+	Are the sequences ~100-110 bases long? It's GS20.
+      </para>
+      <para>
+	Are the sequences ~220-250 bases long? It's FLX.
+      </para>
+      <para>
+	Are the sequences ~350-450 bases long? It's Titanium.
+      </para>
+      <para>
+	Do the sequences contain a linker
+	(GTTGGAACCGAAAGGGTTTGAATTCAAACCCTTTCGGTTCCAAC)? It's a paired end protocol.
+      </para>
+      <para>
+	If the sequences left and right of the linker are ~29bp, it's the old short
+	paired end (SPET, also it's most probably from a GS20). If longer, it's long
+	paired-end (LPET, from a FLX).
+      </para>
+    </sect2>
+    <sect2 id="sect_faq_filtering_by_seqlen">
+      <title>
+	Filtering sequences by length and re-assembly
+      </title>
+      <screen>
+I have two datasets of ~500K sequences each and the sequencing company
+already did an assembly (using MIRA) on the basecalled and fully processed
+reads (using of course the accompanying *qual file). Do you suggest that I
+should redo the assembly after filtering out sequences being shorter than a
+certain length (e.g. those that are &lt;200bp)? In other words, am I taking into
+account low quality sequences if I do the assembly the way the sequencing
+company did it (fully processed reads + quality files)?
+      </screen>
+      <para>
+	I don't think that filtering out "shorter" reads will bring much
+	positive improvement. If the sequencing company used the standard
+	Roche/454 pipeline, the cut-offs for quality are already quite good,
+	remaining sequences should be, even when being &lt; 200bp, not of bad
+	quality, simply a bit shorter.
+      </para>
+      <para>
+	Worse, you might even introduce a bias when filtering out short
+	sequences: chemistry and library construction being what they are
+	(rather imprecise and sometimes problematic), some parts of DNA/RNA
+	yield smaller sequences per se ... and filtering those out might not
+	be the best move.
+      </para>
+      <para>
+	You might consider doing an assembly if the company used a rather old
+	version of MIRA (&lt;3.0.0 for sure, perhaps also &lt;3.0.5).
+      </para>
+    </sect2>
+  </sect1>
+  <sect1 id="sect_faq_solexa___illumina_data">
+    <title>
+      Solexa / Illumina data
+    </title>
+    <para>
+    </para>
+    <sect2 id="sect_faq_can_i_see_deletions?">
+      <title>
+	Can I see deletions?
+      </title>
+      <para>
+      </para>
+      <screen>
+	Suppose you ran the genome of a strain that had one or more large
+	deletions. Would it be clear from the data that a deletion had occurred?
+      </screen>
+      <para>
+      </para>
+      <para>
+	In the question above, I assume you'd compare your strain <emphasis>X</emphasis> to a strain
+	<emphasis>Ref</emphasis> and that <emphasis>X</emphasis> had deletions compared to
+	<emphasis>Ref</emphasis>. Furthermore, I base my answer on data sets I have seen, which
+	presently were 36 and 76 mers, paired and unpaired.
+      </para>
+      <para>
+	Yes, this would be clear. And it's a piece of cake with MIRA.
+      </para>
+      <para>
+	Short deletions (1 to 10 bases): they'll be tagged SROc or WRMc.
+	General rule: deletions of up to 10 to 12% of the length of your read should
+	be found and tagged without problem by MIRA, above that it may or may not,
+	depending a bit on coverage, indel distribution and luck.
+      </para>
+      <para>
+	Long deletions (longer than read length): they'll be tagged with MCVc tag by
+	MIRA ins the consensus. Additionally, when looking at the FASTA files when
+	running the CAF result through miraconvert: long stretches of
+	sequences without coverage (the @ sign in the FASTAs) of <emphasis>X</emphasis> show missing
+	genomic DNA.
+      </para>
+    </sect2>
+    <sect2 id="sect_faq_can_i_see_insertions?">
+      <title>
+	Can I see insertions?
+      </title>
+      <para>
+      </para>
+      <screen>
+	Suppose you ran the genome of a strain X that had a plasmid missing from the
+	reference sequence. Alternatively, suppose you ran a strain that had picked
+	up a prophage or mobile element lacking in the reference. Would that
+	situation be clear from the data?
+      </screen>
+      <para>
+      </para>
+      <para>
+	Short insertions (1 to 10 bases): they'll be tagged SROc or WRMc.
+	General rule: deletions of up to 10 to 12% of the length of your read should
+	be found and tagged without problem by MIRA, above that it may or may not,
+	depending a bit on coverage, indel distribution and luck.
+      </para>
+      <para>
+	Long insertions: it's a bit more work than for deletions. But if you ran a
+	de-novo assembly on all reads not mapped against your reference sequence,
+	chances are good you'd get good chunks of the additional DNA put together
+      </para>
+      <para>
+	Once the Solexa paired-end protocol is completely rolled out and used on a
+	regular base, you would even be able to place the additional element into the
+	genome (approximately).
+      </para>
+    </sect2>
+    <sect2 id="sect_faq_denovo_assembly_with_solexa_data">
+      <title>
+	De-novo assembly with Solexa data
+      </title>
+      <para>
+      </para>
+      <screen>
+	Any chance you could assemble de-novo the sequence of a from just the Solexa
+	data?
+      </screen>
+      <para>
+      </para>
+      <warning>
+	Highly opinionated answer ahead, your mileage may vary.
+      </warning>
+      <para>
+	Allow me to make a clear statement on this: maybe.
+      </para>
+      <para>
+	But the result would probably be nothing I would call a good
+	assembly. If you used anything below 76mers, I'm highly sceptical
+	towards the idea of de-novo assembly with Solexa (or ABI SOLiD) reads
+	that are in the 30 to 50bp range. They're really too short for that,
+	even paired end won't help you much (especially if you have library
+	sizes of just 200 or 500bp). Yes, there are papers describing
+	different draft assemblers (SHARCGS, EDENA, Velvet, Euler and others),
+	but at the moment the results are less than thrilling to me.
+      </para>
+      <para>
+	If a sequencing provider came to me with N50 numbers for an
+	<emphasis>assembled genome</emphasis> in the 5-8 Kb range, I'd laugh
+	him in the face. Or weep. I wouldn't dare to call this even
+	'draft'. I'd just call it junk.
+      </para>
+      <para>
+	On the other hand, this could be enough for some purposes like, e.g.,
+	getting a quick overview on the genetic baggage of a bug. Just don't
+	expect a finished genome.
+      </para>
+    </sect2>
+  </sect1>
+  <sect1 id="sect_faq_hybrid_assemblies">
+    <title>
+      Hybrid assemblies
+    </title>
+    <para>
+    </para>
+    <sect2 id="sect_faq_what_are_hybrid_assemblies?">
+      <title>
+	What are hybrid assemblies?
+      </title>
+      <para>
+	Hybrid assemblies are assemblies where one used more than one sequencing
+	technology. E.g.: Sanger and 454, or 454 and Solexa, or Sanger and Solexa
+	etc.pp
+      </para>
+    </sect2>
+    <sect2 id="sect_faq_what_differences_are_there_in_hybrid_assembly_strategies?">
+      <title>
+	What differences are there in hybrid assembly strategies?
+      </title>
+      <para>
+	Basically, one can choose two routes: multi-step or all-in-one-go.
+      </para>
+      <para>
+	Multi-steps means: to assemble reads from one sequencing technology (ideally
+	the one from the shorter tech like, e.g., Solexa), fragment the resulting
+	contigs into pseudo-reads of the longer tech and assemble these with the real
+	reads from the longer tech (like, e.g., 454). The advantage of this approach
+	is that it will be probably quite faster than the all-in-one-go approach. The
+	disadvantage is that you loose a lot of information when using only consensus
+	sequence of the shorter read technology for the final assembly.
+      </para>
+      <para>
+	All-in-one-go means: use all reads in one single assembly. The advantage of
+	this is that the resulting alignment will be made of true reads with a maximum
+	of information contained to allow a really good finishing. The disadvantage is
+	that the assembly will take longer and will need more RAM.
+      </para>
+    </sect2>
+  </sect1>
+  <sect1 id="sect_faq_masking">
+    <title>
+      Masking
+    </title>
+    <para>
+    </para>
+    <sect2 id="sect_faq_should_i_mask?">
+      <title>
+	Should I mask?
+      </title>
+      <para>
+      </para>
+      <screen>
+	In EST projects, do you think that the highly repetitive option will get rid
+	of the repetitive sequences without going to the step of repeat masking?
+      </screen>
+      <para>
+      </para>
+      <para>
+	For eukaryotes, yes. Please also consult the <arg>-KS:mnr</arg> option.
+      </para>
+      <para>
+	Remember: you still <emphasis role="bold">MUST</emphasis> have sequencing vectors and adaptors
+	clipped! In EST sequences the poly-A tails should be also clipped (or let
+	mira do it.
+      </para>
+      <para>
+	For prokaryotes, I´m a big fan of having a first look at unmasked data.
+	Just try to start MIRA without masking the data. After something like 30
+	minutes, the all-vs-all comparison algorithm should be through with a first
+	comparison round. grep the log for the term "megahub" ... if it doesn't
+	appear, you probably don't need to mask repeats
+      </para>
+    </sect2>
+    <sect2 id="sect_faq_how_can_i_apply_custom_masking?">
+      <title>
+	How can I apply custom masking?
+      </title>
+      <para>
+      </para>
+      <screen>
+	I want to mask away some sequences in my input. How do I do that?
+      </screen>
+      <para>
+      </para>
+      <para>
+	First, if you want to have Sanger sequencing vectors (or 454 adaptor
+	sequences) "masked", please note that you should rather use ancillary data
+	files (CAF, XML or EXP) and use the sequencing or quality clip options there.
+      </para>
+      <para>
+	Second, please make sure you have read and understood the documentation for all
+	-CL parameters in the main manual, but especially -CL:mbc:mbcgs:mbcmfg:mbcmeg
+	as you might want to switch it on or off or set different values depending on
+	your pipeline and on your sequencing technology.
+      </para>
+      <para>
+	You can without problem mix your normal repeat masking pipeline with the FASTA
+	or EXP input for MIRA, as long as you <emphasis role="bold">mask</emphasis> and not <emphasis role="bold">clip</emphasis> the
+	sequence.
+      </para>
+      <para>
+	An example:
+      </para>
+      <screen>
+	&gt;E09238ARF0
+	tcag GTGTCAGTGTTGACTGTAAAAAAAAAGTACGTATGGACTGCATGTGCATGTCATGGTACGTGTCA
+	GTCAGTACAAAAAAAAAAAAAAAAAAAAGTACGT tgctgacgcacatgatcgtagc
+      </screen>
+      <para>
+      </para>
+      <para>
+	(spaces inserted just as visual helper in the example sequence, they would not
+	occur in the real stuff)
+      </para>
+      <para>
+	The XML will contain the following clippings:
+	left clip = 4    (clipping away the "tcag" which are the last four bases of the
+	adaptor used by Roche)
+	right clip= ~90  (clipping away the "tgctgac..." lower case sequence on the
+	right side of the sequence above.
+      </para>
+      <para>
+	Now, on the FASTA file that was generated with reads_sff.py or with the Roche
+	sff* tools, you can let run, e.g., a repeat masker. The result could look like
+	this:
+      </para>
+      <screen>
+	&gt;E09238ARF0
+	tcag XXXXXXXXX TTGACTGTAAAAAAAAAGTACGTATGGACTGCATGTGCATGTCATGGTACGTGTCA
+	GTCAGTACAAAAAAAAAAAAAAAAAAAAGTACGT tgctgacgcacatgatcgtagc
+      </screen>
+      <para>
+      </para>
+      <para>
+	The part with the Xs was masked away by your repeat masker. Now, when MIRA
+	loads the FASTA, it will first apply the clippings from the XML file (they're
+	still the same). Then, if the option to clip away masked areas of a read
+	(-CL:mbc, which is normally on for EST projects), it will search for the
+	stretches of X and internally also put clips to the sequence. In the example
+	above, only the following sequence would remain as "working sequence" (the
+	clipped parts would still be present, but not used for any computation.
+      </para>
+      <screen>
+	&gt;E09238ARF0
+	...............TTGACTGTAAAAAAAAAGTACGTATGGACTGCATGTGCATGTCATGGTACGTGTCA
+	GTCAGTACAAAAAAAAAAAAAAAAAAAAGTACGT........................
+      </screen>
+      <para>
+      </para>
+      <para>
+	Here you can also see the reason why your filters should <emphasis role="bold">mask</emphasis> and not
+	clip the sequence. If you change the length of the sequence, the clips in the
+	XML would not be correct anymore, wrong clippings would be made, wrong
+	sequence reconstructed, chaos ensues and the world would ultimately end. Or
+	something.
+      </para>
+      <para>
+	<emphasis role="bold">IMPORTANT!</emphasis> It might be that you do not want MIRA to merge the masked
+	part of your sequence with a left or right clip, but that you want to keep it
+	something like DNA - masked part - DNA. In this case, consult the manual for
+	the -CL:mbc switch, either switch it off or set adequate options for the
+	boundaries and gap sizes.
+      </para>
+      <para>
+	Now, if you look at the sequence above, you will see two possible poly-A
+	tails ... at least the real poly-A tail should be masked else you will get
+	megahubs with all the other reads having the poly-A tail.
+      </para>
+      <para>
+	You have two possibilities: you mask yourself with an own program or you let
+	MIRA do the job (-CL:cpat, which should normally be on for EST projects but I
+	forgot to set the correct switch in the versions prior to 2.9.26x3, so you
+	need to set it manually for 454 EST projects there).
+      </para>
+      <para>
+	<emphasis role="bold">IMPORTANT!</emphasis> Never ever at all use two poly-A tail masker (an own and
+	the one from MIRA): you would risk to mask too much. Example: assume the above
+	read you masked with a poly-A masker. The result would very probably look like
+	this:
+      </para>
+      <screen>
+	&gt;E09238ARF0
+	tcag XXXXXXXXX TTGACTGTAAAAAAAAAGTACGTATGGACTGCATGTGCATGTCATGGTACGTGTCA
+	GTCAGTAC XXXXXXXXXXXXXXXXXXXX GTACGT tgctgacgcacatgatcgtagc
+      </screen>
+      <para>
+      </para>
+      <para>
+	And MIRA would internally make the following out of it after loading:
+      </para>
+      <screen>
+	&gt;E09238ARF0
+	...............TTGACTGTAAAAAAAAAGTACGTATGGACTGCATGTGCATGTCATGGTACGTGTCA
+	GTCAGTAC..................................................
+      </screen>
+      <para>
+      </para>
+      <para>
+	and then apply the internal poly-A tail masker:
+      </para>
+      <screen>
+	&gt;E09238ARF0
+	...............TTGACTGT................................................
+	..........................................................
+      </screen>
+      <para>
+      </para>
+      <para>
+	You'd be left with ... well, a fragment of your sequence.
+      </para>
+    </sect2>
+  </sect1>
+  <sect1 id="sect_faq_miscellaneous">
+    <title>
+      Miscellaneous
+    </title>
+    <para>
+    </para>
+    <sect2 id="sect_faq_what_are_megahubs?">
+      <title>
+	What are megahubs?
+      </title>
+      <para>
+      </para>
+      <screen>
+	I looked in the log file and that term &quot;megahub&quot; you told me about appears
+	pretty much everywhere. First of all, what does it mean?
+      </screen>
+      <para>
+      </para>
+      <para>
+	Megahub is the internal term for MIRA that the read is massively repetitive
+	with respect to the other reads of the projects, i.e., a read that is a
+	megahub connects to an insane number of other reads.
+      </para>
+      <para>
+	This is a clear sign that something is wrong. Or that you have a quite
+	repetitive eukaryote. But most of the time it's sequencing vectors
+	(Sanger), A and B adaptors or paired-end linkers (454), unmasked
+	poly-A signals (EST) or non-normalised EST libraries which contain
+	high amounts of housekeeping genes (always the same or nearly the
+	same).
+      </para>
+      <para>
+	Countermeasures to take are:
+      </para>
+      <itemizedlist>
+	<listitem>
+	  <para>
+	    set clips for the sequencing vectors (Sanger) or Adaptors (454)
+	    either in the XML or EXP files
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    for ESTs, mask poly-A in your input data (or let MIRA do it with the
+	    -CL:cpat parameter)
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    only after the above steps have been made, use
+	    the <arg>-KS:mnr</arg> switch to let mira automatically mask nasty
+	    repeats, adjust the threshold with <arg>-SK:rt</arg>.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    if everything else fails, filter out or mask sequences yourself in the
+	    input data that come from housekeeping genes or nasty repeats.
+	  </para>
+	</listitem>
+      </itemizedlist>
+      <para>
+      </para>
+    </sect2>
+    <sect2 id="sect_faq_passes_and_loops">
+      <title>
+	Passes and loops
+      </title>
+      <para>
+      </para>
+      <screen>
+	While processing some contigs with repeats i get
+	&quot;Accepting probably misassembled contig because of too many iterations.&quot;
+	What is this?
+      </screen>
+      <para>
+      </para>
+      <para>
+	That's quite normal in the first few passes of an assembly. During each pass
+	(-AS:nop), contigs get built one by one. After a contig has been finished, it
+	checks itself whether it can find misassemblies due to repeats (and marks
+	these internally). If no misassembly, perfect, build next contig. But if yes,
+	the contig requests immediate re-assembly of itself.
+      </para>
+      <para>
+	But this can happen only a limited number of times (governed by -AS:rbl). If
+	there are still misassemblies, the contig is stored away anyway ... chances
+	are good that in the next full pass of the assembler, enough knowledge has
+	been gained top correctly place the reads.
+      </para>
+      <para>
+	So, you need to worry only if these messages still appear during the last
+	pass. The positions that cause this are marked with "SRMc" tags in the
+	assemblies (CAF, ACE in the result dir; and some files in the info dir).
+      </para>
+    </sect2>
+    <sect2 id="sect_faq_debris">
+      <title>
+	Debris
+      </title>
+      <para>
+      </para>
+      <screen>
+	What are the debris composed of?
+      </screen>
+      <para>
+      </para>
+      <itemizedlist>
+	<listitem>
+	  <para>
+	    sequences too short (after trimming)
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    megahubs
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    sequences almost completely masked by the nasty repeat masker
+	    (<arg>-KS:mnr</arg>)
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    singlets, i.e., reads that after an assembly pass did not align
+	    into any contig (or where rejected from every contig).
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    sequences that form a contig with less reads than defined by
+	    <arg>-AS:mrpc</arg>
+	  </para>
+	</listitem>
+      </itemizedlist>
+      <para>
+      </para>
+    </sect2>
+    <sect2 id="sect_faq_tmpf_files:_more_info_on_what_happened_during_the_assembly">
+      <title>
+	Log and temporary files: more info on what happened during the assembly
+      </title>
+      <para>
+      </para>
+      <screen>
+	I do not understand why ... happened. Is there a way to find out?
+      </screen>
+      <para>
+	Yes. The tmp directory contains, beside temporary data, a number of
+	log files with more or less readable information. While development
+	versions of MIRA keep this directory after finishing, production
+	versions normally delete this directory after an assembly. To keep the
+	logs and temporary file also in production versions, use
+	"-OUT:rtd=no".
+      </para>
+      <para>
+	As MIRA also tries to save as much disk space as possible, some logs
+	and temporary files are rotated (which means that old logs and tmps
+	get deleted). To switch off this behaviour, use
+	"-OUT:rrot=no". Beware, the size of the tmp directory will increase,
+	sometimes dramatically so.
+      </para>
+      <sect3 id="sect_faq_sequence_clipping_after_load">
+	<title>
+	  Sequence clipping after load
+	</title>
+	<para>
+	  How MIRA clipped the reads after loading them can be found in the file
+	  <filename>mira_int_clippings.0.txt</filename>. The entries look like this:
+	</para>
+	<screen>
+	  load:  minleft. U13a01d05.t1    Left: 11         -&gt; 30
+	</screen>
+	<para>
+	  Interpret this as: after loading, the read "U13a01d05.t1" had a left clipping
+	  of eleven. The "minleft" clipping option of MIRA did not like it and set it to
+	  30.
+	</para>
+	<screen>
+	  load:  bad seq. gnl|ti|1133527649       Shortened by 89 New right: 484
+	</screen>
+	<para>
+	</para>
+	<para>
+	  Interpret this as: after loading, the read "gnl|ti|1133527649" was checked
+	  with the "bad sequence search" clipping algorithm which determined that there
+	  apparently is something dubious, so it shortened the read by 89 bases, setting
+	  the new right clip to position 484.
+	</para>
+      </sect3>
+    </sect2>
+  </sect1>
+  <sect1 id="sect_faq_platforms_and_compiling">
+    <title>
+      Platforms and Compiling
+    </title>
+    <para>
+    </para>
+    <sect2 id="sect_faq_windows">
+      <title>
+	Windows
+      </title>
+      <para>
+      </para>
+      <screen>
+	Also, is MIRA be available on a windows platform?
+      </screen>
+      <para>
+      </para>
+      <para>
+	As a matter of fact: it was and may be again. While I haven't done it myself,
+	according to reports I got compiling MIRA 2.9.3* in a Cygwin environment was
+	actually painless. But since then BOOST and multi-threading has been included
+	and I am not sure whether it is still as easy.
+      </para>
+      <para>
+	I'd be thankful for reports :-)
+      </para>
+    </sect2>
+  </sect1>
+</chapter>

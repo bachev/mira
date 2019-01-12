@@ -1,0 +1,146 @@
+#! /usr/bin/perl -w
+# @(#)qual2ball.pl  2010-03-30  A.J.Travis
+
+#
+# Create Phred 'phd.ball' file from FASTA base-calls and quality scores
+#
+
+# base-calls
+unless ( open( INB, "$ARGV[0]" ) || open( INB, "$ARGV[0].fna" ) ) {
+    die "can't open $ARGV[0] or $ARGV[0].fna\n";
+}
+
+# quality scores
+unless ( open( INQ, "$ARGV[0].qual" ) ) {
+    die "can't open $ARGV[0].qual\n";
+}
+
+# read initial FASTA header
+$headb = <INB>;
+chomp($headb);
+$headq = <INQ>;
+chomp($headq);
+
+while ( !eof INB ) {
+
+    # read base calls
+    $nbase = 0;
+    while ( $lineb = <INB> ) {
+        chomp($lineb);
+        if ( $lineb =~ /^>/ ) {
+            last;
+        }
+        @bases = split( //, $lineb );
+        foreach $base (@bases) {
+            $conb[ $nbase++ ] = $base;
+        }
+    }
+
+    # read quality scores
+    $nqual = 0;
+    while ( $lineq = <INQ> ) {
+        chomp($lineq);
+        if ( $lineq =~ /^>/ ) {
+            last;
+        }
+        @qnos = split( ' ', $lineq );
+        foreach $qual (@qnos) {
+            $conq[ $nqual++ ] = $qual;
+        }
+    }
+
+    unless ( ( $lineb =~ /^>/ || eof INB ) && ( $lineq =~ /^>/ || eof INQ ) ) {
+        die "failed to parse $ARGV[0]\n";
+    }
+
+    # get time and date
+    $now = localtime;
+
+    # parse FASTA name from header
+    ($fname) = ( $headb =~ />(\S+)/ );
+
+    # get details of template, library and primer
+    $templateType = "";
+    $libraryName = "default";
+    $primerType = "univ fwd";
+    ( $templateName, $primer ) = $fname =~ /([^.]+)\.([fr])/i;
+    if ($templateName) {
+        if ( $primer =~ /^r/ ) {
+            $primerType = "univ rev";
+        }
+        ($libraryName) = $templateName =~ /([a-z]+-*[0-9]+)/i;
+    }
+    else {
+        $templateName = $fname;
+    }
+
+    print("BEGIN_SEQUENCE $fname\n\n");
+    print("BEGIN_COMMENT\n\n");
+    print("CHROMAT_FILE: none\n");
+    print("ABI_THUMBPRINT: none\n");
+    print("PHRED_VERSION: not called by phred\n");
+    print("CALL_METHOD: qual2ball\n");
+    print("QUALITY_LEVELS: 99\n");
+    print("TIME: $now\n");
+    print("CHEM: unknown\n");
+    print("DYE: unknown\n");
+
+    print("END_COMMENT\n\n");
+    print("BEGIN_DNA\n");
+
+    for ( $base = 0 ; $base < $nbase ; $base++ ) {
+        print("$conb[$base] $conq[$base] 0\n");
+    }
+    print("END_DNA\n\n");
+    print("END_SEQUENCE\n");
+
+    # add Whole Read tags
+    $szDate = szGetDateForTag();
+    print("\n");
+    print("WR{\n");
+    print("template qual2phd $szDate\n");
+    print("name: $templateName\n");
+
+    if ( $libraryName ne "" ) {
+        print("lib: $libraryName\n");
+    }
+    if ( $templateType ne "" ) {
+        print("type: $templateType\n");
+    }
+    print("}\n");
+
+    print("\n");
+    print("WR{\n");
+    print("primer qual2phd $szDate\n");
+    print("type: $primerType\n");
+    print("}\n");
+    print("\n");
+
+    $headb = $lineb;
+    $headq = $lineq;
+}
+
+sub szGetDateForTag {
+    my $szDate;
+    (
+        $nSecond, $nMinute, $nHour, $nDayInMonth, $nMonth,
+        $nYear,   $wday,    $yday,  $isdst
+      )
+      = localtime;
+
+    undef $isdst;
+    undef $yday;
+    undef $wday;
+
+    if ( $nYear >= 100 ) {
+        $nYear = $nYear % 100;
+    }
+
+    $szDate = sprintf(
+        "%02d%02d%02d:%02d%02d%02d",
+        $nYear, $nMonth + 1,
+        $nDayInMonth, $nHour, $nMinute, $nSecond
+    );
+
+    return ($szDate);
+}

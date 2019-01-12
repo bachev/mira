@@ -1,0 +1,4 @@
+testset1 == testset2, nur in 2 sind bei 3 reads basen als SNP gefaked,
+um in step1 und 2 auseinanderdividiert zu werden.
+
+später soll spliceerkennung das alleine können.

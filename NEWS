@@ -1,0 +1,10 @@
+License change
+==============
+
+Since version 2.8.0, MIRA (and the therein contained version of EdIt) is
+licensed under the open source GPL v2 license. please consult the "COPYING"
+file for more information on the GPL.
+
+For a list of changes, please consult the "CHANGES.txt" file which is located
+in the top level binary package distributions or in src/mira of source code
+distributions.

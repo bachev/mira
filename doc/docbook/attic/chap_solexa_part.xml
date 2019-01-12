@@ -1,0 +1,1512 @@
+<?xml version="1.0" ?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.docbook.org/xml/4.5/docbookx.dtd">
+<chapter id="chap_solexa">
+  <chapterinfo>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="versionfile"/>
+    <author>
+      <firstname>Bastien</firstname>
+      <surname>Chevreux</surname>
+      <email>bach@chevreux.org</email>
+    </author>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="copyrightfile"/>
+  </chapterinfo>
+  <blockquote>
+    <attribution>Solomon Short</attribution>
+    <para>
+      <emphasis><quote>There is no such thing like overkill.
+      </quote></emphasis>
+    </para>
+  </blockquote>
+  <title>Assembly of Illumina data with MIRA3</title>
+  <sect1 id="sect_sxa_introduction">
+    <title>
+      Introduction
+    </title>
+    <para>
+      This guide assumes that you have basic working knowledge of Unix systems, know
+      the basic principles of sequencing (and sequence assembly) and what assemblers
+      do.
+    </para>
+    <para>
+      While there are step by step instructions on how to setup your Solexa data and
+      then perform an assembly, this guide expects you to read at some point in time
+    </para>
+    <itemizedlist>
+      <listitem>
+	<para>
+	  the <emphasis>MIRA reference manual</emphasis> file to look up some
+	  command line options as well as general information on what tags
+	  MIRA uses in assemblies, files it generates etc.pp
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  the <emphasis>short usage introduction</emphasis> to MIRA3 so that
+	  you have a basic knowledge on how to set up projects in mira for
+	  Sanger sequencing projects.
+	</para>
+      </listitem>
+    </itemizedlist>
+    <para>
+    </para>
+  </sect1>
+  <sect1 id="sect_sxa_caveats_when_assembling_solexa_data">
+    <title>
+      Caveats when assembling Solexa data
+    </title>
+    <para>
+      Even very short Solexa reads (&lt; 50bp) are great for mapping assemblies. I
+      simply love them as you can easily spot differences in mutant organisms
+      ... or boost the quality of a newly sequenced genome to Q60.
+    </para>
+    <para>
+      Regarding de-novo assemblies ... well, from an assembler's point of
+      view, very short reads are a catastrophe, regardless of the sequencing
+      technology.
+    </para>
+    <orderedlist>
+      <listitem>
+	<para>
+	  Repeats. The problem of repetitive sequences (e.g. rRNA stretches in
+	  bacteria) gets worse the shorter the read lengths get.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Amount of data. As MIRA is by heart an assembler to resolve
+	  difficult repetitive problems as they occur in Sanger and 454 reads, it
+	  drags along quite a lot of ancillary information which is useless in
+	  Solexa assemblies ... but still eats away memory.
+	</para>
+      </listitem>
+    </orderedlist>
+    <para>
+    </para>
+    <para>
+      Things look better for the now available 'longer' Solexa reads. Starting
+      with a length of 75bp and paired-end data, de-novo for bacteria is not
+      that bad at all. The first Solexas with a length of ~110 bases are
+      appearing in public, and from a contig building these are about as good
+      for de-novo as the first 454 GS20 reads were (from a quality perspective
+      they are even way better).
+    </para>
+    <note>
+      <title>
+	Rule of thumb: in genome sequencing, the longer, the better.
+      </title>
+      <para>
+	If you have to pay a bit more to get longer reads (e.g. Solexa 100mers
+	instead of 75mers), go get the longer reads. With these, the results
+	you generate are way(!) better than with 36, 50 or even 75mers
+	... both in mapping and de-novo. Don't try to save a couple of hundred
+	bucks in sequencing, you'll pay dearly afterwards in assembly.
+      </para>
+      <para>
+	For RNASeq, things are a bit more complicated
+      </para>
+    </note>
+    <note>
+      <title>
+	Rule of thumb: in RNASeq de-novo sequencing, the longer, the better.
+      </title>
+      <para>
+	Like for genome sequencing, go get longer reads. Your assemblies will
+	be definitively be better.
+      </para>
+    </note>
+    <note>
+      <para>
+	Even if you can get bacteria sequenced with ridiculously high coverage
+	like 500x or 1000x, this amount of data is simply not needed. Even
+	more important - though counterintuitive - is the fact that due to
+	non-random sequence dependent sequencing errors, a too high coverage
+	may even make the assembly worse.
+      </para>
+      <para>
+	Another rule of thumb: when having more than enough data, reduce the
+	data set so as to have an average coverage of approximately 100x. In
+	some rare cases (high GC content), perhaps 120x to 150x, but certainly
+	not more.
+      </para>
+    </note>
+    <warning>
+      When reducing a data set, do <emphasis role="bold">NOT</emphasis>, under
+      no circumstances not, try fancying selection of reads by some arbitrary
+      quality or length criteria. This will introduce a terrible bias in your
+      assembly due to non-random sequence-dependent sequencing errors and
+      non-random sequence dependent base quality assignment. More on this in
+      the next section.
+    </warning>
+  </sect1>
+  <sect1 id="sect_sxa_typical_highlights_and_lowlights_of_solexa_sequencing_data">
+    <title>
+      Typical highlights and lowlights of Solexa sequencing data
+    </title>
+    <para>
+      <emphasis role="bold">Note:</emphasis> This section contains things I've
+      seen in the past and simply jotted down. You may have different
+      observations.
+    </para>
+    <sect2 id="sect_sxa_highlights">
+      <title>
+	Highlights
+      </title>
+      <para>
+      </para>
+      <sect3 id="sect_sxa_highlights_quality">
+	<title>
+	  Quality
+	</title>
+	<para>
+	  For 36mers and the MIRA proposed-end-clipping, even in the old
+	  pipeline I get about 90 to 95% reads matching to a reference without
+	  a single error. For 72mers, the number is approximately 5% lower,
+	  100mers another 5% less. Still, these are great numbers.
+	</para>
+      </sect3>
+      <sect3 id="sect_sxa_highlights_pipeline">
+	<title>
+	  Improved base calling pipeline of Illumina
+	</title>
+	<para>
+	  The new base calling pipeline (1.4 or 2.4?) rolled out by Illumina
+	  in Q1/Q2 2009 typically yields 20-50% more data from the very same
+	  images. Furthermore, the base calling is way better than in the old
+	  pipeline. For Solexa 76 mers, after trimming I get only 1% real
+	  junk, between 85 and 90% of the reads are matching to a reference
+	  without a single error. Of the remaining reads, roughly 50% have one
+	  error, 25% have two errors, 12.5% have three errors etc.
+	</para>
+	<para>
+	  It is worthwhile to re-analyse your old data if the images are
+	  still around.
+	</para>
+      </sect3>
+    </sect2>
+    <sect2 id="sect_sxa_lowlights">
+      <title>
+	Lowlights
+      </title>
+      <para>
+      </para>
+      <sect3 id="sect_sxa_lowlights_longhomopolymers">
+	<title>
+	  Long homopolymers
+	</title>
+	<para>
+	  Long homopolymers (stretches of identical bases in reads) can be a
+	  slight problem for Solexa. However, it must be noted that this is a
+	  problem of all sequencing technologies on the market so far (Sanger,
+	  Solexa, 454). Furthermore, the problem in much less pronounced in
+	  Solexa than in 454 data: in Solexa, first problem appear may appear
+	  in stretches of 9 to 10 bases, in 454 a stretch of 3 to 4 bases may
+	  already start being problematic in some reads.
+	</para>
+      </sect3>
+      <sect3 id="sect_sxa_lowlights_GGCxG_motif">
+	<title>
+	  The GGCxG and GGC motifs
+	</title>
+	<para>
+	  <literal>GGCxG</literal> or even <literal>GGC</literal> motif in the
+	  5' to 3' direction of reads. This one is particularly annoying and
+	  it took me quite a while to circumvent in MIRA the problems it
+	  causes.
+	</para>
+	<para>
+	  Simply put: at some places in a genome, base calling after a
+	  <literal>GGCxG</literal> or <literal>GGC</literal> motif is
+	  particularly error prone, the number of reads without errors
+	  declines markedly. Repeated <literal>GGC</literal> motifs worsen
+	  the situation. The following screen shots of a mapping assembly
+	  illustrate this.
+	</para>
+	<para>
+	  The first example is a the <literal>GGCxG</literal> motif (in form
+	  of a <literal>GGCTG</literal>) occurring in approximately one third
+	  of the reads at the shown position. Note that all but one read
+	  with this problem are in the same (plus) direction.
+	</para>
+	<figure id="sxa_unsc_ggcxg2_lenski.png">
+	  <title>
+	    The Solexa GGCxG problem.
+	  </title>
+	  <mediaobject>
+	    <imageobject>
+	      <imagedata fileref="bookfigures/sxa_unsc_ggcxg2_lenski.png" width="90%"/>
+	    </imageobject>
+	  </mediaobject>
+	</figure>
+	<para>
+	  The next two screen shots show the <literal>GGC</literal>, once for
+	  forward direction and one with reverse direction reads:
+	</para>
+	<figure id="sxa_unsc_ggc1_lenski.png">
+	  <title>
+	    The Solexa GGC problem, forward example
+	  </title>
+	  <mediaobject>
+	    <imageobject>
+	      <imagedata fileref="bookfigures/sxa_unsc_ggc1_lenski.png" width="90%"/>
+	    </imageobject>
+	  </mediaobject>
+	</figure>
+	<figure id="sxa_unsc_ggc4_lenski.png">
+	  <title>
+	    The Solexa GGC problem, reverse example
+	  </title>
+	  <mediaobject>
+	    <imageobject>
+	      <imagedata fileref="bookfigures/sxa_unsc_ggc4_lenski.png" width="90%"/>
+	    </imageobject>
+	  </mediaobject>
+	</figure>
+	<para>
+	  Places in the genome that have <literal>GGCGGC.....GCCGCC</literal>
+	  (a motif, perhaps even repeated, then some bases and then an
+	  inverted motif) almost always have very, very low number of good
+	  reads. Especially when the motif is <literal>GGCxG</literal>.
+	</para>
+	<para>
+	  Things get especially difficult when these motifs occur at sites
+	  where users may have a genuine interest. The following example is a
+	  screen shot from the Lenski data (see walk-through below) where a
+	  simple mapping reveals an anomaly which -- in reality -- is an IS
+	  insertion (see <ulink
+	  url="http://www.nature.com/nature/journal/v461/n7268/fig_tab/nature08480_F1.html"/>)
+	  but could also look like a <literal>GGCxG</literal> motif in forward
+	  direction (<literal>GGCCG</literal>) and at the same time a
+	  <literal>GGC</literal> motif in reverse direction:
+	</para>
+	<figure id="sxa_xmastree_lenski2.png">
+	  <title>
+	    A genuine place of interest almost masked by the
+	    <literal>GGCxG</literal> problem.
+	  </title>
+	  <mediaobject>
+	    <imageobject>
+	      <imagedata fileref="bookfigures/sxa_xmastree_lenski2.png" width="90%"/>
+	    </imageobject>
+	  </mediaobject>
+	</figure>
+      </sect3>
+      <sect3 id="sect_sxa_lowlights_gcbias">
+	<title>
+	  Strong GC bias in some Solexa data (2nd half 2009 until advent of TruSeq kit at end of 2010)
+	</title>
+      </sect3>
+      <para>
+	Here I'm recycling a few slides from a couple of talks I held in 2010.
+      </para>
+      <para>
+	Things used to be so nice and easy with the early Solexa data I worked
+	with (36 and 44mers) in late 2007 / early 2008. When sample taking was
+	done right -- e.g. for bacteria: in stationary phase -- and the
+	sequencing lab did a good job, the read coverage of the genome was
+	almost even. I did see a few papers claiming to see non-trivial GC
+	bias back then, but after having analysed the data I worked with I
+	dismissed them as "not relevant for my use cases." Have a look at the
+	following figure showing exemplarily the coverage of a 45% GC
+	bacterium in 2008:
+      </para>
+      <figure id="sxa_gcbias_nobias2008.png">
+	<titleabbrev>
+	  Example for no GC coverage bias in 2008 Solexa data.
+	</titleabbrev>
+	<title>
+	  Example for no GC coverage bias in 2008 Solexa data. Apart from a
+	  slight <emphasis>smile shape</emphasis> of the coverage --
+	  indicating the sample taking was not 100% in stationary phase of the
+	  bacterial culture -- everything looks pretty nice: the average
+	  coverage is at 27x, and when looking at potential genome
+	  duplications at twice the coverage (54x), there's nothing apart a
+	  single peak (which turned out to be a problem in a rRNA region).
+	</title>
+	<mediaobject>
+	  <imageobject>
+	    <imagedata fileref="bookfigures/sxa_gcbias_nobias2008.png" width="90%"/>
+	  </imageobject>
+	</mediaobject>
+      </figure>
+      <para>
+	Things changed starting sometime in Q3 2009, at least that's when I
+	got some data which made me notice a problem. Have a look at the
+	following figure which shows exactly the same organism as in the
+	figure above (bacterium, 45% GC):
+      </para>
+      <figure id="sxa_gcbias_bias2009.png">
+	<titleabbrev>
+	  Example for GC coverage bias starting Q3 2009 in Solexa data.
+	</titleabbrev>
+	<title>
+	  Example for GC coverage bias starting Q3 2009 in Solexa
+	  data. There's no <emphasis>smile shape</emphasis> anymore -- the
+	  people in the lab learned to pay attention to sample in 100%
+	  stationary phase -- but something else is extremely disconcerting:
+	  the average coverage is at 33x, and when looking at potential genome
+	  duplications at twice the coverage (66x), there are several dozen
+	  peaks crossing the 66x threshold over a several kilobases (in one
+	  case over 200 Kb) all over the genome. As if several small genome
+	  duplications happened.
+	</title>
+	<mediaobject>
+	  <imageobject>
+	    <imagedata fileref="bookfigures/sxa_gcbias_bias2009.png" width="90%"/>
+	  </imageobject>
+	</mediaobject>
+      </figure>
+      <para>
+	By the way, the figures above are just examples: I saw over a dozen
+	sequencing projects in 2008 without GC bias and several dozen in 2009
+	/ 2010 with GC bias.
+      </para>
+      <para>
+	Checking the potential genome duplication sites, they all looked
+	"clean", i.e., the typical genome insertion markers are
+	missing. Poking around at possible explanations, I looked at GC
+	content of those parts in the genome ... and there was the
+	explanation:
+      </para>
+      <figure id="sxa_gcbias_comp20082009.png">
+	<titleabbrev>
+	  Example for GC coverage bias, direct comparison 2008 / 2010 data.
+	</titleabbrev>
+	<title>
+	  Example for GC coverage bias, direct comparison 2008 / 2010
+	  data. The bug has 45% average GC, areas with above average read
+	  coverage in 2010 data turn out to be lower GC: around 33 to 36%. The
+	  effect is also noticeable in the 2008 data, but barely so.
+	</title>
+	<mediaobject>
+	  <imageobject>
+	    <imagedata fileref="bookfigures/sxa_gcbias_comp20082009.png" width="90%"/>
+	  </imageobject>
+	</mediaobject>
+      </figure>
+      <para>
+	Now as to actually <emphasis>why</emphasis> the GC bias suddenly
+	became so strong is unknown to me. The people in the lab use the same
+	protocol since several years to extract the DNA and the sequencing
+	providers claim to always use the Illumina standard protocols.
+      </para>
+      <para>
+	But obviously something must have changed. Current ideas about possible reasons include
+      </para>
+      <itemizedlist>
+	<listitem>
+	  changed chemistries from Illumina leading perhaps to bias during DNA amplification
+	</listitem>
+	<listitem>
+	  changed "standard" protocols
+	</listitem>
+	<listitem>
+	  other ...
+	</listitem>
+      </itemizedlist>
+      <para>
+	It took Illumina some 18 months to resolve that problem for the
+	broader public: since data I work on were done with the TruSeq kit,
+	this problem has vanished.
+      </para>
+      <para>
+	However, if you based some conclusions or wrote a paper with Illumina
+	data which might be affected by the GC bias (Q3 2009 to Q4 2010), I
+	suggest you rethink all the conclusion drawn. This should be
+	especially the case for transcriptomics experiments where a difference
+	in expression of 2x to 3x starts to get highly significant!
+      </para>
+    </sect2>
+  </sect1>
+  <sect1 id="sect_sxa_mapping_assemblies">
+    <title>
+      Mapping assemblies
+    </title>
+    <para>
+      This part will introduce you step by step how to get your data together for a
+      simple mapping assembly.
+    </para>
+    <para>
+      I'll make up an example using an imaginary bacterium: <emphasis>Bacillus chocorafoliensis</emphasis> (or short: <emphasis>Bchoc</emphasis>).
+    </para>
+    <para>
+      In this example, we assume you have two strains: a wild type strain of
+      <emphasis>Bchoc_wt</emphasis> and a mutant which you perhaps got from mutagenesis or other
+      means. Let's imagine that this mutant needs more time to eliminate a given
+      amount of chocolate, so we call the mutant <emphasis>Bchoc_se</emphasis> ... SE for
+      <emphasis role="bold">s</emphasis>low <emphasis role="bold">e</emphasis>ater
+    </para>
+    <para>
+      You wanted to know which mutations might be responsible for the observed
+      behaviour. Assume the genome of <emphasis>Bchoc_wt</emphasis> is available to you as it was
+      published (or you previously sequenced it), so you resequenced <emphasis>Bchoc_se</emphasis>
+      with Solexa to examine mutations.
+    </para>
+    <sect2 id="sect_sxa_ma_copying_and_naming_the_sequence_data">
+      <title>
+	Copying and naming the sequence data
+      </title>
+      <para>
+	You need to create (or get from your sequencing provider) the sequencing data
+	in either FASTQ or FASTA + FASTA quality format. The following walkthrough
+	uses what most people nowadays get: FASTQ.
+      </para>
+      <para>
+	Create a new project directory (e.g. <filename>myProject</filename>) and a subdirectory of this which will hold the sequencing data (e.g. <filename>data</filename>).
+      </para>
+      <screen><prompt>arcadia:/path/to</prompt> <userinput>mkdir myProject</userinput>
+<prompt>arcadia:/path/to</prompt> <userinput>cd myProject</userinput>
+<prompt>arcadia:/path/to/myProject$</prompt> <userinput>mkdir data</userinput></screen>
+      <para>
+	Put the FASTQ data into that <filename>data</filename> directory so that it now looks perhaps like this:
+      </para>
+      <screen><prompt>arcadia:/path/to/myProject$</prompt> <userinput>ls -l data</userinput>
+-rw-r--r-- 1 bach users 263985896 2008-03-28 21:49 bchocse_lane6.solexa.fastq
+-rw-r--r-- 1 bach users 264823645 2008-03-28 21:51 bchocse_lane7.solexa.fastq</screen>
+    </sect2>
+    <sect2 id="sect_sxa_ma_copying_and_naming_the_reference_sequence">
+      <title>
+	Copying and naming the reference sequence
+      </title>
+      <para>
+	The reference sequence (the backbone) can be in a number of different
+	formats: GFF3, GenBank, FASTA, CAF. The first three have the advantage
+	of being able to carry additional information like, e.g.,
+	annotation. In this example, we will use a GenBank file like the ones
+	one can download from the NCBI. So, let's assume that our wild type
+	strain is in the following file:
+	<filename>NC_someNCBInumber.gbk</filename>.
+      </para>
+      <para>
+	You do not need to copy the reference sequence to your directory, but
+	I normally copy also the reference file into the directory with my
+	data as I want to have, at the end of my work, a nice little
+	self-sufficient directory which I can archive away and still be sure
+	that in 10 years time I have all data I need together.
+      </para>
+      <screen><prompt>arcadia:/path/to/myProject$</prompt> <userinput>cp /somewhere/NC_someNCBInumber.gbk data</userinput>
+<prompt>arcadia:/path/to/myProject$</prompt> <userinput>ls -l data</userinput>
+-rw-r--r-- 1 bach users   6543511 2008-04-08 23:53 NC_someNCBInumber.gbk
+-rw-r--r-- 1 bach users 263985896 2008-03-28 21:49 bchocse_lane6.solexa.fastq
+-rw-r--r-- 1 bach users 264823645 2008-03-28 21:51 bchocse_lane7.solexa.fastq</screen>
+    <para>
+      We're almost finished with the setup. As I like to have things neatly separated, I always create a directory called <filename>assemblies</filename> which will hold my assemblies (or different trials) together. Let's quickly do that:
+    </para>
+    <screen><prompt>arcadia:/path/to/myProject$</prompt> <userinput>mkdir assemblies</userinput>
+<prompt>arcadia:/path/to/myProject$</prompt> <userinput>mkdir assemblies/1sttrial</userinput>
+<prompt>arcadia:/path/to/myProject$</prompt> <userinput>cd assemblies/1sttrial</userinput></screen>
+    </sect2>
+    <sect2 id="sect_sxa_ma_writing_a_simple_manifest_file">
+      <title>
+	Writing a simple manifest file
+      </title>
+      <para>
+	A manifest file is a configuration file for MIRA which tells it what type of assembly it should do and which data it should load. In this case we have unpaired sequencing data which we want to map to a reference sequence, the manifest file for that is pretty simple:
+      </para>
+      <screen># Example for a manifest describing a mapping assembly with
+# unpaired Illumina data
+
+# First part: defining some basic things
+# In this example, we just give a name to the assembly
+#  and tell MIRA it should map a genome in accurate mode
+# As special parameter, we want to use 4 threads in parallel (where possible)
+
+<userinput>project = <replaceable>MyFirstAssembly</replaceable>
+job = <replaceable>genome,mapping,accurate</replaceable>
+parameters = <replaceable>-GE:not=4</replaceable></userinput>
+
+# The second part defines the sequencing data MIRA should load and assemble
+# The data is logically divided into "readgroups"
+
+# first, the reference sequence
+<userinput>readgroup
+is_reference
+data = <replaceable>../../data/NC_someNCBInumber.gbk</replaceable>
+technology = <replaceable>text</replaceable>
+strain = <replaceable>bchoc_wt</replaceable></userinput>
+
+# now the Illumina data
+
+<userinput>readgroup = <replaceable>SomeUnpairedIlluminaReadsIGotFromTheLab</replaceable>
+data = <replaceable>../../data/*fastq</replaceable>
+technology = <replaceable>solexa</replaceable>
+strain = <replaceable>bchoc_se</replaceable></userinput></screen>
+      <note>
+	<para>
+	  Please look up the parameters of the manifest file in the main manual. The ones
+	  above basically say: make an accurate mapping of Solexa reads
+	  against a genome; in one pass; the name of the backbone strain is
+	  'bchoc_wt'; the
+	  base qualities for the backbone are to be assumed Q30; for Solexa
+	  data: assign default strain names for reads which have not loaded
+	  ancillary data with strain info and that default strain name should
+	  be 'bchoc_se'.
+	</para>
+      </note>
+    </sect2>
+    <sect2 id="sect_sxa_ma_starting_assembly">
+      <title>Starting the assembly</title>
+      <para>
+	Starting the assembly is now just a matter of a simple command line:
+      </para>
+      <screen><prompt>arcadia:/path/to/myProject/assemblies/1sttrial$</prompt> <userinput>mira <replaceable>manifest.conf &gt;&amp;log_assembly.txt</replaceable></userinput></screen>
+      <note>
+	<para>
+	  For a bacterial project having a backbone of ~4 megabases and with
+	  ~4.5 million Solexa 36mers, MIRA needs some ~21 minutes on my
+	  development machine.
+	</para>
+	<para>
+	  A yeast project with a genome of ~20 megabases and ~20 million 36mers
+	  needs 3.5 hours and 28 GiB RAM.
+	</para>
+      </note>
+      <para>
+	For this example - if you followed the walk-through on how to prepare the data
+	- everything you might want to adapt in the first time are the following thing in the manifest file:
+	options:
+      </para>
+      <itemizedlist>
+	<listitem>
+	  <para>
+	    project= (for naming your assembly project)
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    strain_name= to give the names of your reference and mapping strain
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    -GE:not= to tell MIRA how many processors it should use
+	  </para>
+	</listitem>
+      </itemizedlist>
+      <para>
+	Of course, you are free to change any option via the extended parameters, but
+	this will be the topic of another FAQ.
+      </para>
+    </sect2>
+    <sect2 id="sect_sxa_ma_mapping_with_multiple_strains">
+      <title>
+	Mapping with multiple strains
+      </title>
+      <para>
+	MIRA will make use of ancillary information present in the manifest
+	file. One of these is the information to which strain (or organism or
+	cell line etc.pp) the generated data belongs.
+      </para>
+      <para>
+	You just need to tell in the manifest file which data comes from which
+	strain. Let's assume that in the example from above, the "lane6" data
+	were from a first mutant named <emphasis>bchoc_se1</emphasis> and the
+	"lane7" data were from a second mutant
+	named <emphasis>bchoc_se2</emphasis>. Here's the manifest file you
+	would write then:
+      </para>
+      <screen># Example for a manifest describing a mapping assembly with
+# unpaired Illumina data
+
+# First part: defining some basic things
+# In this example, we just give a name to the assembly
+#  and tell MIRA it should map a genome in accurate mode
+# As special parameter, we want to use 4 threads in parallel (where possible)
+
+<userinput>project = <replaceable>MyFirstAssembly</replaceable>
+job = <replaceable>genome,mapping,accurate</replaceable>
+parameters = <replaceable>-GE:not=4</replaceable></userinput>
+
+# The second part defines the sequencing data MIRA should load and assemble
+# The data is logically divided into "readgroups"
+
+# first, the reference sequence
+<userinput>readgroup
+is_reference
+data = <replaceable>../../data/NC_someNCBInumber.gbk</replaceable>
+technology = <replaceable>text</replaceable>
+strain = <replaceable>bchoc_wt</replaceable></userinput>
+
+# now the Illumina data
+
+<userinput>readgroup = <replaceable>DataForSE1</replaceable>
+data = <replaceable>../../data/bchocse_lane6.solexa.fastq</replaceable>
+technology = <replaceable>solexa</replaceable>
+strain = <replaceable>bchoc_se1</replaceable></userinput>
+
+<userinput>readgroup = <replaceable>DataForSE2</replaceable>
+data = <replaceable>../../data/bchocse_lane7.solexa.fastq</replaceable>
+technology = <replaceable>solexa</replaceable>
+strain = <replaceable>bchoc_se2</replaceable></userinput></screen>
+      <note>
+	While mapping (or even assembling de-novo) with multiple strains is
+	possible, the interpretation of results may become a bit daunting in
+	some cases. For many scenarios it might therefore be preferable to
+	successively use the data sets in own mappings or assemblies.
+      </note>
+    </sect2>
+    <para>
+      This is really the only change you need to do for this example.
+    </para>
+    <sect2 id="sect_sxa_ma_manifest_for_pairedend_data">
+      <title>
+	Manifest for paired-end data sets
+      </title>
+      <para>
+	When using paired-end data in mapping, you must decide whether you want
+      </para>
+      <orderedlist>
+	<listitem>
+	  <para>
+	    use the MIRA feature to create long 'coverage equivalent reads'
+	    (CERs) which saves a lot of memory (both in the assembler and
+	    later on in an assembly editor). However, you then
+	    <emphasis>loose</emphasis> <emphasis>paired-end</emphasis>
+	    <emphasis>information!</emphasis>
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    or whether you want to <emphasis>keep</emphasis> <emphasis>paired-end</emphasis>
+	    <emphasis>information!</emphasis> at the expense of larger memory requirements both in MIRA
+	    and in assembly editors afterwards.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    or a mix of the two above
+	  </para>
+	</listitem>
+      </orderedlist>
+      <para>
+	The Illumina pipeline generally gives you two files for paired-end
+	data: a <filename>project-1.fastq</filename> and
+	<filename>project-2.fastq</filename>. The first file containing the
+	first read of a read-pair, the second file the second read. Depending
+	on the preprocessing pipeline of your sequencing provider, the names
+	of the reads are either the very same in both files or already have
+	a <literal>/1</literal> or <literal>/2</literal> appended.
+      </para>
+      <note>
+	<para>
+	  MIRA can read all FASTQ variants produced by various Illumina
+	  pipelines, be they with or without the /1 and /2 already appended to
+	  the names. You generally do not need to do any name mangling before
+	  feeding the data to MIRA.
+	</para>
+      </note>
+      <para>
+	The following manifest file is an example for mapping a 500 bp
+	paired-end and a 3kb mate-pair library of a strain
+	called <emphasis>bchoc_se1</emphasis> against a GenBank reference
+	file containing a strain called <emphasis>bchoc_wt</emphasis>:
+      </para>
+      <screen># Example for a manifest describing a mapping assembly with
+# paired Illumina data, not merging reads and therefore keeping
+# all pair information
+
+# First part: defining some basic things
+# In this example, we just give a name to the assembly
+#  and tell MIRA it should map a genome in accurate mode
+# As special parameter, we want to use 4 threads in parallel (where possible)
+#  and switch off merging of Solexa reads
+
+<userinput>project = <replaceable>MyFirstAssembly</replaceable>
+job = <replaceable>genome,mapping,accurate</replaceable>
+parameters = <replaceable>-GE:not=4 SOLEXA_SETTINGS -CO:msr=no</replaceable></userinput>
+
+# The second part defines the sequencing data MIRA should load and assemble
+# The data is logically divided into "readgroups"
+
+# first, the reference sequence
+<userinput>readgroup
+is_reference
+data = <replaceable>../../data/NC_someNCBInumber.gbk</replaceable>
+technology = <replaceable>text</replaceable>
+strain = <replaceable>bchoc_wt</replaceable></userinput>
+
+# now the Illumina data
+
+<userinput>readgroup = <replaceable>DataForPairedEnd500bpLib</replaceable>
+data = <replaceable>../../data/project500bp-1.fastq ../../data/project500bp-2.fastq</replaceable>
+technology = <replaceable>solexa</replaceable>
+strain = <replaceable>bchoc_se1</replaceable>
+template_size = <replaceable>250 750 infoonly</replaceable>
+segment_placement = <replaceable>---&gt; &lt;--- infoonly</replaceable></userinput>
+
+<userinput>readgroup = <replaceable>DataForMatePair3kbLib</replaceable>
+data = <replaceable>../../data/project3kb-1.fastq ../../data/project3kb-2.fastq</replaceable>
+technology = <replaceable>solexa</replaceable>
+strain = <replaceable>bchoc_se1</replaceable>
+template_size = <replaceable>2500 3500 infoonly</replaceable>
+segment_placement = <replaceable>&lt;--- ---&gt; infoonly</replaceable></userinput></screen>
+      <para>
+	Please look up the parameters used in the main manual. The ones
+	above basically say: make an accurate mapping of Solexa reads
+	against a genome. Additionally do not merge short short Solexa
+	reads to the contig.
+      </para>
+      <para>
+	For the paired-end library, assume a DNA template template size of
+	250 to 750 bp and the segment orientation of the read pairs follows
+	the forward / reverse scheme. That information should be treated as
+	"information only" by MIRA, i.e., it is not used for deciding whether
+	a pair is well mapped.
+      </para>
+      <para>
+	For the mate-pair library, assume a DNA template template size of
+	2500 to 3500 bp and the segment orientation of the read pairs follows
+	the reverse / forward scheme. That information should be treated as
+	"information only" by MIRA, i.e., it is not used for deciding whether
+	a pair is well mapped.
+      </para>
+      <para>
+	Comparing this command line with a command line for unpaired-data, two
+	parameters were added in the section for Solexa data:
+      </para>
+      <orderedlist>
+	<listitem>
+	  <para>
+	    <literal>-CO:msr=no</literal> tells MIRA not to merge reads that
+	    are 100% identical to the backbone. This also allows to keep the
+	    template information for the reads.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    <literal>infoonly</literal> attribute actually switches
+	    <emphasis>off</emphasis> checking of template sizes and segment
+	    placement when inserting reads into the backbone. At first glance
+	    this might seem counter-intuitive, but it's absolutely necessary
+	    to spot, e.g., genome re-arrangements or indels in data analysis
+	    after the assembly.
+	  </para>
+	  <para>
+	    The reason is that if template size and segment placement checking
+	    were on, the following would happen at, e.g. sites of
+	    re-arrangement: MIRA would map the first read of a read-pair
+	    without problem. However, it would very probably reject the second
+	    read because it would not map at the specified distance or
+	    orientation from its partner. Therefore, in mapping assemblies
+	    with paired-end data, checking of the template size must be
+	    switched off to give post-processing programs a chance to spot
+	    re-arrangements.
+	  </para>
+	</listitem>
+      </orderedlist>
+      <para>
+      </para>
+      <para>
+	<emphasis role="bold">Note:</emphasis> for other influencing factors
+	you might want to change depending on size of Solexa reads, see
+	section above on mapping of unpaired data.
+      </para>
+    </sect2>
+    <sect2 id="sect_sxa_places_of_interest_in_a_mapping_assembly">
+      <title>
+	Places of interest in a mapping assembly
+      </title>
+      <para>
+	This section just give a short overview on the tags you might find
+	interesting. For more information, especially on how to configure gap4
+	or consed, please consult the <emphasis>mira usage</emphasis> document
+	and the <emphasis>mira</emphasis> manual.
+      </para>
+      <para>
+	In file types that allow tags (CAF, MAF, ACE), SNPs and other
+	interesting features will be marked by MIRA with a number of tags. The
+	following sections give a brief overview. For a description of what
+	the tags are (SROc, WRMc etc.), please read up the section "Tags used
+	in the assembly by MIRA and EdIt" in the main manual.
+      </para>
+      <note>
+	Screen shots in this section are taken from the walk-through with
+	Lenski data (see below).
+      </note>
+      <sect3 id="sect_sxa_where_are_snps?">
+	<title>
+	  Where are SNPs?
+	</title>
+	<itemizedlist>
+	  <listitem>
+	    <para>
+	      the <emphasis role="bold">SROc</emphasis> tag will point to most
+	      SNPs. Should you assemble sequences of more than one strain (I
+	      cannot really recommend such a strategy), you also might
+	      encounter <emphasis role="bold">SIOc</emphasis> and <emphasis
+	      role="bold">SAOc</emphasis> tags.
+	    </para>
+	    <figure id="chap_sol::sxa_sroc_lenski1.png">
+	      <title>
+		"SROc" tag showing a SNP position in a Solexa mapping
+		assembly.
+	      </title>
+	      <mediaobject>
+		<imageobject>
+		  <imagedata fileref="bookfigures/sxa_sroc_lenski1.png" width="90%"/>
+		</imageobject>
+	      </mediaobject>
+	    </figure>
+	    <figure id="chap_sol::sxa_sroc_lenski2.png">
+	      <title>
+		"SROc" tag showing a SNP/indel position in a Solexa mapping
+		assembly.
+	      </title>
+	      <mediaobject>
+		<imageobject>
+		  <imagedata fileref="bookfigures/sxa_sroc_lenski2.png" width="90%"/>
+		</imageobject>
+	      </mediaobject>
+	    </figure>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      the <emphasis role="bold">WRMc</emphasis> tags might sometimes
+	      point SNPs to indels of one or two bases.
+	    </para>
+	  </listitem>
+	</itemizedlist>
+	<para>
+	</para>
+      </sect3>
+      <sect3 id="sect_sxa_where_are_insertions_deletions_or_genome_rearrangements?">
+	<title>
+	  Where are insertions, deletions or genome re-arrangements?
+	</title>
+	<itemizedlist>
+	  <listitem>
+	    <para>
+	      Large deletions: the <emphasis role="bold">MCVc</emphasis> tags
+	      point to deletions in the resequenced data, where no read is
+	      covering the reference genome.
+	    </para>
+	    <figure id="chap_sol::sxa_mcvc_lenski.png">
+	      <title>
+		"MCVc" tag (dark red stretch in figure) showing a genome
+		deletion in Solexa mapping assembly.
+	      </title>
+	      <mediaobject>
+		<imageobject>
+		  <imagedata fileref="bookfigures/sxa_mcvc_lenski.png" width="90%"/>
+		</imageobject>
+	      </mediaobject>
+	    </figure>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      Insertions, small deletions and re-arrangements: these are
+	      harder to spot. In unpaired data sets they can be found looking
+	      at clusters of <emphasis role="bold">SROc</emphasis>, <emphasis
+	      role="bold">SRMc</emphasis>, <emphasis
+	      role="bold">WRMc</emphasis>, and / or <emphasis
+	      role="bold">UNSc</emphasis> tags.
+	    </para>
+	    <figure id="chap_sol::sxa_wrmcsrmc_hiding_lenski1.png">
+	      <title>
+		An IS150 insertion hiding behind a WRMc and a SRMc tags
+	      </title>
+	      <mediaobject>
+		<imageobject>
+		  <imagedata fileref="bookfigures/sxa_wrmcsrmc_hiding_lenski1.png" width="90%"/>
+		</imageobject>
+	      </mediaobject>
+	    </figure>
+	    <para>
+	      more massive occurrences of these tags lead to a rather colourful
+	      display in finishing programs, which is why these clusters are
+	      also sometimes called Xmas-trees.
+	    </para>
+	    <figure id="chap_sol::sxa_xmastree_lenski1.png">
+	      <title>
+		A 16 base pair deletion leading to a SROc/UNsC xmas-tree
+	      </title>
+	      <mediaobject>
+		<imageobject>
+		  <imagedata fileref="bookfigures/sxa_xmastree_lenski1.png" width="90%"/>
+		</imageobject>
+	      </mediaobject>
+	    </figure>
+	    <figure id="chap_sol::sxa_xmastree_lenski2.png">
+	      <title>
+		An IS186 insertion leading to a SROc/UNsC xmas-tree
+	      </title>
+	      <mediaobject>
+		<imageobject>
+		  <imagedata fileref="bookfigures/sxa_xmastree_lenski2.png" width="90%"/>
+		</imageobject>
+	      </mediaobject>
+	    </figure>
+	    <para>
+	      In sets with paired-end data, post-processing software (or
+	      alignment viewers) can use the read-pair information to guide
+	      you to these sites (MIRA doesn't set tags at the moment).
+	    </para>
+	  </listitem>
+	</itemizedlist>
+	<para>
+	</para>
+      </sect3>
+      <sect3 id="sect_sxa_other_tags_of_interest">
+	<title>
+	  Other tags of interest
+	</title>
+	<itemizedlist>
+	  <listitem>
+	    <para>
+	      the <emphasis role="bold">UNSc</emphasis> tag points to areas
+	      where the consensus algorithm had troubles choosing a base. This
+	      happens in low coverage areas, at places of insertions (compared
+	      to the reference genome) or sometimes also in places where
+	      repeats with a few bases difference are present. Often enough,
+	      these tags are in areas with problematic sequences for the
+	      Solexa sequencing technology like, e.g., a
+	      <literal>GGCxG</literal> or even <literal>GGC</literal> motif in
+	      the reads.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      the <emphasis role="bold">SRMc</emphasis> tag points to places
+	      where repeats with a few bases difference are present. Here too,
+	      sequence problematic for the Solexa technology are likely to
+	      have cause base calling errors and subsequently setting of this
+	      tag.
+	    </para>
+	  </listitem>
+	</itemizedlist>
+	<para>
+	</para>
+      </sect3>
+      <sect3 id="sect_sxa_comprehensive_spreadsheet_tables_for_excel_or_oocalc">
+	<title>
+	  Comprehensive spreadsheet tables (for Excel or OOcalc)
+	</title>
+	<para>
+	  Biologists are not really interested in SNPs coordinates, and why
+	  should they? They're more interested where SNPs are, how good they
+	  are, which genes or other elements they hit, whether they have an
+	  effect on a protein sequence, whether they may be important etc. For
+	  organisms without intron/exon structure or splice variants, MIRA can
+	  generate pretty comprehensive tables and files if an annotated
+	  GenBank file was used as reference and strain information was given
+	  to MIRA during the assembly.
+	</para>
+	<para>
+	  Well, MIRA does all that automatically for you if the reference
+	  sequence you gave was annotated.
+	</para>
+	<para>
+	  For this, <command>miraconvert</command> should be used with the
+	  <emphasis>asnp</emphasis> format as target and a CAF file as input:
+	</para>
+	<screen>
+<prompt>$</prompt> <userinput>miraconvert -t asnp <replaceable>input.caf output</replaceable></userinput></screen>
+	<para>
+	  Note that it is strongly suggested to perform a quick manual cleanup
+	  of the assembly prior to this: for rare cases (mainly at site of
+	  small indels of one or two bases), mira will not tag SNPs with a SNP
+	  tag (SROc, SAOc or SIOc) but will be fooled into a tag denoting
+	  unsure positions (UNSc). This can be quickly corrected manually. See
+	  further down in this manual in the section on post-processing.
+	</para>
+	<para>
+	  After conversion, you will have four files in the directory which
+	  you can all drag-and-drop into spreadsheet applications like
+	  OpenOffice Calc or Excel.
+	</para>
+	<para>
+	  The files should be pretty self-explanatory, here's just a short overview:
+	</para>
+	<orderedlist>
+	  <listitem>
+	    <para>
+	      <filename>output_info_snplist.txt</filename> is a simple list of
+	      the SNPs, with their positions compared to the reference
+	      sequence (in bases and map degrees on the genome) as well as the
+	      GenBank features they hit.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      <filename>output_info_featureanalysis.txt</filename> is a much
+	      extended version of the list above. It puts the SNPs into
+	      context of the features (proteins, genes, RNAs etc.) and gives a
+	      nice list, SNP by SNP, what might cause bigger changes in
+	      proteins.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      <filename>output_info_featuresummary.txt</filename> looks at the
+	      changes (SNPs, indels) from the other way round. It gives an
+	      excellent overview which features (genes, proteins, RNAs,
+	      intergenic regions) you should investigate.
+	    </para>
+	    <para>
+	      There's one column (named 'interesting') which pretty much
+	      summarises up everything you need into three categories: yes,
+	      no, and perhaps. 'Yes' is set if indels were detected, an amino
+	      acid changed, start or stop codon changed or for SNPs in
+	      intergenic regions and RNAs. 'Perhaps' is set for SNPs in
+	      proteins that change a codon, but not an amino acid (silent
+	      SNPs). 'No' is set if no SNP is hitting a feature.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      <filename>output_info_featuresequences.txt</filename> simply
+	      gives the sequences of each feature of the reference sequence
+	      and the resequenced strain.
+	    </para>
+	  </listitem>
+	</orderedlist>
+	<para>
+	</para>
+      </sect3>
+      <sect3 id="sect_sxa_html_files_depicting_snp_positions_and_deletions">
+	<title>
+	  HTML files depicting SNP positions and deletions
+	</title>
+	<para>
+	  I've come to realise that people who don't handle data from NextGen
+	  sequencing technologies on a regular basis (e.g., many biologists)
+	  don't want to be bothered with learning to handle specialised
+	  programs to have a look at their resequenced strains. Be it because
+	  they don't have time to learn how to use a new program or because
+	  their desktop is not strong enough (CPU, memory) to handle the data
+	  sets.
+	</para>
+	<para>
+	  Something even biologist know to operate are browsers. Therefore,
+	  miraconvert has the option to load a CAF file of a mapping
+	  assembly at output to HTML those areas which are interesting to
+	  biologists. It uses the tags SROc, SAOc, SIOc and MCVc and outputs
+	  the surrounding alignment of these areas together with a nice
+	  overview and links to jump from one position to the previous or
+	  next.
+	</para>
+	<para>
+	  This is done with the '-t hsnp' option of miraconvert:
+	</para>
+	<screen>
+<prompt>$</prompt> <userinput>miraconvert -t hsnp <replaceable>input.caf output</replaceable></userinput></screen>
+	<para>
+	  <emphasis role="bold">Note:</emphasis> I recommend doing this only
+	  if the resequenced strain is a very close relative to the reference
+	  genome, else the HTML gets pretty big. But for a couple of hundred
+	  SNPs it works great.
+	</para>
+      </sect3>
+      <sect3 id="sect_sxa_wig_files_depicting_contig_coverage">
+	<title>
+	  WIG files depicting contig coverage
+	</title>
+	<para>
+	  <command>miraconvert</command> can also dump a coverage file in
+	  WIG format (using '-t wig'). This comes pretty handy for searching
+	  genome deletions or duplications in programs like the Affymetrix
+	  Integrated Genome Browser (IGB, see <ulink
+	  url="http://igb.bioviz.org/"/>).
+	</para>
+      </sect3>
+      <sect3 id="sect_sxa_tables_for_feature_coverage">
+	<title>
+	  Tables for gene expression values / genome deletions &amp; duplications
+	</title>
+	<para>
+	  When having data mapped against a reference with annotations (either from GenBank formats or GFF3 formats), <command>miraconvert</command> can generate tables depicting either expression values (in RNASeq/EST data mappings) or probable genome multiplication and deletion factors (in genome mappings). For this to work, you must use a MAF or CAF file as input, specify <emphasis>fcov</emphasis> as output format and the reference sequence must have had annotations during the mapping with MIRA.
+	</para>
+	<para>TODO: add example</para>
+	<screen>
+<userinput>miraconvert -t fcov <replaceable>mira_out.maf myfeaturetable</replaceable></userinput></screen>
+      </sect3>
+    </sect2>
+    <sect2 id="sect_sxa_walkthrough:_mapping_of_ecoli_from_lenski_lab_against_ecoli_b_rel606">
+      <title>
+	Walkthrough: mapping of E.coli from Lenski lab against E.coli B REL606
+      </title>
+      <para>
+	Sorry, needs to be re-written for the relatively new SRR format
+	distributed at the NCBI ... and changes in MIRA 3.9.x. Please come
+	back later.
+      </para>
+    </sect2>
+  </sect1>
+  <sect1 id="sect_sxa_denovo_solexa_only_assemblies">
+    <title>
+      De-novo Solexa only assemblies
+    </title>
+    <para>
+      This is actually quite straightforward and not much different from
+      mapping assemblies: you need to tell MIRA were the data files are,
+      whether or not there are special conditions which apply (paired-end info
+      etc.) and that it is a de-novo assembly that you want and off you go.
+    </para>
+      <screen># Example for a manifest describing a de-novo assembly with
+# paired Illumina data
+
+# First part: defining some basic things
+# In this example, we just give a name to the assembly
+#  and tell MIRA it should assemble a genome in accurate mode
+# As special parameter, we want to use 4 threads in parallel (where possible)
+
+<userinput>project = <replaceable>MyFirstAssembly</replaceable>
+job = <replaceable>genome,denovo,accurate</replaceable>
+parameters = <replaceable>-GE:not=4</replaceable></userinput>
+
+# The second part defines the sequencing data MIRA should load and assemble
+# The data is logically divided into "readgroups". This example uses a
+#  paired-end library with 500bp and a mate-pair library with 3.5kb
+
+<userinput>readgroup = <replaceable>MyPairedEnd500bpLib</replaceable>
+data = <replaceable>../../data/project500bp-1.fastq ../../data/project500bp-2.fastq</replaceable>
+technology = <replaceable>solexa</replaceable>
+strain = <replaceable>bchoc_se1</replaceable>
+template_size = <replaceable>250 750</replaceable>
+segment_placement = <replaceable>---&gt; &lt;---</replaceable></userinput>
+
+<userinput>readgroup = <replaceable>MyMatePair3kbLib</replaceable>
+data = <replaceable>../../data/project3kb-1.fastq ../../data/project3kb-2.fastq</replaceable>
+technology = <replaceable>solexa</replaceable>
+strain = <replaceable>bchoc_se1</replaceable>
+template_size = <replaceable>2500 3500</replaceable>
+segment_placement = <replaceable>&lt;--- ---&gt;</replaceable></userinput></screen>
+    <para>
+      Then you start the assembly:
+    </para>
+    <screen>
+<prompt>arcadia:/path/to/myProject$</prompt> <userinput>mira <replaceable>manifest.conf &gt;&amp;log_assembly.txt</replaceable></userinput></screen>
+    <para>
+      Of course, you can add any other switch you want like, e.g., changing
+      the number of processors used, adding default strain names etc.pp
+    </para>
+  </sect1>
+  <sect1 id="sect_sxa_denovo_hybrid_assemblies_solexa_+_">
+    <title>
+      De-novo hybrid assemblies (Solexa + ...)
+    </title>
+    <para>
+    </para>
+    <para>
+      Two strategies can be thought of to assemble genomes using a combination
+      of Solexa and other (longer) reads: either using all reads for a full
+      de-novo assembly or first assembling the longer reads and use the
+      resulting assembly as backbone to map Solexa reads. Both strategies have
+      their pro and cons.
+    </para>
+    <sect2 id="sect_sxa_all_reads_denovo">
+      <title>
+	All reads de-novo
+      </title>
+      <para>
+	Throwing all reads into a de-novo assembly is the most straightforward
+	way to get 'good' assemblies. This strategy is also the one which - in
+	most cases - yields the longest contigs as, in many projects, parts of
+	a genome not covered by one sequencing technology will probably be
+	covered by another sequencing technology. Furthermore, having the
+	consensus covered by more than one sequencing technology make base
+	calling a pretty robust thing: if MIRA finds disagreements it cannot
+	resolve easily, the assembler at least leaves a tag in the assembly to
+	point human finishers to these positions of interest.
+      </para>
+      <para>
+	The downside of this approach however is the fact that the sheer
+	amount of data in Solexa sequencing projects makes life difficult for
+	de-novo assemblers, especially for MIRA which is keeping quite some
+	additional information in memory in de-novo assemblies and tries to
+	use algorithms as exact as possible during contig
+	construction. Therefore, MIRA sometimes still runs into data sets
+	which make it behave quite badly with respect to assembly time and
+	memory consumption (but this is being constantly improved).
+      </para>
+      <para>
+	Full de-novo hybrid assemblies can be recommended only for bacteria at
+	the moment, although lower eukaryotes should also be feasible on
+	larger machines.
+      </para>
+      <para>
+	This is actually quite straightforward and not much different from
+	mapping assemblies: you need to tell MIRA were the data files are,
+	whether or not there are special conditions which apply (paired-end
+	info etc.) and that it is a de-novo assembly that you want and off you
+	go.
+      </para>
+      <screen># Example for a manifest describing a de-novo assembly with
+# shotgun 454 data and paired Illumina data
+
+# First part: defining some basic things
+# In this example, we just give a name to the assembly
+#  and tell MIRA it should assemble a genome in accurate mode
+# As special parameter, we want to use 4 threads in parallel (where possible)
+
+<userinput>project = <replaceable>MyFirstAssembly</replaceable>
+job = <replaceable>genome,denovo,accurate</replaceable>
+parameters = <replaceable>-GE:not=4</replaceable></userinput>
+
+# The second part defines the sequencing data MIRA should load and assemble
+# The data is logically divided into "readgroups". This example uses a
+#  454 shotgun library; a Solexa paired-end library with 500bp and a Solexa
+#  mate-pair library with 3.5kb
+
+# First the 454 data. Note that, in this example, no XML data is loaded for
+#  454 (showing that this is less critical for shotgun 454 data)
+
+<userinput>readgroup = <replaceable>MyShotgun454Lib</replaceable>
+data = <replaceable>../../data/project_454data.fastq</replaceable>
+technology = <replaceable>454</replaceable>
+strain = <replaceable>bchoc_se1</replaceable></userinput>
+
+# Now Illumina data
+
+<userinput>readgroup = <replaceable>MyPairedEnd500bpLib</replaceable>
+data = <replaceable>../../data/project500bp-1.fastq ../../data/project500bp-2.fastq</replaceable>
+technology = <replaceable>solexa</replaceable>
+strain = <replaceable>bchoc_se1</replaceable>
+template_size = <replaceable>250 750</replaceable>
+segment_placement = <replaceable>---&gt; &lt;---</replaceable></userinput>
+
+<userinput>readgroup = <replaceable>MyMatePair3kbLib</replaceable>
+data = <replaceable>../../data/project3kb-1.fastq ../../data/project3kb-2.fastq</replaceable>
+technology = <replaceable>solexa</replaceable>
+strain = <replaceable>bchoc_se1</replaceable>
+template_size = <replaceable>2500 3500</replaceable>
+segment_placement = <replaceable>&lt;--- ---&gt;</replaceable></userinput></screen>
+    <para>
+      Then you start the assembly:
+    </para>
+    <screen>
+<prompt>arcadia:/path/to/myProject$</prompt> <userinput>mira <replaceable>manifest.conf &gt;&amp;log_assembly.txt</replaceable></userinput></screen>
+    </sect2>
+    <sect2 id="sect_sxa_long_reads_first_then_solexa">
+      <title>
+	Long reads first, then Solexa
+      </title>
+      <para>
+	This strategy works in two steps: first assembling long reads, then
+	mapping short reads to the full alignment (not just a consensus
+	sequence). The result will be an assembly containing 454 (or Sanger)
+	and Solexa reads.
+      </para>
+      <orderedlist>
+	<listitem>
+	  Step 1: assemble the 'long' reads (454 or Sanger or both) just as
+	  you would when assembling 454 or Sanger data.
+	</listitem>
+	<listitem>
+	  <para>
+	    Step 2: filter the results. Fetch 'long' contigs from the assembly
+	    before which are larger than 500 bases and have a given minimum
+	    coverage. The Idea is to get more or less all contigs which
+	    represent valid genome sequence of your project.
+	  </para>
+	  <screen>
+<prompt>$</prompt> <userinput>miraconvert -x 500 mira_out.maf hybrid_backbone.maf</userinput></screen>
+	  <para>
+	    You might eventually want to add an additional filter for minimum
+	    average coverage. If your project has an average coverage of 24,
+	    you should filter for a minimum average coverage of 33% (coverage
+	    8, you might want to try out higher coverages) like this:
+	  </para>
+	  <screen>
+<prompt>$</prompt> <userinput>miraconvert -x 500 -y 8 mira_out.maf hybrid_backbone.maf</userinput></screen>
+	</listitem>
+	<listitem>
+	  <para>
+	    Step 3: map the Solexa data. Copy the hybrid backbone to a new
+	    empty directory, add in the Solexa data, start a mapping assembly
+	    using the MAF as input for the backbone / reference. If you
+	    assembled the 454 / Sanger data with strain info, the Solexa data
+	    should also get those (as described above).
+	  </para>
+	  <para>
+	    The readgroup section of your manifest file would then look like this: (need to write)
+	  </para>
+	</listitem>
+      </orderedlist>
+   </sect2>
+  </sect1>
+  <sect1 id="sect_sxa_postprocessing_of_assemblies">
+    <title>
+      Post-processing of assemblies
+    </title>
+    <para>
+      This section is a bit terse, you should also read the chapter on
+      <emphasis>working with results</emphasis> of MIRA3.
+    </para>
+    <sect2 id="sect_sxa_postprocessing_mapping_assemblies">
+      <title>
+	Post-processing mapping assemblies
+      </title>
+      <para>
+	When working with resequencing data and a mapping assembly, I always
+	load finished projects into an assembly editor and perform a quick
+	cleanup of the results.
+      </para>
+      <para>
+	For close relatives of the reference strain this doesn't take long as
+	MIRA will have set tags (see section earlier in this document) at all
+	sites you should have a look at. For example, very close mutant
+	bacteria with just SNPs or simple deletions and no genome
+	reorganisation, I usually clean up in 10 to 15 minutes. That gives the
+	last boost to data quality and your users (biologists etc.) will thank
+	you for that as it reduces their work in analysing the data (be it
+	looking at data or performing wet-lab experiments).
+      </para>
+      <para>
+	Assume you have the following result files in the result directory of
+	a MIRA assembly:
+      </para>
+      <screen>
+<prompt>arcadia:/path/to/myProject/newstrain_d_results$</prompt> <userinput>ls -l</userinput>
+-rw-r--r-- 1 bach bach 655176303 2009-06-08 14:56 newstrain_out.caf
+...</screen>
+      <para>
+	The general workflow I use is to convert the CAF file to a gap4 database
+	and start the gap4 editor:
+      </para>
+      <screen>
+<prompt>arcadia:newstrain_d_results$</prompt> <userinput>caf2gap -project NEWSTRAIN -ace newstrain_out.caf &gt;&amp; /dev/null</userinput>
+<prompt>arcadia:newstrain_d_results$</prompt> <userinput>gap4 NEWSTRAIN.0</userinput></screen>
+      <para>
+	Then, in gap4 or gap5, I
+      </para>
+      <orderedlist>
+	<listitem>
+	  <para>
+	    quickly search for the UNSc and WRMc tags and check whether they
+	    could be real SNPs that were overseen by MIRA. In that case, I
+	    manually set a SROc (or SIOc) tag in gap4 via hot-keys that were
+	    defined to set these tags.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    sometimes also quickly clean up reads that are causing trouble in
+	    alignments and lead to wrong base calling. These can be found at
+	    sites with UNSc tags, most of the time they have the 5' to 3'
+	    <literal>GGCxG</literal> motif which can cause trouble to Solexa.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    look at sites with deletions (tagged with MCVc) and look whether I
+	    should clean up the borders of the deletion.
+	  </para>
+	</listitem>
+      </orderedlist>
+      <para>
+	After this, I convert the gap4 database back to CAF format:
+      </para>
+      <screen>
+<prompt>$</prompt> <userinput>gap2caf -project NEWSTRAIN &gt;newstrain_edited.caf</userinput></screen>
+      <para>
+	But beware: gap4 does not have the same consensus calling routines as
+	MIRA and will have saved it's own consensus in the new CAF. In fact,
+	gap4 performs rather badly in projects with multiple sequencing
+	technologies. So I use miraconvert from the MIRA package to recall
+	a good consensus (and save it in MAF as it's more compact and a lot
+	faster in handling than CAF):
+      </para>
+      <screen>
+<prompt>$</prompt> <userinput>miraconvert -r c newstrain_edited.caf newstrain_edited_recalled.maf</userinput></screen>
+      <para>
+	And from this file I can then convert with miraconvert to any
+	other format I or my users need: CAF, FASTA, ACE, WIG (for coverage
+	analysis) etc.pp.
+      </para>
+      <para>
+	I can also also generate tables and HTML files with SNP analysis
+	results (with the "<literal>-t asnp</literal>" and "<literal>-t
+	hsnp</literal>" options of <command>miraconvert</command>)
+      </para>
+    </sect2>
+    <sect2 id="sect_sxa_postprocessing_denovo_assemblies">
+      <title>
+	Post-processing de-novo assemblies
+      </title>
+      <para>
+	As the result file of MIRA de-novo assemblies contains everything down
+	to 'contigs' with just two reads, it is advised to first filter out
+	all contigs which are smaller than a given size or have a coverage
+	lower than 1/3 to 1/2 of the overall coverage.
+      </para>
+      <para>
+	Filtering is performed by miraconvert using CAF file as
+	input. Assume you have the following file:
+      </para>
+      <screen>
+<prompt>arcadia:/path/to/myProject/newstrain_d_results$</prompt> <userinput>ls -l</userinput>
+...
+-rw-r--r-- 1 bach bach 655176303 2009-06-08 14:56 newstrain_out.maf
+...</screen>
+      <para>
+	Let's say you have a hybrid assembly with an average coverage of
+	50x. I normally filter out all contigs which have an average coverage
+	less than 1/3 and are smaller than 500 bases. These are mostly junk
+	contiglets remaining from the assembly and can be more or less safely
+	ignored. This is done the following way:
+      </para>
+      <screen>
+<prompt>arcadia:newstrain_d_results$</prompt> <userinput>miraconvert -x 500 -y 17 newstrain_out.maf newstrain_filterx500y17.caf</userinput></screen>
+      <para>
+	From there on, convert the filtered CAF file to anything you need to
+	continue finishing of the genome (gap4 database, ACE, etc.pp).
+      </para>
+    </sect2>
+  </sect1>
+  <sect1 id="sect_sxa_walkthrough_data_from_ncbi_SRA">
+    <title>
+      Using SRA data from the Short Read Archive at the NCBI
+    </title>
+    <para>
+      Make sure you have the SRA toolkit installed, see <ulink url="http://www.ncbi.nlm.nih.gov/Traces/sra/sra.cgi?view=software"/>
+    </para>
+    <para>
+      The SRA format needs to be converted into something MIRA understands,
+      FASTQ being an ideal candidate. Therefore the program used for this will
+      be <command>fastq-dump</command>, which unfortunately will not output
+      names as needed by default, but fortunately has useful options to define
+      your own names via the <arg>--defline-seq</arg>
+      and <arg>--defline-qual</arg> command line options.
+    </para>
+    <para>
+      When using paired-end or mate-pair data, one disconcerting thing about
+      the SRA tools is that they will always concatenate by default the two
+      reads into a single sequence, which is of course not what any sane
+      person would expect. Here too, there's a command line option to get
+      around this: <arg>--split-spot</arg>
+    </para>
+    <para>
+      The following shows how I would recommend extracting (and naming) reads
+      from the SRA:
+    </para>
+    <screen>
+<prompt>$</prompt> <userinput>ls -l</userinput>
+...
+<prompt>$</prompt> <userinput>fastq-dump --split-spot --defline-seq '@<replaceable>$ac_$si/$ri</replaceable>' --defline-qual '+' SRR012345.sra</userinput>
+</screen>
+
+  </sect1>
+  <sect1 id="sect_sxa_known_bugs___problems">
+    <title>
+      Known bugs / problems
+    </title>
+    <para>
+      These are actual for version 3 of MIRA and might or might not have been
+      addressed in later version.
+    </para>
+    <para>
+      Bugs:
+    </para>
+    <orderedlist>
+      <listitem>
+	<para>
+	  mapping of paired-end reads with one read being in non-repetitive
+	  area and the other in a repeat is not as effective as it should
+	  be. The optimal strategy to use would be to map first the
+	  non-repetitive read and then the read in the repeat. Unfortunately,
+	  this is not yet implemented in MIRA.
+	</para>
+      </listitem>
+    </orderedlist>
+  </sect1>
+</chapter>

@@ -1,0 +1,6 @@
+# ignore for files made by "make docs"
+
+*.html
+DefinitiveGuideToMIRA.pdf
+3rdparty_MIRA.pdf
+versionfile

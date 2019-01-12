@@ -1,0 +1,3540 @@
+3.4.0
+-----
+Development of the 3.4 series of MIRA concentrated on making assemblies with
+30m to 100m reads more "liveable", i.e., reduce memory and disk footprint of
+MIRA as well as improving run-times. At the same time, an updated assembly
+strategy both for genome and EST / RNASeq data was devised to reduce the
+influence of chimeras and intronic data on the assembly. Also MIRA is now
+pretty smart in handling de-novo Solexa projects with "low coverage" (<30x) as
+well as "high coverage" (>= 100x).
+
+While we are at it: default parameters for Solexa de-novo were adapted to work
+with at least 75mers. While doing de-novo assembly with smaller read lengths
+is still possible for MIRA, the whole concept of ultra-short-read de-novo
+assembly is a silly idea in the first place. So don't do it.
+
+The new ability to handle IonTorrent data also made its appearance in MIRA as
+implementing support for this kind of sequencing technology was comparatively
+simple and straight forward. MIRA supports all kind of read lengths presently
+on the market (100bp, 220bp) out of the box, but longer read lengths should
+not pose a problem. Current IonTorrent data behaves very much like early 454
+GS20 reads and I am curious whether Life will be able to perform the same
+length and quality improvement within 12 month like 454 did in 2006. Time will
+tell.
+
+For PacBio, results are a mixed bag: CCS reads as well as error-corrected CLR
+data works extremely well with MIRA, at least I'm happy how the E. coli
+C227-11 demo data from the PacBio DevNet gets assembled. I suppose MIRA will
+still need to get a couple more rules regarding the error profile of those
+reads, but I'll be able to do that only once I've seen more data. What does
+not work at all at the moment (and causes me some terrible headache) are the
+CLR reads: those with an accuracy of only 80% to 85%. I'm not sure how to
+tackle them efficiently.
+
+For mapping assemblies, many smaller and bigger improvements ease the daily
+life and improve results with those data sets. Exemplarily named should be
+improved mapping quality of reads in highly repetitive regions of a genome
+when the reference sequence is not optimal as well as the new ability to load
+backbone sequences and annotation from GFF3 format files (saving will follow
+shortly).
+
+Quality control and automated clipping has been another focus in the past few
+months. Notable developments there are automated clipping of known adaptors in
+Solexa and IonTorrent data, improvements in the detection and avoidance of
+chimeric reads and a some new automated editing algorithms which edit away
+pretty clear cases of sequencing errors.
+
+Regarding utilities, 'convert_project' has been revamped to be able to
+convert large assembly or data files with less memory. It also got a number of
+new options to get even more use cases covered. The new tool 'mirabait'
+enables to quickly extract reads based on matching k-mers from a huge data
+set.
+
+For detailed changes, please consult the src/mira/CHANGES_old.txt file in the
+source distribution.
+
+
+
+
+3.4.rc5 (never officially released)
+-----------------------------------
+- changed default input type for 454 to FASTQ
+- changed default -PF:qrml1:qrml2 for Solexa data to account for longer reads
+- convert_project: -R now also works on single reads
+- revamped IonTorrent guide
+- revamped PacBio guide
+
+
+3.4.rc4 (never officially released)
+-----------------------------------
+- bugfix mapping assemblies, again: some repetitive reads were still not
+  optimally placed, new they really are.
+- significantly faster file I/O on large files when a progress bar is
+  displayed. This also improves I/O of other programs like convert_project,
+  mirabait, etc.pp
+- algorithm adaptation to enhance assembly of "long" IonTorrent sequences
+
+
+3.4.rc3 (Release candidate 3)
+-----------------------------
+- bugfix mapping assemblies, again: some repetitive reads were still not
+  optimally placed.
+- bugfix convert_project, again.
+- mapping assemblies: when reference sequence (backbone) loaded from GenBank
+  or GFF3, tag MFSM recognised and used to forcefully merge mapped reads to
+  coverage equivalent reads even if they contain mapping errors.
+
+
+3.4.rc2 (Release candidate 2)
+-----------------------------
+- fixed major regression bug: some debug code went into 3.4rc1, slowing down
+  most assemblies to a painful crawl.
+- convert_project: fixed bug where contigs were always given default names
+  (came in in 3.4rc1)
+- convert_project: can now use -M and -s together
+- convert_project: re-activated -d
+
+
+3.4.rc1 (Release candidate 1)
+-----------------------------
+- mapping of Solexa: MIRA now automatically keeps paired-end reads at contig
+  ends unmerged to facilitate scaffolding. New parameter: -CO:msrkceu
+- improved handling of repetitive stretches where the difference is a single
+  indel.
+- improved indel tagging in Solexa data.
+- new parameter: --cwd or -DI:cwd to let MIRA change working directory
+- new feature: on very long running assemblies with lots of passes (-AS:nop),
+  one can now tell MIRA to terminate even if the required number of passes has
+  not been reached yet by simply creating a file
+    "<projectname>_assembly/<projectname>_d_chkpt/terminate"
+  MIRA will then run 2 more passes and stop.
+  Use case: people with complex assemblies who set -AS:nop to a high number
+  and decide upon the intermediate results that the assembly is OK for them.
+- reduced disk usage and less clutter in the tmp directory: a couple of log
+  files is now written only when specifically requested (-MI:el).
+- convert_project can now rename contigs/singlets via -R
+- convert_project can now blind data (replace all bases by 'c') in reads, but
+  also in contigs loaded from CAF and MAF. Use case: error reports.
+- bugfix: some possible chimeras were sometimes both cut and extended into
+  clipped area.
+- bugfix: on some occasions, MIRA would stop while clipping Solexa or Ion
+  Torrent adaptors
+- bugfix: MIRA would very rarely stop an assembly when diagnosing a certain
+  kind of impossible overlap. That has been changed, MIRA now puts a warning
+  in the log but continues.
+
+
+3.2.1.20
+--------
+- bugfix: chimera detection was not called anymore, bug entered in 3.2.1.18
+- testing new pathfinder routines for better EST assembly, less prone to
+  chimeras which passed clipping (for whatever reason).
+- mate-pairs for overlaping reads now almost guaranteed to land in the same
+  contig except in cases of major problems like chimeras etc.
+
+
+3.2.1.19
+--------
+- the changes in 3.2.1.18 for low coverage Solexa assemblies sometimes led to
+  explosion of memory needs, fixed.
+- added parameter -AS:max_contigs_per_pass
+- added capability to have MIRA just perform loading and clipping of data and
+  then calculate hash statistics and read repeat information by seting
+  -AS:nop=0
+- bugfix: -FN:ssvsi:stvsi:smaltvectorscreenin were not parsed though they were
+  documented to exist.
+
+
+3.2.1.18
+--------
+- added new experimental option -SK:swcob to improve mapping accuracy of
+  reads in repeats.
+- assembly: some hash analysis done twice for no reason, fixed.
+- assembly: better handling of "low coverage" Solexa assemblies
+- mirabait: renamed parameters -l to -k and -k to -n
+- mirabait: FASTQ loading now takes 33 as default to -o instead of 0
+- mirabait: now contained in binary packages (symlink to convert_project)
+- new extended log for railreads
+- change: read ends now also get HAF tags even if these tags are < -SK:bph
+  better overview in assemblies, but slightly more memory needs and larger
+  CAF/MAF files
+- new extended log: elog.dp.hashanalysis.lst
+- bugfix: MIRA could sometimes abort the assembly in very high coverage
+  situations. Fallout from change in allowed coverage to 1073741823 in
+  3.2.1.16
+- bugfix: SKIM missed borderline overlaps composed of only one hash
+- bugfix: long standing bug in debug output of Read::AS_TEXT went to standard
+  output instead of chosen stream or file
+
+
+3.2.1.17
+--------
+- support for data from IonTorrent
+- parameter -CL:cksa renamed to -CL:ckar and made it technology dependent
+- bugfix in pathfinder where low coverage, small contigs with just a handfull
+  reads might not have been built.
+- bugfix pathfinder: some very short overlaps were sometimes not made when
+  growing contigs
+- bugfix: very short overlaps in fringe reads could lead MIRA to stop (bug
+  triggered by new priotisation routines of 3.2.1.16)
+
+
+3.2.1.16
+--------
+- less false positive repeat marker tags (mostly in 454 data due to identical
+  454 reads with wrong PCR base inclusion)
+- MIRA now automatically edits some conservative and unambiguous errors in
+  alignments
+- new overlap prioritisation routines reduce impact of PCR artefacts (mainly
+  454, Solexa probably too)
+- coverages for contigs can now reach 1073741823 instead of 16383 ... this
+  should be really enough for any application in the foreseeable future.
+  downside: memory needed for contig structures almost doubles.
+- new parameter: -MI:somnrl to warn if long read names are encountered
+- change: MIRA now handles CAF files with reads having defective clipping
+  points more gracefully. Use case: deleting in gap4 consensus bases and at
+  the same time deleting a read (to size 0)
+- new documentation: MIRA utilities. Currently "convert_project" and
+  "mira_bait"
+- bugfix: -AS:urd now works again as advertised, but is switched off per
+  default
+- bugfix: in some cases the mapping mode could not start because MIRA created
+  rail reads being too long
+
+
+3.2.1.15
+--------
+- fixed bug appeared in 3.2.1.13 where using chimera detection would lead MIRA
+  to often abort the assembly
+
+
+3.2.1.14
+--------
+- skim: changed ruleset to better characterise close repeats in mapping
+  assemblies
+- convert_project: new -t target "crlist"
+- clipping: -CL:cbse:cksa were wrongly interpreted as technology dependend
+  settings instead of common settings
+
+
+3.2.1.13
+--------
+- new clipping routines / parametrisation for Solexa reads: -CL:cbse:cksa
+- more efficient disk I/O for hash statistics analysis
+- GFF parsing knows a couple more elements it previously did not know
+- pathfinder now quicker at end of contig building for hybrid assemblies with
+  Solexa data in hybrid assemblies.
+- bugfix: repetitive reads could sometimes be mapped at wrong places (appeared
+  in 3.2.1.9)
+
+
+3.2.1.12
+--------
+- convert_project: new -s switch (splitting contigs into single files)
+- bugfix: output of wiggle files could go into endless loop in very< rare
+  cases
+- bugfix: output of contigs as text is now well formated even for very long
+  read names
+- bugfix: bases per hash can now be 32 bases instead of 31 (or 16 instead of
+  15 on machines which do not have 64 bit integer types)
+
+
+3.2.1.11
+--------
+- bugfix for regression in 3.2.1.10: in mapping mode, SKIM made too many
+  comparisons, in the order of a de-novo assembly
+- convert_project: new -M switch (extracting reads out of assembled contigs)
+- output of assembly as text: now correctly aligned for any length of read
+  names
+- bugfix output of wiggle files: illegal contigs with zero coverage do not
+  lead to endless loop anymore
+- small bugfix: maximum number of bases in -SK:bph is now 32, not 31.
+
+
+3.2.1.10
+--------
+- MIRA has now clipping of Solexa adaptors (automatic only atm)
+- bugfix SKIM: estimate of average hash frequence now more stable for
+  borderline cases
+- convert_project: new -N switch. Like -n, but output is sorted.
+- convert_project: new -to target "cstats" for contigstats
+- bugfix configure: now honours expat flags given to ./configure
+
+
+3.2.1.9
+-------
+- SKIM now uses intermediate result purging, tremendously reducing size of
+  result files in large assemblies.
+- bugfix: SKIM sometimes saved wrong hits when there were effectively none
+- bugfix: large increases of virtual memory needs between the passes have been
+  cut down.
+- convert_project: fixed segfault which was due to the new streaming method
+- convert_project: fixed problem when saving contigs as FASTA (bugfix from
+  3.2.1.8)
+- convert_project: uses default '-t' the same as '-f' if '-t' is not given
+- lowercase clipping: upper case mask character "X" does not break it anymore
+
+
+3.2.1.8
+-------
+- fixed cause of segfault in 3.2.1.7 (came in from branch handling new
+  consensus calculation)
+- convert_project: added -C
+- convert_project: less memory usage when source file does not contain contigs
+- MAF loader: bugfix the progress bar (now gets correctly updated)
+- SKIM: bugfix progressbar for large data sets. Now correctly shows progress
+  instead of immediately show 100% and then seem dead.
+- GFF parser: better checks and error messages
+- GBF output: now writes ACCESSION entry
+
+
+3.2.1.7
+-------
+Merged two dev branches: optimised SKIM evaluation and new contig consensus
+calculations.
+- new routines to choose and trim down SKIM hits. Save tremendous amount of
+  disk and memory for high coverage projects (coverages >50x), especially when
+  coverages reach >100x.
+- new SKIM chooser also should lead to less misassemblies for those rare cases
+  they still occur.
+- fixed bug which made MIRA misestimating overlap scores in some cases.
+- fixed bug which made MIRA misinterpret partial overlaps as complete
+  overlaps.
+- fixed memery allocation bug which led MIRA to perform a couple of more
+  allocations than necessary.
+- fixed possible division by 0 (entered in 3.2.1.6)
+- temporary fix for error message "Asked for elements in start cache while not
+  using startcache?" (introduced 3.2.1.5).
+- convert_project: -n now also works with read collections, i.e., not only on
+  contig names when loading contigs, but reads when loading data without
+  contigs (like in all FASTA, FASTQ, but also CAF, MAF when no contigs are
+  defined)
+
+
+3.2.1.6
+-------
+- new parameters: -CL:mqtfer:mqtfernop:c3pp:c3ppmsl:c3ppmea:c3ppmgfe
+- convert_project: new parameter -X
+- mirabait: fixed bug which let mirabait not use single-hashes as bait
+- fastaselect.tcl: fasta sequences now written out as single line
+- fasta2frag.tcl: added -namesuffix and -startoffset
+
+
+3.2.1.5
+-------
+- improvement: mapping assemblies which do not also build new contigs
+  (-SB:abnc=no) now end much faster. E.g., 33 million Solexa reads in accurate
+  mode take a day instead of almost 3 days.
+
+
+3.2.1.4
+-------
+- improved internal handling of invalid overlaps. Effectively slashes memory
+  needed there by a factor of 8 to 10. E.g.: in Solexa transcriptome 10m reads
+  @ 100bp with quite some ploidy, uses just ~1 GiB instead of ~11.5 GiB
+- MIRA now dumps out simple statistics on total bases and used bases in the
+  output log.
+- reactivated -n switch for convert_project
+
+
+3.2.1.3
+-------
+- new program: mirabait
+- bugfix: GenBank files with DOS newline characters now read correctly
+- change: memory cap for the SKIM hit reduction routine: now 16 GiB instead of
+  32.
+
+
+3.2.1.2
+-------
+- backport changes from 3.3.9
+- backbones can now be loaded in GFF3 format
+- assembly of millions of EST/RNASeq now *way* faster. E.g.: 10m Solexa reads
+  (100bp) down from several days to ~1 day.
+- fastqselect.tcl: bugfix for files having only "+" and not "+name..."
+- fixed bug that could lead to segfault when not compiling with the bgtracking
+  option.
+- the 'mira' executables assumes 'mira' function if it is not named one of the
+  recognised functions (mira, miraSearchESTSNPs, etc.pp)
+- bugfix: -CO:fnicpst now working as advertised for Solexa
+- change: 'N' at ends of reads now treates as masked per default
+- fixed configure: --with-tcmalloc
+
+
+3.3.9
+-----
+- migrated CVS to GIT
+
+
+3.3.8
+-----
+- improved building on OSX, now should go through without problem
+- improved F/R naming scheme not to trigger on names like BLABLA.234 (like
+  projects stored at the NCBI SRA). Important for projects with paired-end
+  data.
+- backbone reads loaded from FASTA and GBF as well as backbones from CAF and
+  MAF which do not contain contigs now don't have a read naming scheme,
+  suppressing unnecessary error messages if the names contain "."
+- for mapping Solexa data, MIRA now reduces unnecessary mapping attempts when
+  no more reads match a contig. This should save a bit of time, especially in
+  projects with lots (>1000) of reference sequences.
+
+
+3.3.7
+-----
+- improved OS X compatibility of the build script which should now be able to
+  build static MIRA binaries for OS X versions >= 10.5
+- maybe improved BOOST recognition on some systems due to updated autoconf
+  macros
+
+
+3.2.1
+-----
+- while reading NCBI TRACEINFO XML, MIRA now complains if it sees either
+  insert_size or insert_stdev but not both
+- -AS:mrpc could lead to non-sequential contig numbering, fixed
+- change: Sanger naming scheme now expects only a postfix length of at least 3
+  instead of 4
+- error message when reads too long are encountered now clarifies size of
+  MAXREADSIZEALLOWED
+- change: MIRA now checks read names for funny or illegal characters
+- bugfix when loading FASTA files: \r on name lines in DOS/Windows files was
+  not handled properly
+- bugfix in fasta2frag.tcl: when qualities were available at loading, only
+  zeros were written to fragment quality file. Bug entered sometimes in the
+  3.1.x series.
+
+
+3.2.1rc2 (3.3.6)
+----------------
+- fixed bug introduced in 321rc1 which led to more than necessary disk
+  operation in SKIM hit reduction after the first pass of MIRA.
+
+
+3.2.1rc1 (3.3.5)
+----------------
+- "--job=mapping,solexa" did not set really good values for -SK:mhpr, leading to
+  sometimes sub-optimal mappings. New value should be good for all but the
+  most repetitive eukaryotes.
+- "--job=mapping" now uses "-AS:nop=1:rbl=1" to conform more to user
+  expectations of a mapping.
+- test: reducing SKIM hits now uses 30 GiB at most for array, regardless of
+  memory settings. Furthermore, array is re-used between passes. Should reduce
+  MIRA memory footprint.
+- bugfix: when Solexa sequences in FASTA and FASTA quality files were not in
+  the same order, wrong assignmesnt of qualities could happen under certain
+  circumstances.
+
+
+3.3.4
+-----
+- performance bugfix: SKIM reduction in mapping projects with several millions
+  reads now runs considerably faster (e.g. seconds instead of 45 minutes when
+  using 15 million reads)
+- the SSAHA2 screen reading routines now also read SMALT output files where
+  the "-f ssaha" output option was used
+- small enhancement: no second round of proposed end clipping if first round
+  did not yield any clip.
+
+
+3.3.3
+-----
+- bugfix: mapping with >= 8 strains is now possible again for non-Solexa reads
+- enhancement: mapping with >= 8 total strains and <= 7 Strains with Solexa
+  data is now possible
+- silenced error output for 'stat' calls on BSD and BSD-like systems
+- reworked *_info_assembly.txt file to be a bit clearer
+- reduced compiler warnings (replaced deprecated gcc hash_map with BOOST
+  unordered_map)
+
+
+3.3.2
+-----
+- bugfix: miraSearchESTSNPs failed to save correct data for step3. Error was
+  introduced somewhere between 3.0.5 and 3.2.0
+- expanded new pathfinder functionality which caches start sites also to EST
+  assemblies
+- added -MI:lcs:lcs4s
+- compiling: building MIRA from a source package now works using calls like
+  "../some/other/dir/configure"
+- compiling: migrated 12 year old home-brew solution for including flex files
+  to now standard makefile functionality.
+
+
+3.3.1
+-----
+- saving skim hits in binary instead ASCII saves between 20 and 60% disk space
+  for skim hits. Also improves NFS performance a bit due to added
+  buffering. Also improves multithreading performance: now at almost n*100%
+  where n is number of threads. Lastly, improves performance of SKIM reduction
+  filtering algorithm.
+- updated docs to reflect interferences between -AS:mrpc and -OUT:sssip:stsip
+- chapters in the manual now have readable (and constant) reference names
+- To help 90% of the users doing a mapping assembly: the default name for
+  backbones / reference sequences is now "ReferenceStrain" and not an empty
+  string (-SB:bsn). Also, the default name for reads without strains is now
+  "StrainX". New parameters -SB:ads:dsn.
+- testing new pathfinder functionality which caches start sites (-PF:mrcbs)
+- added missing -OUT:orm:otm
+- fixed bug which could lead to an out-of-memory error when no overlaps were
+  present in an assembly
+- removed deprecated -GE:kcim parameter
+- changed behaviour: in EST assemblies, statistics for large contigs are
+  computed for contigs >= 1000 bases instead of 5000 as for genomes
+
+
+3.2.0
+-----
+Changes since 3.0.5:
+
+- Support for data from Pacific Biosciences.
+
+  Though the 3.0.x (and even earlier 2.9.x) versions could handle PacBio data
+  when configured accordingly, MIRA 3.2.0rc1 now officially supports PacBio.
+
+  Beside the usual support for non-paired and "paired-end" data, MIRA also
+  has a new automatic editor for PacBio reads which should be useful when
+  dealing with "elastic dark inserts" (longer stretches of unread bases whose
+  length is only approximately known) in PacBio strobed sequencing mode.
+
+  With this, MIRA should be able to deal with strobes of unread bases up to
+  ~400 bases without having to split strobed sequences in multiple read-
+  pairs. Simulation with bacterial data show that PacBio strobe reads in
+  200/200 mode (sequence 200 bases, skip 200 bases, repeat) and having 3000
+  sequenced bases can reconstruct a bacterial genome quite well (1 contig,
+  correct genome organisation), leaving only "clean up" work of getting some
+  bases right via, e.g., hybrid approach by complementing with e.g. Solexa
+  (Illumina) data.
+
+  Though I admit that PacBio support is a long shot (I don't have real PacBio
+  data at the moment), I expect MIRA to be "good enough" for first test with
+  real data (for those people out there actually having access to some). On
+  the other hand, I haven't seen any other assembler yet being able to
+  support strobed reads without splitting them.
+
+- Fully revamped manual
+
+   In an exercise of self-defence (too many mails in my inbox), I've updated
+   the manuals to DocBook format and considerably expanded them. The result:
+   nicer manuals in HTML and PDF format, with extensive walkthroughs There are
+   also screenshots in colour. And variegated.
+
+- The "usual" improvements and bug-fixes
+
+  If PacBio and the revamped manuals had not been on the schedule, the
+  "usual" improvements would have a had been described more prominently in
+  this announcement. Things being what they are, I'll just mention
+    - hybrid Sanger/Solexa or 454/Solexa of bacteria now finish within hours
+      instead of days.
+    - longer contigs
+    - less memory utilisation (thanks to Google TCMalloc library)
+    - better support for SSDs
+    - warnings when using NFS
+
+
+The MIRA 3 versions are the result of a long development to make assembly
+of Sanger, 454 and Solexa (Illumina) data as easy and straightforward as
+possible while keeping a maximum accuracy.
+
+Another focus was to make it possible to use results from Solexa mapping
+projects in current finishing programs, not only viewers. MIRA introduces for
+that the notion of coverage equivalent reads (CER) which reduces the data
+volume by 70 to 90%. This allows painless use of of such data sets in gap4 and
+consed.
+
+A lot has changed since the 2.8.x series of MIRA, the following list has just
+a few highlights which came in during the 2.9.x series:
+
+- sequencing technologies: MIRA handles different sequencing technologies
+  independently from each other and has specialised routine for working with each
+  of them.
+- command-line parameters: MIRA has now a handful of "Do-What-I-Mean" one-stop
+  switches which allows to configure the assembler for 90% of all use
+  cases. Furthermore, many parameters can be adjusted for each sequencing
+  technology so that the assembly engine can be tweaked for very specialised
+  cases if needed.
+- all sequencing technologies (Sanger, 454, Solexa) have now
+  - recognition of chimeras
+  - new assembly routines to for improved repeat resolving
+  - improved data preprocessing that gets rid of low quality data and
+    sequencing errors at ends of reads ... even when no quality data is
+    available.
+- 454 data:
+  - fully developed capability for de-novo and mapping assembly of 454 data
+    (paired and non-paired)
+  - automated contig editor to remove most obvious and/or annoying sequencing
+    errors
+  - improved consensus calling streamlined to minimise the dreaded homopolymer
+    problem
+- Solexa data
+  - can handle Solexa data of any length, no restriction to very short
+    sequences.
+  - memory/space saving: MIRA has special mapping mode which creates data
+    so that widely used finishing tools like gap4 and consed can load these
+    projects and still be fairly quick
+- alignments enriched with features: MIRA adds information like repetitiveness
+  or repeat marker bases as tags in the assembly so that these can be used
+  during finishing
+- assembly information files: MIRA writes more information files which can be
+  easily parsed and/or read
+- mapping assemblies: MIRA has a full SNP analysis for prokaryotic data
+- comprehensive tables and HTML result files (mapping assembly): the
+  convert_project program can now create easy to use tables and HTML files
+  which show the data in a way suited for less computer-interested people
+  (biologists etc. :-)
+- memory management: MIRA can now be told to use an upper limit of RAM.
+- file formats: MIRA can now parse or write more file formats. Notable are
+  change from SSAHA to SSAHA2 for clipping, FASTQ for data input and MAF
+  format for output.
+- MacOS support: MIRA now compiles on MacOS-X
+- speed and memory: compared to 2.8.x, MIRA now uses way less memory and is a
+  lot faster.
+- tons of other features, tweaks and bug fixes. See the CHANGES_old.txt file
+
+
+3.2.0rc3a
+---------
+- fixed error: setting -MI:sonfs from the command line did not work
+- added code to catch erroneous "-- something" in parameters and give an
+  appropriate error message
+- PacBio now does not expect XML data as default
+
+
+3.2.0rc3
+--------
+- regression problem: changes for convert_project led to incredibly long running
+  times for computing consensus in mapping assemblies. Fixed.
+- fixed configuration error for miraSearchESTSNPs: using --job=esps2 did not
+  load sequences from step1
+- new parameter -SK:acrc for switching on/off searching of reverse complement
+  hits
+
+
+3.2.0rc2
+--------
+- new parameter category "MISC" with first new parameter "stop_on_nfs"
+  (-MI:sonfs)
+- added -DI:lrt to be able to put the log directory to other locations (i.e.,
+  support SSDs or take the heat off of NFS mounts)
+- added -CL:pechsgp to be able to switch handling of Solexa GGCxG problem if
+  wanted.
+- larger work on convert_project functionality which should now behave a bit
+  more as user might expect (see below)
+- when used on an assembly file with multiple strains (caf or maf),
+  "convert_project -t fasta" now also creates files with combined output of
+  all strains
+- reversed default and meaning of '-u' in convert_project: per default filling
+  of strain is off, can be switched on
+- '-u' in convert_project now also fills the '@' "base" (which stands for "no
+  coverage by this strain")
+- '-v' in convert_project now works "per strain" and not "per total coverage"
+- added check for zlib in "./configure"
+- changed behaviour: -SK:mnr is now switched on by default for EST projects
+- changed behaviour: the *nastyseq* file in the log directory has been upgraded
+  to an "info" file, i.e., it is now in the info directory. Furthermore, it
+  can log (on demand) not only sequence parts covered by MNRr tags, but also
+  HAF5, HAF6 and HAF7. New parameter: -SK:rliif
+- bugfix: -OUT:rrol did not work, old logs were not removed (bug introduced in
+  3.1.7)
+- updated docs. Section on "things you should not do", added description of a
+  couple of parameters which did not make it to documentation yet, etc.
+- HTML documentation lacked underline-emphasis, fixed.
+
+
+3.2.0rc1
+--------
+- completed change to new DocBook manual system, revamped and extended
+  manuals.
+
+
+3.1.16
+------
+- change: for genome assemblies, MIRA now builds longer contigs when large
+  paired-end libraries are present (10k, 20k or more)
+- change: filter for bad Solexa reads now writes names to clipping log instead
+  to standard output.
+- fasta2frag.tcl: added -P, changed -r to work also on paired-ends
+- bugfix: PacBio data without elastic dark inserts led to segfault
+- bugfix: -SK:mnr was always treated as "yes", even if set to "no".
+- bugfix: fixed miraSearchESTSNPs stopping in step2 if step1 result files were
+  empty.
+- bugfix: in 3.1.15, the logic to automatically set -CO:emea=1 worked only for
+  Sanger reads, now for all reads.
+- bugfix: read tag comments in ACE file missed a newline
+
+
+3.1.15
+------
+- new parameter -CO:emeas1clpec. Automatically sets emea to 1 if proposed end
+  clipping is used (ends will be "clean"). Improves recognition of
+  misassemblies in cases where only the outer fringes of reads differ.
+- change in template handling: to be lenient, MIRA internally added/subtracted
+  10% of the given insertsizes (or at least 1kb). Not anymore! This would give
+  problems with very small libraries (Solexa) or when the given values were
+  "lenient enough" and were made "too lenient" by this and subsequently
+  flagged in different post-processing tools.
+- change in handling template insert size info from XML: previously, MIRA set
+  stdev to a minimum of 500 bases and used 2*stdev to calculate minimum and
+  maximum insert sizes. The 500 bases minimum rule has been removed, and now
+  using 3*stdev
+- new parameter: -GE:tpbd to give template partner build direction on the
+  command line. Defines whether the template partner of a read (in a
+  read-pair) must have the same direction (1) or reverse direction (-1) in a
+  contig.
+- change: when --job=...,454 is used, the default minimum overlap is not 40
+  anymore, but 20. 40 was too conservative, overlaps at weak contig joins were
+  discarded too often.
+- improved graph reduction algorithm: some more small overlaps at low coverage
+  sites are taken to Smith-Waterman. This helps to find some more weak contig
+  joins.
+
+
+3.1.14
+------
+- speed up of routine to find and mark IUPAC bases and unsure bases (IUPc &
+  UNSc). Very noticeable when using annotated genomes as mapping reference.
+- bugfix: IUPC & UNSc were not searched for anymore (introduced in 3.1.12 with
+  the -CO:asir bugfix)
+- re-activated '-d' in convert_project
+- adjusted miramem estimator for mapping of Solexa reads
+
+
+3.1.13
+------
+- improvements for large assemblies with millions of reads where setting up
+  data for new contigs during build is sped up. Especially noticeable in EST
+  assemblies, but also genome assemblies with Solexa.
+
+
+3.1.12
+------
+- new option to speed up assemblies with millions of reads: -AS:mrpc controls
+  the minimum number of reads a contig must potentially have before it is
+  really assembled. This prevents all the small junk contigs with very low
+  numbers of reads in, e.g., Solexa sequencing to be assembled and can speed
+  up the assembly by days.
+- MIRA now uses the tcmalloc library from Google perftools if available. It is
+  highly recommended as it optimises memory allocation and saves a lot of
+  memory on multiple pass assemblies. E.g., memory usage for 810k 454 FLX
+  reads, 45x coverage, 5 pass genome de-novo accurate:
+              3.0.5    8272988 kB
+             3.1.11    8273012 kB
+             3.1.12    9492956 kB
+     3.1.12tcmalloc    6758916 kB
+- change: adapted some estimators in miramem, hopefully giving better
+  estimates for RAM usage during MIRA assemblies.
+- bugfix: array iterator overrun in contig building which had probably no
+  noticeable effect. If, then perhaps rejecting weak matches it would have
+  barely accepted.
+- bugfix: -CO:asir sometimes set repeat markers instead of SNP markers.
+- bugfix: mira could try to check physical presence of SCF data even for
+  non-Sanger reads
+
+
+3.1.11
+------
+- optimisation: memory pre-allocation routines for read growth help to get
+  down memory fragmentation and hence less memory requirement
+  overall. Especially noticeable in high coverage 454 sequencing or with
+  strobed PacBio reads.
+- bugfix: -CO:mr=no was not fully respected. While not used during contig
+  building, possible repeats were always marked in result files and then
+  tranferred to following iterations.
+- bugfix extendADS(): acquireSequences() could throw due to 0 length of a
+  sequence
+
+
+3.1.9
+-----
+- change: mira will stop immediately if it is launched with parameters that
+  suggest miraSearchESTSNPs should be used instead
+- bugfix: est assembly used genomic pathfinding routines instead of EST
+  routines, leading to more contigs with almost identical consensus.
+- bugfix: miraSearchESTSNPs pipeline for steps 2 and 3 did not load results
+  from previous steps.
+- bugfix: fastqselect.tcl script printed out the name of the firt read twice
+
+
+3.1.8
+-----
+- changed wiggle file: more info on strains in the description and smaller
+  files, using a stepping and span of 4 instead of 1
+- new script: fastqselect.tcl (like fastaselect.tcl, but works on fastq)
+- new 3rd party scripts by Tony Travis (qual2ball) and Lionel Guy
+  (caf2aceMiraConsed.pl) to simplify integration of MIRA assemblies in
+  Consed.
+- updated the 3rd party documentation "Instructions for scaffolding MIRA
+  contigs using paired ends" from Gregory Harhay
+
+
+3.1.7
+-----
+- changed method to remove old files which hopefully minimises the number of
+  files which fail to be removed during a run
+- test changes to adapt to >= 2^32 skim hits
+- adapted post-SW scoring for PacBio
+- fixed bug: array underrun in alignment code, introduced in 3.1.3 (don't I
+  love valgrind :-)
+
+
+3.1.6
+-----
+- changed automatic memory management to use all memory minus 15% instead of
+  of minus 10%.
+- speedup of SKIM when running in multiple threads: removed unecessary call of
+  a mutex lock (leftover from debugging code). Very noticable when running at
+  higher thread numbers.
+- bugfix: race condition in SKIM leading to wrong assessment of memory needs
+- bugfix: calculation for assessment of memory needs was faulty, leading to
+  similar problems as the race condition in SKIM above
+- workaround: mapping with data containing artificial reads with lengths of
+  several kilobases led to too high values for rail read length being
+  computed. Fixed by capping at 18kb.
+- temporarily switched off skim junk detection, it might be faulty at high
+  coverages
+
+
+3.1.5
+-----
+- bugfix: reading SSAHA2 data gave an error for Solexa reads beginning with a
+  'N' (now really)
+- bugfix: some SSAHA2 input files led to infinite loops
+- calculation of SW alignment score sped up very slightly
+
+
+3.1.4
+-----
+- bugfix: when read extension was used for any sequencing technology, it was
+  also applied for reads of technologies where read extension was not wished.
+- fixed compilation: new use of the stringcontainer could lead to a static
+  initialisation fiasco (dependent on linker used at compile time) and
+  subsequent crashes directly after start.
+
+
+3.1.3
+-----
+- added first support for PacBio
+- fasta2frag.tcl gets a mode to simulate strobed data
+- reduced hits reported by SKIM when a reads fully covers another. Especially
+  useful for hybrid assemblies of short / long reads.
+- slight improvement of SW parametrisation and alignment algorithm (for
+  strobed reads)
+- fixed error with read names when using mapping mode
+- fixed potential unwanted increase in memory consumption while loading SKIM
+  hits.
+- fixed compile problem of ./src/caf/caf_flexer.flex on CentOS
+- fixed small bug in ./configure.in where rescue values for BOOST paths were
+  not set correctly for some systems
+
+
+3.0.1 (backported from 3.1.2)
+-----------------------------
+This version fixes a few quirks and problems of the initial 3.0.0
+release, some of them leading to MIRA aborting or even hard crashes.
+
+MIRA also was a bit too picky in 3.0.0 for joining some reads. Due to changes
+and algorithm optimisation, there should be notable improvements in contig
+lengths (N50 etc.) in genome assemblies with bad data. In EST assemblies,
+chimera cutbacks are now disabled by default, leading to less cutbacks.
+
+Important note for users of sff_extract in paired-end projects: please switch
+to the newest version of sff_extract (>= 0.2.8) as the old ones contain a bug
+and do not reverse quality values for reverse reads.
+
+- changed SSAHA2 parser to allow for pathological case of empty vector names
+- changed method for average coverage estimation slightly to better cope with
+  extremely skewed distributions (seen in some EST data)
+- added workaround to allow usage of SSAHA2 screening data with Solexa reads
+- improved speed of pathfinder algorithm for repetitive 454 reads
+- improved concurrency of SKIM output, better use of available thread capacity
+- added method to propose smaller cuts at the end of reads in SKIM (-SK:asjdc)
+- added flags to control chimera cutbacks (-SK:ascdc) and junk cutbacks
+  (-SK:asjdc). On by default for genome assemblies, off for EST assemblies
+- increased speed of SKIM hit reduction for assemblies with long and short
+  reads (Solexa & ...)
+- improved handling of reads with problematic ends which could lead to
+  premature stop of contig building
+- reduced memory need for internal read structure. As part of this and only
+  user visible effect (if at all), the Staden-ID of CAF files is not supported
+  anymore
+- reduced memory needs for tags. Side-effect: slight speed improvement of
+  algorithms using tags
+- bugfix: consensus of Solexa bases only with N now results in N instead of a
+  space
+- bugfix: FASTA file with multiple equal read names now lead to MIRA stopping
+- fixed critical buffer overruns that could lead to weird errors or even to
+  MIRA crashing hard with segmentation faults
+- fixed the annoying "len1 or len2 == 0 ?" bug (turned out to be side-effect
+  of chimera clipping)
+- fixed error in SKIM parametrisation which could lead in some cases to long
+  run times, excessive memory consumption and data corruption.
+
+
+3.0.0
+-----
+
+The MIRA 3 versions are the result of a long development to make assembly
+of Sanger, 454 and Solexa (Illumina) data as easy and straightforward as
+possible while keeping a maximum accuracy.
+
+Another focus was to make it possible to use results from Solexa mapping
+projects in current finishing programs, not only viewers. MIRA introduces for
+that the notion of coverage equivalent reads (CER) which reduces the data
+volume by 70 to 90%. This allows painless use of of such data sets in gap4 and
+consed.
+
+A lot has changed since the 2.8.x series of MIRA, the following list has just
+a few highlights which came in during the 2.9.x series:
+
+- sequencing technologies: MIRA handles different sequencing technologies
+  independently from each other and has specialised routine for working with each
+  of them.
+- command-line parameters: MIRA has now a handful of "Do-What-I-Mean" one-stop
+  switches which allows to configure the assembler for 90% of all use
+  cases. Furthermore, many parameters can be adjusted for each sequencing
+  technology so that the assembly engine can be tweaked for very specialised
+  cases if needed.
+- all sequencing technologies (Sanger, 454, Solexa) have now
+  - recognition of chimeras
+  - new assembly routines to for improved repeat resolving
+  - improved data preprocessing that gets rid of low quality data and
+    sequencing errors at ends of reads ... even when no quality data is
+    available.
+- 454 data:
+  - fully developed capability for de-novo and mapping assembly of 454 data
+    (paired and non-paired)
+  - automated contig editor to remove most obvious and/or annoying sequencing
+    errors
+  - improved consensus calling streamlined to minimise the dreaded homopolymer
+    problem
+- Solexa data
+  - can handle Solexa data of any length, no restriction to very short
+    sequences.
+  - memory/space saving: MIRA has special mapping mode which creates data
+    so that widely used finishing tools like gap4 and consed can load these
+    projects and still be fairly quick
+- alignments enriched with features: MIRA adds information like repetitiveness
+  or repeat marker bases as tags in the assembly so that these can be used
+  during finishing
+- assembly information files: MIRA writes more information files which can be
+  easily parsed and/or read
+- mapping assemblies: MIRA has a full SNP analysis for prokaryotic data
+- comprehensive tables and HTML result files (mapping assembly): the
+  convert_project program can now create easy to use tables and HTML files
+  which show the data in a way suited for less computer-interested people
+  (biologists etc. :-)
+- memory management: MIRA can now be told to use an upper limit of RAM.
+- file formats: MIRA can now parse or write more file formats. Notable are
+  change from SSAHA to SSAHA2 for clipping, FASTQ for data input and MAF
+  format for output.
+- MacOS support: MIRA now compiles on MacOS-X
+- speed and memory: compared to 2.8.x, MIRA now uses way less memory and is a
+  lot faster.
+- tons of other features, tweaks and bug fixes. See the CHANGES_old.txt file
+
+
+2.9.59 (3.0.0)
+--------------
+- moved all output directories into one directory named <projectname>_assembly
+- added 3rd party documentation to distribution packages
+- mapping 454 reads in 'accurate' mode now does not automatically switch on
+  the feature to also build new contigs (which comes rather unexpected for
+  users and also completely changes runtime behaviour)
+- base jiggling in homopolymers should be further reduced (problem of 454
+  data)
+- added FASTQ as conversion target to convert_project
+- added quickswitch -noquality
+- renamed -LR:llc to -LR:lcc (corrected typo)
+- clip lowercases (-LR:lcc) now does not clip if all sequences to be clipped
+  contain just lower case
+- SNP evaluation routines now handle feature rich GenBank files more
+  gracefully.
+- streamlined tagging: in mapping assemblies, positions having received SNP
+  consensus tags now don't have less important tags denoting problematic
+  positions (UNSc, IUPc etc.)
+- improved alignment and consensus calling routines reduces homopolymer errors
+  in 454 data by ~30% - 60%
+- clearer error message from MIRA when FASTQ file cannot be loaded
+- changed behaviour of -CL:msvs to now load SSAHA2 data instead of SSAHA data
+- changed behaviour: MIRA now stops if it encounters input reads with no names
+- changed behaviour: backbone reads in mapping assemblies now count as normal
+  coverage.
+- changed behaviour: miraMem now calculates with Titanium average length of
+  400 instead of 475
+- changed behaviour: loading of Solexa data now defaults to "new" phred style
+  qualities (-LR:ssiqf=no)
+- changed behaviour: for Solexa data, MIRA now calls deletions more
+  aggressively when in a tie with another base.
+- changed behaviour: for Solexa data, MIRA now calls less IUPAC bases.
+- changed behaviour: the HAsh Frequency (HAF) tags are now set slightly
+  differently to show the potentially dangerous sites. Furthermore, HAF6 is
+  now defined as 'heavy' repeat, HAF7 as 'crazy'
+- changed naming of contigs with only repetitive sequence: now named *_rep_c
+  instead of *_lrc
+- fixed bug: automatically calculated values for -SB:bro and -SB:brl were a
+  factor 2 too low.
+- fixed bug: de-novo assembly with more than 8 strains led to MIRA stopping
+  where it should not.
+- fixed bug: log file "Edit.log" from the Sanger EdIt now created only when
+  really needed
+- fixed bug: --job=esps2 and esps3 failed to start because of flawed
+  default parameters
+- fixed bug: convert_project did not properly convert singlets into EXP files
+  ... the directory was not created.
+- fixed bug: convert_project -m replaced qualities of reads with '30' even if
+  those had been present in the input.
+- fixed automatic recognition of Sanger FASTQ format where some data sets led
+  to slightly offset quality values
+- fixed bug when pre-loading EXP files that contain quality values (thanks to
+  David Phillip Judge for mailing the bug ... AND the fix)
+- fixed small bug in loading EXP files with certain entries which went
+  unnoticed for 11 years *sigh*
+- fixed small bug in CAF and MAF output when gaps are present at the 3' end of
+  reads.
+- fixed bug that could lead to segmentation faults when calculating assembly
+  statistics info (thank you Valgrind)
+- fixed bug in how MIRA checked whether it runs in 32 or 64 bit.
+- fixed Trac bug #5 (sometimes error in transferContigReadTagsToReadpool())
+- fixed bug: in mapping assemblies, not all possible alignments of repetitive
+  parts reads where given back by SKIM
+- fixed bug: in rare cases (mostly projects without templates or paired-end),
+  MIRA joined repeats where it should not
+- fixed bug: in mapping assemblies with the option to build new contigs, MIRA
+  often preferred to make new contigs from reads that had a difference to the
+  reference sequence
+- fixed inconsistency in calculation of N50/N90/N95
+
+
+2.9.58 (aka V3rc4)
+------------------
+- MIRA now also compiles again on Apple Mac OSX (yay!)
+- scripts added to distribution: fixACE4consed.tcl, fastaselect.tcl and
+  fasta2frag.tcl
+- new clipping: clip lowercases (-LR:llc). Made for 454 data, but can be used
+  with other sequencing types, too.
+- MIRA now switches off automatic memory management when system information
+  cannot be gathered
+- change to get SKIM working on 31 base hashes also on 32 bit machines where
+  the compiler knows 64 bit data types
+- slightly changed messages for STDOUT log when writing cluster info to disk
+- added option "-r f" to convert_project
+- convert_project can now convert from and to MAF
+- changed -GE:gbmf to -GE:kpmf (sorry for the inconvenience)
+- miraSearchESTSNPs does not load "me_stepX.par" files anymore (it parses the
+  command line like normal mira now)
+- default parameters for miraSearchESTSNPs have been chaged in step 1 and
+  2. Notably, the automatic editor is switched of in step 1, but switched on
+  in step 2. Furthermore, both steps change from single pass/multi-loop
+  (-AS:nop=1:rbl=...) to multipass/multi-loop (-AS:nop=...:rbl=...) setup
+- fixed bug in automatic memory management where RAM allocated was actually
+  less than minimum asked for and could lead to disastrous assembly results
+- fixed bug that prevented recalculation of contig consensus when loading CAF
+- fixed bug in contig building where in rare cases a missed alignement led
+  to MIRA stopping
+- fixed bug that led to extremely long run times and suboptimal contigs in
+  rare cases
+- fixed bug that led to MIRA stopping in rare cases during mapping of Solexa
+  reads
+- fixed bug that led to MIRA missing internal functionality of merging short
+  reads after loading contigs from CAF or MAF
+- fixed segmentation fault in parsing the "--job" parameter when only "est"
+  was given
+- fixed bug that led MIRA want to load a file named ".maf" when trying to load
+  a CAF format.
+- fixed bug where loading of sequences in CAF failed as MIRA thought there was
+  no data in the file
+- added logfile to replay eventual errors during contig building
+
+
+2.9.57 (aka V3rc3)
+------------------
+- added -GE:amm:gbfm:mps as first trials for automatic memory management
+- added -FN:bbin for naming backbone input files
+- added -LR:wqf and -AS:epoq for more thorough checking of presence of quality
+  values, by default MIRA now stops if quality files are expected but not
+  found or when reads with no quality values are present in the assembly.
+- parameter parsing now checks that parameters that are specific for sequecing
+  types are in a correct section (SANGER_SETTINGS, 454_SETTINGS, etc.pp) and
+  that common parameters are in a COMMON_SETTINGS section. SANGER_SETTINGS is
+  now no longer an alias to COMMON_SETTINGS. Updated documentation to reflect
+  changes.
+- reduced number of memory allocations for Smith-Waterman alignments
+- estimator for internal memory usage got better
+- fixed bug in wrong parameter combination for --job=est assemblies
+- fixed bug in contig building routine that sometimes stumbled over IUPACs in
+  mapping mode ("logical error 2")
+
+
+2.9.56 (aka V3rc2hf3)
+---------------------
+- reduced memory needs of SKIM results for projects containing lots of small
+  reads combined with lots larger reads (i.e. Solexa + Sanger and/or 454)
+- fixed small bug in logfile tracking that stored too many copies of given
+  logfile names and unnecessarily gobbled up hundreds of megabytes of RAM for
+  projects with large numbers of contigs (*sigh*)
+- (for compiling) configure script now checks presence of expat
+
+
+2.9.55 (aka V3rc2hf2)
+---------------------
+- (for compiling) tweaked configure script to better handle cases with
+  programs/include files installed in non-standard locations
+- (for compiling) configure script now checks presence of flex++
+
+
+2.9.54 (aka V3rc2hf1)
+---------------------
+- changed loading of CAF files to behave more like other file types
+- fixed floating point error in miramem
+- (for compiling) removed unnecessary (and sometimes counterproductive) .flex.C
+  files from source distribution.
+
+
+2.9.53 (aka V3rc2)
+------------------
+- fixed bug in ACE output of consensus tags (had "C}}" instead of correct
+  "C}\n}" for closing tags)
+- fixed another bug in ACE output, this time read tags (forward tags were
+  sometimes written out in reverse)
+- re-enabled output of results as HTML. Not ideal, but works.
+- re-enabled "-t html" in convert_project
+- due to introduction of FASTQ as input format, the abbreviation switch for
+  naming FASTA quality input (-FI:fqi) needs to be renamed to
+  "-FI:fqui" as "-FI:fqi" now names FASTQ input files.
+- reduction of memory usage for cases where the possible_vector_clip is not
+  needed (memory is not allocated, default for all assemblies without Sanger
+  data)
+
+
+2.9.52 (aka V3rc1b2)
+--------------------
+- implemented aggressive memory saving for Solexa reads which reduces the data
+  stored per read base from 9 bytes to 5 bytes (45% reduction). The downside:
+  the result files which have alignment positions (CAF, ACE etc.) do not show
+  insertions and deletions anymore in the coordinates. I.e., edits cannot be
+  traced back.
+  As no other assembler has this info and no finishing program I know uses
+  this info anyway, I guess this is ok.
+- optimisation: MIRA now uses less memory constructing coverage equivalent
+  reads (mapping assemblies -CO:msr=yes)
+- bugfix: on large contigs with lots of reads, MIRA now uses significantly
+  less temporary memory for all mapping assemblies (e.g. 3GB less when mapping
+  6m Solexas)
+- compile instructions for NetBSD (courtesy of Thomas Vaughan)
+- re-activated and upgraded TCS output (transposed contig summary)
+- implemented "-a" parameter for convert_project
+- wrote documentation for the changes
+
+
+2.9.51 (aka V3rc1b1)
+--------------------
+- reduced overhead of reads by 32 bytes (on 64 bit architectures). That's
+  320Mb for 10m reads :-)
+- testing majority vote of 66% for gaps in consensus calling of 454 reads.
+  (NOTE: that code is is faulty as it always evaluates to true and sometimes
+  leads even to a division by zero error. Just disregard this version.)
+
+
+2.9.50 (aka V3rc1b)
+-------------------
+- bugfix: mixed FASTA and CAF loading works again
+- bugfix: "--<filetype>" now sets file type for all sequencing technologies as
+  intended.
+
+
+2.9.49 (aka V3rc1a)
+-------------------
+- bugfix: CAF loading works again
+- new tag: DGPc (Dubious Gap Position on Consensus). Set when the number of
+  gaps at a consensus position is between 40% and 60% of the next most
+  frequent base. E.g.: A/* = 10/7. But also when A/C/* = 9/10/7
+
+
+2.9.48 (aka V3rc1)
+------------------
+- bugfix for hybrid assemblies involving Solexa reads: some Solexa reads did
+  not make it into contigs
+- optimised SKIM reduction routine for hybrid assemblies involving Solexa: the
+  overlap graph generated uses less memory.
+- optimised SKIM/Pathfinder interaction for short Solexa reads (<60 bases,
+  longer reads were not that much of a problem) which allows better de novo
+  with Solexa.
+- major speed increase in pathfinder module for large de-novo assemblies with
+  millions of reads. E.g. 2 pass de-novo with 6m Solexa paired-end 36mers goes
+  down from 4 hours 20 minutes to ~2 hours.
+- major speed increase for hybrid assemblies involving Solexas in pathfinder
+  module: a 5 pass de-novo with 800k 454 reads and 3.3m Solexas goes down from
+  >1.5 days to 12hrs
+- reduction of memory needs for Solexa data (e.g. ~1.2GB for 7.3m Solexa
+  40mers). (There was an ommision of container capacity reservation since
+  2.9.44x1)
+- convenience change: -SB:brl:bro can now be set to 0 for automatic
+  determination of optimal values by MIRA in mapping assemblies (now
+  default).
+- convenience change: -AL:shme can now be set to 0 for automatic determination
+  of reasonable value (now default)
+- change for genome assemblies via quick switch: masking of nasty repeats is
+  now turned on, copy threshold at 100x expected frequency
+- change for genome assemblies with 454 data via quick switch: proposed end
+  clips now more stringent and enforces 27 instead of 17 bases clear space
+
+
+2.9.47
+------
+- small change in default parameters when using Solexa data (alone or hybrid)
+  to better adapt to larger difference to reference (mapping) or low coverage
+  (mapping and de-novo).
+- reworked small Solexa examples in minidemo directory (mapping and denovo)
+
+
+2.9.46x3
+--------
+- unified parameters for loading different sequencing technologies: added
+  --fastq, -LR:lsd:ft:fqqo and -FI:fqi; removed
+  -LR:lsand:l454d:lsxad:lsidd:sanft
+- MIRA can now load data FASTQ format, routines are courtesy of Heng Li at the
+  Sanger Centre. For Solexa data there's also an automatic recognition of
+  whether it's in Sanger, Solexa 1.0 or Solexa 1.3 format.
+- convert_project can subsequently also load FASTQ and gets an additional -o
+  parameter.
+- debris file does not contain same read name multiple times
+- for build process: moved check for isblank(3) to configure.in
+- new requirement for compiling: zlib
+- MIRA now gets compiled with -O3 by default on most platforms
+- further changes to configure script to allow correct compilation of 64 bit
+  on platforms that compile with 32 per default
+- MIRA confirmed to compile on OpenSolaris with BOOST (yay!)
+
+
+2.9.46x2
+--------
+- some more tweaks to ./configure (better lex/flex handling, better expat
+  recognition, more chatty in case of boost problems)
+
+
+2.9.46x1
+--------
+- just some tweaks in the build process to fix reported problems during
+  compilation or linking
+
+
+2.9.46
+------
+- updated major parts of the documentation for anything related to using
+  Solexa reads
+- new help file on how to assemble 'hard' genomes (mostly geared towards
+  eukaryotes, but some prokaryotes also have a tendency to be nasty)
+
+
+2.9.45x4
+--------
+- removed testcode that limited coverage to 5000x, now back to theoretical
+  limit of 16383x.
+- reactivated "html" as convert option for convert_project.
+- activated "asnp" and "hsnp" as convert option for convert_project.
+- removed dumping of debug information when using -t asnp or hsnp in
+  convert_project
+
+
+2.9.45x3
+--------
+- tuning of repeat detection for Solexa reads leading to less false positive
+  repeat markers for typical Solexa miscalls
+- tuning of base calling for Solexa reads leading to less IUPAC bases at
+  places with typical Solexa miscalls
+
+
+2.9.45x2
+--------
+- Probable fix for compiling src/mira/dataprocessing.C on Red Hat systems
+  (inclusion of BOOST header file)
+- fixed configure script to better differentiate between a working BOOST
+  environment and a possibly problematic one
+- improved ACE output for tags containing comments
+
+
+2.9.45x1
+--------
+- fixed bug where a mapping assembly of 454 or Sanger sequences led to
+  segmentation faults in some cases (*sigh*).
+- fixed bug in output of assembly as HTML or TEXT format where only 21 bases
+  of each contig were given (some test code had not been removed)
+- fixed bug where MIRA sometimes cut back some backbone rails it thought to be
+  possible chimeras. This could happen for organsism that are further apart
+  from each other than just a few SNPs here and there. While this had no
+  effect whatsoever on the assembly, it still was something of an unclean
+  thing.
+- test for consed compatibility: added newlines in ACE files to read and
+  consensus tags
+
+
+2.9.45
+------
+- to accomodate the Solexa paired-end naming scheme, CAF files now allow the
+  "/" character in identifiers (like read names).
+- SK:rt has been renamed to -SK:nrr and the meaning has changed (please read
+  changed documentation). This gives an easier control in handling of
+  repetitive sequences.
+- skimming for nasty sequences (-SK:mnr) now uses the same algorithms as
+  -CL:pec which are faster and better than the old ones.
+- new parameter -CL:pecbph
+- SKIM3 now removes some massive temporary files from the log directory
+- MRMr tags renamed MNRr
+- updated support files GTAGDB and consedtaglib.txt
+
+
+2.9.44x7
+--------
+- speed up of SKIM hit reduction. Important for large eukaryotic assemblies or
+  de-novo prokaryotic Solexa assemblies, reducing the time of that step from
+  several hours to under one hour or even minutes.
+
+
+2.9.44x6
+--------
+- added "solexa" as naming scheme to -GE:rns (using "/1" and "/2" to
+  distinguish forward and reverse reads
+- added -GE:crhf to color reads by hash frequency. Very handy for
+  finishing. Needs tags "HAF0" to "HAF7" to be defined for gap4 (or consed or
+  other finishing tools)
+- new log file: "miralog.usedids" which logs all reads (after clipping etc.)
+  which go into contig assembly
+- statistics regarding the read pool are now printed out after all operations
+  that might change read lengths (read extension or clipping)
+
+
+2.9.44x5
+--------
+- added unpadded read position to "*_info_readtaglist.txt"
+- -SK:pr can now be set individually by sequencing technology
+
+
+2.9.44x4
+--------
+- bugfix in chimera search: some chimeras were not recognised, this has been
+  fixed. Downside: a few more reads that are not really chimeras or were the
+  info is inconclusive are now categorised as such. Should however have no
+  influence on the assembly itself.
+
+
+2.9.44x3
+--------
+- change of parameter: the "--noclipping" now takes optional technologies to
+  which it should apply. E.g.: "--noclipping=454,solexa". "--noclipping" is
+  equivalent to switching off all technologies.
+- speed optimisation in pathfinder for de-novo assemblies with Solexa and
+  SOLiD.
+- bugfix: fixed some pathfinder logic where sequencing errors in repetitive
+  areas led MIRA to perform alignment of reads it shouldn't have.
+- bugfix: setting -SK:mchr to values >4095 led to am integer overflow and
+  subsequent poor assemblies ... or no assembly at all
+- bugfix: when using Solexa CER mappings on multiple backbone sequences, the
+  numbering scheme led to illegal CAF files (and hence illegal gap4 databases)
+- bugfix: division by zero error in statistics calculation of empty read pools
+
+
+2.9.44x2
+--------
+- speed optimisations in new assembly engine. 5x-10x speed improvement for
+  large contigs compared to 2.9.44x1
+- increased threshold for megahub detection (not sure whether it's a good
+  decision, must test)
+- for 454 assemblies, adapted -AS:nop down to 4 for normal and 5 for accurate
+  mode (improved repeat resolver and taking FLX reads as quality standard
+  allows for this)
+
+
+2.9.44x1
+--------
+- major change of assembly engine, geared towards "100% certain" contigs
+  without misassembly. May lead to shorter (albeit better) contigs when no
+  paired end reads are used, but leads to longer contigs for paired-ends.
+  Currently very slow for large contigs (>150k reads)
+- more lenient treatment of megahubs in SKIM. If possible, only skims with
+  non-repetitive parts of other reads are taken.
+- added searches dedicated to hunt chimeras. This was necessary as new
+  assembly engine is more prone to falling into chimera traps than the old
+  one.
+- further improved HTML output of SNP surrounding
+- SKIM now honours the -AL:mo values (minimum length of overlaps) and rejects
+  overlaps below these values (important for de-novo of short reads)
+- routine loading Sanger type data now gives a clearer error message if the
+  file type given in -LR:snft is unknown
+
+
+2.9.43
+------
+- fixed bug in new -CL:pec routines that led to a core dump (struck only in
+  cases where not a single overlap appeared in the whole project)
+- clarified docs regarding usage of ssaha(1)
+- fixed problem leading to long run times and high memory requirements when
+  masking of nasty repeats (-SK:mnr) was used on high coverage genomes (100x)
+
+
+2.9.42x1
+--------
+- improved HTML output for resequenced genomes
+- slightly improved logging of values when loading FASTA data
+- added /proc/meminfo as dump in memory self assessments
+
+
+2.9.42
+------
+- renamed "miraEST" to "miraSearchESTSNPs"
+- internal changes to get the miraSearchESTSNPs pipeline working again in the
+  2.9.x line (alpha test)
+- bugfix: loading FASTA projects containing more quality entries than sequences
+  led to core dump
+- rewrote -CL:pec routines. Faster, and fixes errors of old version.
+- change: contigs with only Solexa reads do not trigger editing of contig
+  (temporary trial)
+- first tests of new statistics module
+- memory needs increased by 24 byte per read (12 byte on 32 bit systems) and
+  one byte per raw read base
+- changed default setting of poly-AT length from 10 to 12
+- internal version only. Migration to gcc 4.3.2 partly done.
+
+
+2.9.40
+------
+- new parameter: -SK:mchr to cap maximum memory in hit reduction
+  algorithm. This is experimental and will need some refining.
+- when no clean ends are found by proposed cutbacks, the reads are completely
+  removed from the assembly. This eliminates short reads (i.e. Solexa) with
+  too many errors and which aren't really useful anyway.
+- Using -AL:shme led to a parsing error. Fixed.
+- Solexa reads now do not need anymore a minimum left clip to be set, this is
+  handled internally
+- miramem now gives a better estimate for mapping of Solexa reads (the old
+  values were way too high)
+- miramem no tries to split memory needs into "unavoidable" (for sequencing
+  data etc.) and "tunable" (via a number of parameters)
+- -SB:bbq now defaults to '30'
+- most error messages now dumped to STDOUT instead of STDERR
+
+
+2.9.39
+------
+- in mapping assemblies, repetitive reads are now distributed evenly and not
+  stochastically distributed over the backbone repeats
+- mapping assemblies with Solexa now have some adjusted default parameters for
+  "normal" and "accurate" levels. They run a bit slower but will squeeze a
+  maximum out of your data.
+- read clustering now temporarily needs more memory, but runs in a few seconds
+  instead of hours for projects with 10 million reads
+- new parameter -AL:shme (a temporary hack to handle Solexa reads more
+  thoroughly)
+- to counter a current defficiency of the Solexa technology, a new clipping
+  filter for Solexa data now filters out reads that have stretches of 20 or
+  more "A" bases or stretches of 12 or more "A" bases and more than 80% "A" in
+  total.
+- on "out-of-memory" errors, MIRA now dumps a self assessment on where the
+  memory went to get an idea what really happened. Note 1: this is bound to
+  happen only with eukaryots or on very small machines. Note 2: development
+  versions of MIRA by default dump some assements also during the assembly.
+- documented -OUT:sssip:stsip (which appeared in 2.9.12, my apologies)
+- changed documentation for 454 assembly to point at publicly available data
+  instead of the spneu project (which put too much strain on my website).
+- renamed -CL:prc to -CL:pec to reflect it's use on both ends of a read
+
+
+2.9.38x1
+--------
+- -CL:prc now also clips left (will have to rename that option). This catches
+   very efficiently vector leftovers in Sanger reads and adaptor leftovers in
+   454 reads (which also can occur there).
+- -CL:prc now also clips when a non-ACGT base is at the ends
+- bugfix: saving as gap4 directory did not save the first contig due to wrong
+  handling of directory creation.
+- bugfix: convert_project now sets the minimum coverage to 1 to circumvent a
+  quirk in the computation of "Large contigs" of the assembly info
+  display. Better fix in the future.
+- version 1a: testing new pathfinder algorithm enabled
+
+
+2.9.37
+------
+- new option: -CL:prc (propose right clip). This is a new strategy to ensure a
+  good "high confidence region" (hcr) in reads, basically eliminating all junk
+  at the 3' end of reads. Extremely effective, but should not be used for very
+  low coverage data or for EST projects.
+  This option is now default for genome assemblies in "normal" or "accurate"
+  mode.
+
+
+2.9.36
+------
+- renamed -AS:urdufrd:urdrdct to -AS:ard:ardct
+- added -AS:ardml:ardgl. This allows for a better control of which reads are
+  defined as repeats.
+- added -AS:klrs. Needs testing is not switched on by default.
+- bugfix: number of large contigs was reported too high in the report of the
+  assembly ... because of a really dumb bug in the statistics calculation
+  routine. This had no effect on the assembly itself, just on the
+  *_info_asembly.txt report and also on the summary given after the usage of
+  "convert_project".
+- bugfix: SSAHA clips were wrongly logged to file
+- change: log file with clips more verbose
+- change: 454 reads without explicit forward/reverse naming scheme
+  (e.g. "somename" instead of "somename.f") are now considered to be forward
+
+
+2.9.35x2
+--------
+- when running the SKIM in parallel threads, MIRA can give
+  different results when started with the same data and same
+  arguments. The effect is now reduced (it is still present), but at the price
+  of a table loaded after SKIM ran through now being 25% larger, but this can
+  not be helped.
+- a few fixes in "convert_project" to allow conversion of assemblies in CAF
+  format into clippedfasta and maskedfasta (was previously allowed only for
+  single reads)
+- typo fix: -OUT:rrol:rld were shown as sequencing type dependent while they
+  are not.
+
+
+2.9.35x1
+--------
+- CAF files with 454 data now contain the necessary info to allow gap4 opening
+  the flowgrams. Works only for reads that are NOT paired-end.
+- slight tweak in the pathfinder that should enhance the assembly with
+  paired-end in a few cases
+- changed sff_extract so that it runs again with the Python 2.4 series
+
+
+2.9.34
+------
+- bugfix: fixed bug while reading quoted text for "Clone", "Staden_id" and
+  "Template" lines in CAF. This affected mostly users of convert_project and
+  users using CAF as input format for mira.
+
+
+2.9.33
+------
+- new output file: wiggle (-OUT:orw). Can be loaded into the IGB viewer
+  together with a GFF or FASTA of the backbone sequence(s). Very useful for
+  resequencing experiments / mapping assemblies with 454 / Solexa data, when
+  the "view coverage" of gap4 gets really really slow.
+- convert_project can now convert to multiple targets at once (multiple -t)
+- fixed wrong reporting of 454 reads without clips in the statistics display
+  after loading of reads.
+- improved sff_extract to handle paired-end reads, rewrote 454 manual to
+  reflect this.
+
+
+2.9.32
+------
+- tweak: --job=...,est,... now switches off -CL:emrc per default
+
+
+2.9.31
+------
+- reworked info file for contig statistics: contig lengths are reported for
+  the ungapped contigs; added GC content (removed A/C/G/T counts); format is
+  now more easily readable but can still be easily parsed.
+- fixed bug where reads with very short "good" parts could loose ther right
+  vector clip when using -CL:emrc
+- bugfix: progress indicator for files >2GB did not work correctly
+
+
+2.9.30
+------
+- added warn message if skim was parametrised in a way that make it run slow
+- optimised some input/output of temporary files to be faster (using C instead
+  of C++ functions *sigh*)
+- name scheme of reads now allows for ":" in names (to accept the original
+  Solexa name scheme)
+- tweak: a mapping assembly that has Solexa will now generate filter more
+  strongly during the SKIm pahse, saving some memory afterwards in the whole
+  assembly
+- bugfix: -AS:bdq did work only with partial FASTA quality files, not with
+  empty or non-existing files
+- bugfix: marking repeats of Solexa reads did not completely honour -CO:mrpg,
+  fixed
+- bugfix: when performing Solexa mappings, MIRA sometimes created almost empty
+  CER (coverage equivalent reads) without strain information.
+
+
+2.9.29x6
+--------
+- tweak: adjusted parameters for Solexa mapping to be more lenient in
+  alignments
+- bugfix: --noclipping now also correctly switches of -CL:emrc
+- bugfix: --job in parameter files was still not correctly parsed in some
+  cases (bug in flex *sigh*)
+- bugfix: threaded skim sometimes did not exit when given less sequences
+  than threads*5000
+
+
+2.9.29x5
+--------
+- removed the "sffinfo2mirafiles.tcl" script from the
+  distribution. "sff_extract" from Jose Blanca (in the 3rd party package) is
+  taking over this part: more versatile, faster and removes the need of for
+  the sff* tools from Roche.
+- MIRA now stops if the ratio of megahubs is larger than -SK:mmhr
+- tweak: EST mode now does not enforce minimum right clip per default
+- new tag: MCVc (Missing CoVerage in Consensus). Set when a strain has no
+  coverage (previously UNSc and UNSr were set, now they are set only when
+  'unsure').
+- bugfix: non-paired-end 454 data read from CAF was not recognised as
+  non-paired-end during -CO:emrc, fixed.
+- bugfix: --job in parameter files was not correctly parsed
+- bugfix: when -OUT:sssip was used, parts of the singlets were still assigned
+  to the debris file.
+
+
+2.9.29x4
+--------
+- the cutback strategy for 454 reads introduced in 2929x1 has been eased a
+  bit: paired-end reads do not get cut back and if read lengths would fall
+  below the minumum required length, they don't get cut back neither.
+- bugfix: the bad sequence search was not performed if the minimum left clip
+  was set to "no"
+- MACHINE_TYPE, PROGRAM_ID and STRAIN are now read from TRACEINFO XML files.
+- fixed a couple of bugs that led to an abort of MIRA when writing SNP files.
+  Bug struck only on very rare boundary cases.
+
+
+2.9.29x3
+--------
+- implemented a couple of memory reduction strategies for the read
+  objects. This reduces overhead of every read by almost 30% (264 instead of
+  368) and additionally saves memory of cached values (strain, basecaller,
+  machine type, paths etc.). This should also reduce memory fragmentation a
+  bit.
+  In a typical 454 project with 1 million reads, this amounts to 208-400 MB
+  savings of RAM.
+- miramem now knows about 454 Titanium reads
+- convert_project has new command line parameter: -r
+
+
+2.9.29x2
+--------
+- additional algorithms to search and mark repeats marker bases that existing
+  routines missed in 454 data.
+
+
+2.9.29x1
+--------
+- MIRA now uses full overlap graph repeat resolving algorithms which leads to
+  better and quicker resolving of repeats in bacteria. May be slower for
+  eukaryotes, more tests needed.
+- new clipping options: -CL:emrc:mrcr:smrc
+- for 454 reads, MIRA now follows a strategy of cut back first (-CL:emrc),
+  uncover afterwards via read extension. Highly recommended.
+- default parameter -CO:mrpg=5 for repeat marker base detection in 454 data was
+  to lax, changed back to 4.
+- fixed bug: when mapping microread data (Solexa, SOLiD), -SB:sbuip was
+  wrongly interpreted and de-novo algorithm started instead of mapping
+  (error introduced in 2.9.28x4)
+- change: when not being able to delete a temporary log file, MIRA now gives
+  a warning but does not abort
+
+
+2.9.28x7
+--------
+- added quality information of consensus sequence to output of CAF files.
+
+
+2.9.28x6
+--------
+- Premiere for MIRA: multi-threading makes its appearance. At the moment only
+  for the SKIM algorithm as it's the easiest part and no adverse effects
+  are expected.
+  New parameter -SK:not is for controlling the number of threads.
+- Test: MIRA now saves more information on failed alignments to build a better
+  overlap graph in following passes. The overall assembly quality gains, but
+  memory consumption rises unpredictably. This may become a problem for highly
+  repetitive genomes of eukaryotic size. To be monitored.
+- the rawhashhit log file is not written anymore as it was useful only for
+  debugging and just ate memory and time of SKIM.
+- bugfix: the new read mapping chooser sometimes led to an abort() of the
+  process (error introduced in 2.9.28x4)
+
+
+2.9.28x5
+--------
+- renamed 'est_splitsplices' of the -AL:egpl parameter to 'reject_codongaps'
+- when 454 data is used via the --job=...,454,... switch,
+  -AL:egp=yes:egpl=reject_codongaps are now set for *all* technologies
+
+
+2.9.28x4
+--------
+- first version which allows Solexa de-novo. Albeit *very* slow at the
+  moment, do not use for anything else than bacteria (1 week of computation or
+  more, sorry).
+- new functionality: MIRA now marks IUPAC positions in the consensus as tag
+  "IUPc"
+- the info_assembly.txt file now gives info on the number of positions in the
+  consensus where sequencing methods disagree.
+- bugfix in clipping: when reads have no ancillary data (and this no good left
+  clip), the clipping of bad quality stretches could lead to the complete read
+  being clipped if the bad quality on the left was long enough
+- bugfix: for 454 data, -CO:mrpg and -CO:mgqrt were not honoured but some
+  fixed values used instead.
+- bugfix: average total coverage of contigs was wrongly reported in statistics
+  and furthermore only as integer, not as double
+- bugfix: -OUT:sssip:stsip could not be set for sequencing technologies other
+  than Sanger.
+- optimisation: when mapping against multiple backbones, reads will now be
+  mapped to the best matching backbone instead of suboptimal mapping to
+  backbones earlier in the list.
+
+
+2.9.28x3
+--------
+!!!! Do not use this version with Solexa data, some code changes are not
+  completed !!!!
+- changed graph pruning algorithm to work less aggressively so that
+  454/Sanger hybrid situations, where there's a low Sanger coverage (0.5x to
+  2x), now should work better than before
+- fixed bug in assembly info which led to wrong information being displayed
+  which struck when using 454 data
+- reduced memory requirements of one of the main overlap storage tables by
+  10%
+
+
+2.9.28x2
+--------
+- fixed ugly bug in new assembly info routines that led to an abort of the
+  assembly.
+
+
+2.9.28x1
+--------
+- new file in *_info directory: <projectname>_info_assembly.txt. This file
+  gives basic information on how the assembly went (assembled reads, contig
+  sizes, N50/N90/N95, coverage, qualities, possible problems)
+- convert_project now dumps the same info as above on CAF input
+- for EST assemblies: -job=est now uses per default a poly-AT clipping that
+  preserves the poly-A/T signal
+- for EST assemblies: renamed -GE:ess to -GE:esps
+- for EST assemblies: added -job=esps[1-3]
+- made tagsnp working again (for testing)
+
+
+2.9.27x2
+--------
+- new parameter to force consensus to be A, C, G or T and not a IUPAC
+  code (-CO:fnicpst)
+- enhanced handling of partly masked reads.
+- implemented alternative SKIM repeat threshold calculation to deal with
+  highly repetitive eukaryotes (temp. fix, needs revisiting later)
+- temporarily took out default -SK:mnr again
+
+
+2.9.27x1
+--------
+- fixed bug in ACE output which was introduced in 26x6
+- fixed small bug when "--job=mapping" was used (introduced in 2924x3)
+- activated SKIM routines to mask nasty repeats, added -SK:mnr:rt
+- massively reduced disk usage as MIRA can now remove unused log files and the
+  complete log directory on request (added -OUT:rrol:rld)
+- started documentation for log files written by MIRA
+
+
+2.9.26x6
+--------
+- fixed bug in output of read and consensus tag comments in ACE files
+- fixed bug in output of BS lines of ACE files
+- added error messages naming the faultive read during loading of CAF files
+- added -AS:urdcm:urdufrd:urdrdct
+- while building contigs using backbones, MIRA now tries to guess memory usage
+  and uses preallocation to reduce memory footprint. Though the guesstimate
+  may be wrong a few times which then leads to increased memory usage.
+- added tag type MRMr (MIRA Repeat Marker)
+- SKIM now honours "MRMr" and "FPaS" tags in reads and does not use these
+  stretches to find potential overlaps.
+- SKIM now adapts dynamically hashes it needs to save to non-ACGT bases
+  occurring in sequences. This leads to slightly improved detection of possible
+  overlaps in sequences with "N" or other IUPAC codes
+
+
+2.9.26x5
+--------
+- fixed bug that was introduced in 26x2 where sometimes during a mapping
+  assembly, all contig positions were tagged as unsure.
+- fixed bug that -FN:xtii could not be set for sequencing types other than
+  Sanger.
+- fixed bug: quality clip and clip of masked bases were performed for all
+  sequencing technologies even when only one requested it.
+
+
+2.9.26x4
+--------
+- added log file for clippings on load
+- fixed bug for minimum left clip function
+- fixed small bug in "make install"
+- testing new workaround for linking on MacOS X (10.5) *sigh*
+
+
+2.9.26x3
+--------
+- fixed nasty misconfiguration: --job=accurate,454 did not switch on 454
+  editing
+- fixed nasty misconfiguration: --job=est,454 did not use optimal
+  parametrization for 454 EST data
+
+
+2.9.26x2
+--------
+- major change for mapping assemblies: strains that do not cover the backbones
+  will get the '@' as consensus character. This also appears in result files
+  (FASTAs) specific to the different strains! Therefore, some post-processing
+  may now be needed.
+- revamped and improved strain difference analysis routines (for mapping
+  assemblies)
+
+
+2.9.26x1
+--------
+- tweaked consensus routines for hybrid assemblies
+- added the St. Louis read naming convention as read naming scheme
+  (-LR:rns=stlouis)
+- updated and expanded some docs (mira manual, usage and 454)
+- paired-end reads that have a partner now do not get thrown out at the
+  beginning of the assembly on the minumum length criterium (-AS:mrl). This is
+  to accomodate 454 paired-ends where one read of the pair sometimes might be
+  really, really short. Same thing applies for Solexa.
+
+
+2.9.25
+------
+- fixed small bug for mapping assembly: reads smaller -PF:bqoml were not
+  mapped at all.
+- the automatic error editing routines for overcalls for new sequencing
+  technologies data previously worked only with 454 data. They now edit in the
+  following combinations:
+    1) 454 only
+    2) Solexa only
+    3) Hybrid assembly of Sanger with (454 and / or Solexa)
+       or 454 with Solexa
+- the contig statistics file now contains a column for non-covered backbone
+  positions (important for backbone assemblies)
+- fixed small bug: sometimes singlets were saved in projects even when not
+  requested (-OUT:sssip:stsip)
+- fixed anoying bug: MIRA (and "convert_project" lost information about
+  backbones or merged short reads
+- -OUT:sssip:stsip can now be set dependend on sequencing technology
+- fixed bug: Solexa consensus sometimes chose the wrong base in cases of
+  conflict
+
+
+2.9.24x3
+--------
+- added switches and documentation for uniform read distribution
+  (-AS:urd:urdsip).
+- improved uniform read distribution a bit and made it default for genome
+  assemblies (when there is no Solexa data, not tested on that yet)
+- added "miramem" as program call to help estimate memory needed for an
+  assembly
+
+
+2.9.24x2
+--------
+- test version with trial for uniform read distribution
+- fixed bug that led to MIRA aborting contig assembly in rare cases (triggered
+  through quite repetitive sequences). Bug was introduced after 2.9.17.
+- take back too daring optimisation for Solexa mappings (did sometimes not map
+  important data)
+- merged short reads now get strain information attached (only one strain at
+  the moment)
+- added -m to convert_project
+
+
+2.9.24x1
+--------
+Bugfixes/tweaks when using more than one strain (bringing back and improving
+functionality that was lost in the 2.8.x -> 2.9.x changes)
+- added -SB:bsnffa:brfs
+- added --notraceinfo quickswitch
+- bugfix: searching for SNPs now only done when having multiple strains in
+  assembly
+- testing: now also setting tags for "weak" SNPs (for catching indels with 454
+  reads)
+- bugfix: now correctly aligns Solexa reads on backbones containing gaps (as
+  encountered in CAFs when using a given strain as rail constructor).
+- a few more bugfixes and tweaks concerning assembly with multiple strains
+- tweak: gap2caf sets "clone" information to 'unknown'. MIRA now treat this as
+  "not set" instead of having an additional "unknown" strain.
+
+
+2.9.23
+------
+- fixed bug that led to quality clipping even if -CL:qc was no in cases the
+  clip to masked characters (-CL:mc) was active
+- fixed bug that made convert_project "forget" to write strain info back to
+  caf
+
+
+2.9.22x4
+--------
+- improved again tagging of SNPs when using multiple strains and sequencing
+  technologies (now also adds "medium" SNPs)
+- fixed bug that sometimes led to additional rounds of repeat disentangling
+  alignments not being called
+
+
+2.9.22x3
+--------
+- tweaked/improved Solexa base calling
+- improved tagging of SNPs when using multiple strains and sequencing
+  technologies
+- added "-noclipping" quickswitch that switches of every clipping option
+- added "-lowqualitydata" quickswitch
+- added "-notraceinfo" quickswitch
+- added -CO:mroir
+- changed tagging/clipping of poly-A signal to perform as full blown clipping
+  routine. Renamed -DP:tpae and related options to -CL:cpat and related
+- bugfix / fallout from changes in 2.9.20x1: the clipping routines for the
+  following options now honour the sequencing technology specific settings:
+  -CL:msvs:emlc:bsqc:qc:mbc:cpat
+- bugfix: -OUT:oet* is now working again
+- bugfix: when using multiple strains, the new consensus routine sometimes
+  returned '?'.
+- re-activated "miraclip" (needs testing)
+- re-activated "mirapre" (needs real testing)
+- documented -CL:bsqc
+- brought most of the main documentation up-to-date to 2.9.22
+
+
+2.9.22x2
+--------
+- tweaked routines for calculation of Solexa consensus
+- bugfix: statistics calculation of Solexa data was not correct in 2.9.22x1
+- small fixes around the code
+
+
+2.9.22x1
+--------
+- added support for simple forward / reverse read naming scheme
+- fixed bug in template strand assignment for Sanger read naming scheme
+- revamped contig statistics in logfile (info file will follow in future)
+- renamed "RT=" to "ST=" in MINF read tags
+- changed sequencing technology "454GS20" to "454GS" in MINF tags
+
+
+2.9.21
+------
+- speed improvement of the SKIM algorithm when only mapping reads to (a)
+  backbone(s). Reduced complexity from quadratic to linear, SKIMing a few
+  millions Solexa reads against a backbone now just takes a few minutes
+  instead of one hour or more.
+- speed improvement of mapping phase, mapping a few million Solexa reads now
+  takes a few minutes per round instead of hours.
+- automatic Solexa read clip back mechanism activated that honours the quality
+  of mismatches as well as the necessity of having all data at the given
+  mapping place.
+- added a small hack to be able to use the full Solexa read length and still
+  hide the MINF tags in GAP4: reads now get a ´N´ added as first base
+  just to get clipped away in quality clipping (MINF tags should be replaced
+  by notes when I have time to do that)
+- the CAF loader now gracefully handles sequences without quality values
+  (although this should not happen) by setting default qualities
+- tweaked standard parameters for the different read types
+- small fix to make .ace files immediately readable by consed
+- a number of smaller bugfixes (like correcting typos etc.pp)
+
+
+2.9.20x2
+--------
+- bugfix of a rare error during alignment of reads to contig (new from
+  2.9.19x1)
+- can now load Solexa quality scores in FASTA quality files and convert them
+  to phred-style quality values (new parameter -LR:ssiqf)
+- statistics of reads in assembly are now given for each sequencing type
+  separately
+- added COMMON_SETTINGS as alias to SANGER_SETTINGS, should help to clarify
+  things a bit in parameter files
+- removed -horrid
+- replaced STRM tags with STMS and STMU
+- added possibility to set different input / output project names
+  (-projectin= and -projectout=), the (still existing) -project= is simply a
+  combination of in/out
+- improved repeat tagging when different seqencing technologies are involved.
+
+
+2.9.20x1 (do not use with Solexa data)
+--------------------------------------
+- major rework of parameters information display, no separate info for each
+  sequencing type is shown where appropriate
+- added SANGER_SETTINGS, 454_..., SOLEXA_..., SOLID_... This allows to set
+  all parameters for all sequencing types in one file (or the command line).
+  Or distribute the settings across different files, whatever one wants.
+- removed hack to load parameters specifically for 454 data (file
+  "454params.par") as functionality is given by the ..._SETTINGS above.
+- new -LR category (merged -454 and -SR, together with some -GE)
+
+
+2.9.19x1 (do not use with Solexa data)
+--------------------------------------
+- fixed minor bug that led to bases sometimes being aligned more against
+  gap columns than against consensus bases
+- minor changes in quality computation towards end of reads
+- changed quality computation for consensus with multiple sequencing types:
+  now not best quality only, but additive quality
+- fixed bug when computing Solexa only consensus (appeared in 2.9.18)
+
+
+2.9.18
+------
+Preparing for simple Solexa / SOLiD mapping assembly:
+- added -SR
+- added -PF:bqoml
+- added -SB:bro
+
+- fixed bug that led to inclusion of 100% potential overlaps smaller than
+  minimum allowed overlap (had probably only very small effect on assemblies)
+  Bug appeared in 2.9.17 (SW not being recomputed).
+
+
+2.9.17
+------
+- improved template handling: TRACE_END is now read from TRACEINFO XML
+- improved template handling: "Strand" is now read/written from/to CAFs,
+  leading to correct information in Staden projects when caf2gap is used
+- increased speed of SW alignment phase: perfect matches are not computed
+  again. Saves 50-70% of SW alignments for a typical project with 454
+  GS20 data, with Sanger data it's still ~25%.
+- increased speed of adding aligned reads to contigs. Important for contigs
+  >50k reads, saving ~20-30% time.
+- fixed bug in routine that should have sped up endgame of an assembly (came
+  in in 2.9.14b) but led to inconsistent exclusion of reads.
+- added hack to load parameters specifically for 454 data (file
+  "454params.par") (later removed in 2.9.20x1)
+- (internal: added timing measurements for contig and pathfinder objects to
+  search for unfriendly runtime behaviour)
+
+
+2.9.16x1
+--------
+Experimental version for improved hybrid assemblies
+- fixed bug that led to short contigs when performing a hybrid assembly with
+  low Sanger coverage
+- added -PF:uqr:qrml1:qrms1:qrml2:qrms2
+
+
+2.9.15
+------
+- fixed bug in SequenceVector handling of CAF reading routine that was
+  triggered by 454 type data
+
+
+2.9.14b
+-------
+- rewrote large parts of the 454 assembly tutorial
+- reworked the spneut4demo_assemblies package
+- added "sffinfo2mirafiles.tcl" script to the distribution
+- adapted a few internal parameters for 454 assembly (a bit more stringent,
+  uses a bit less memory and is slightly faster), using similar standard
+  parameters as Newbler.
+- routine to speed up of endgame of an assembly: intermediate singlets are
+  converted into debris. Speeds up assembly of SpneumoniaeT4 with a 7-3
+  scheme from ~47hrs to ~21hrs runtime.
+- de-activated old reads-only editing routines (-454:soer:soemq)
+- renamed -FILE (-FI) to -FILENAME (-FN) to reflect internal structure
+- fixed output file name of miraclip to name given in parameters (or
+  constructed from project name)
+
+
+2.9.14a
+-------
+Feature freeze for 2.9.15 (target: mira easily usable for 454 and 454 /
+Sanger)
+- moved -CO:dismin:dismax to -AS:tismin:tismax
+- change in behaviour: template insert sizes now do not get assigned anymore
+  by default, only on request (-AS:tismin:tismax being unequal to -1). That
+  is, reads that do not have this information as ancillary data will not get
+  default insert sizes assigned unless expressedly wished so.
+  This fixes the bug of 454 reads without template information getting insert
+  sizes assigned.
+
+
+2.9.14
+------
+- new parameters -CLIP:bsqc*
+- fixed bug: multicopy reads were not detected after early SKIM phase (present
+  since 2.9.12)
+- small adaptions for SKIM hit reduction for 454 only assemblies
+
+
+2.9.13
+------
+major adaptation and feature enhancement of convert_project to changes after
+2.9.8 (not finished, but useable again)
+
+- bugfix: convert_project and other tools now keep name of contig and do not
+  rename this to stdname_... anymore
+- bugfix: convert_project and other tools now do not recalculate the consensus
+  when loading from CAF. Note however that consensus qualities must be
+  recalculated when they are not stored in CAF files. This recalculation may
+  lead to slightly different quality values.
+- convert_project and other tools now keep order of reads when writing back to
+  CAF files
+- when loading a CAF with contigs, convert_project now only needs enough
+  memory to convert one contig at a time, not the complete project
+- workaround: caf2gap failed to convert CAF files where the contig name is
+  equal to the name of a read
+
+
+2.9.12
+------
+- bugfix: insert size standard deviation was not read due type from XML
+  TRACEINFO files (and hence the standard of 500 used, which was sometimes not
+  enough for libraries >3kb)
+- reduced memory footprint of pathfinder algorithm, important for high
+  coverage 454 areas.
+- reduced memory footprint of alignment storage by 16% on 64 bit architectures
+  (less for 32 bit architectures)
+- both reductions now allow de-novo hybrid assembly of S.pneumoniae (1.1
+  million reads) with 4 GB RAM (and some 2GB free swap).
+- speed increase by factor 2-5 (depending on repetitive area) in pathfinder
+  algorithm for 454 reads. Effectively almost halving total time needed in
+  hybrid and highly stacked 454 assemblies
+- improved pathfinder algorithm for better bridging or repeats
+- storage of singlets in project results can now be controlled by
+  -OUT:sssip:stsip
+
+
+2.9.11
+------
+- bugfix: cut down overzealous editing of 454 reads in misassembled parts of a
+  contig
+- enhanced internal handling of sequencing data types. Routines now use
+  dedicated parameter sets for each type (cannot be set from command line or
+  parameter file yet)
+
+
+2.9.10
+------
+- major fixes in alignment of contigs which allows better hybrid
+  assemblies (more reads added)
+- major rework of 454 read editing. Kicks out most of the obvious sequencing
+  errors and now pre-assembly editing reads-only is not required anymore.
+- major new memory saving option: -GE:kcim (not compatible with spoiler
+  detection -AS:sd)
+- new routines to thin out overlap graph which reduces number of initial
+  Smith-Waterman overlap alignments by 80%-90% (increasing speed in this part
+  by 5x - 10x). Drawback (mainly 454 data): really highly repetitive areas
+  with complicated solution space will not get optimally solved and more than
+  expected reads of these areas will turn into singlets.
+
+
+2.9.9
+-----
+- MIRA now support merging results from a SSAHA vector screen run. This makes
+  you basically independent from any other commercial or license-requiring
+  vector screening software. For Sanger reads, a combination of "lucy"
+  and "ssaha" together with this parameter should do the trick. For
+  reads coming from 454 pyro-sequencing, \Cmd{ssaha}{1} and this parameter
+  will work very well. New parameters:
+  -CL:msvs:msvsgs:msvsmfg:msvsmeg:msvssfc:msvssec and -FI:svsi
+- along with the above: a new mira program "miraCLIP" has been created that
+  just clips data from loaded files and dumps them to CAF format. The
+  "miraPRE" program should now be used only for a first repeat-disentangling
+  assembly.
+- renamed -CL:pvc to -CL:pvlc to make function clearer
+- Work in progress: new functionality that reduces number of hits that must be
+  checked by SW alignment when working with 454 data, especially useful for
+  hybrid Sanger / 454 assemblies. First tests very promising
+- the "|" characters in the name of reads in fasta files are now kept and not
+  replaced anymore with "_", only in the EXP file names written to disk they
+  are replaced
+- optimised memory handling when loading CAF files, leading to decreased
+  memory footprint of sequences loaded via CAF (important for millions of
+  reads)
+
+
+2.9.8b,c,d,e,f
+--------------
+- polishing of the MIRA build process, added flex version check, added
+  --enable-static flag to ./configure
+- fixed build process for MacOS X (Darwin)
+- bugfix in alignment routine: hitting band encasing was not discovered in
+  some cases (present since adding feature in 2.9.2)
+- fixed minor code ambiguouities
+- bugfix: minimum left clips (-CL:emlc) were not performed for 454 data
+- added mira_454dev help file as a preliminary guide for 454 assembly
+
+
+2.9.8
+-----
+- new program: "miraPRE". miraPRE is a preprocessing step that allows to
+  perform the preprocessing of reads (clipping, read extension, simple 454
+  editing) together with a first "reconnaissance" assembly of the most
+  repetitive regions. The following "real" assembly is then faster (allowing
+  for playing around with some more options) and more accurate for repeats
+- bugfix for hybrid assemblies: repeats found were not correctly accounted
+  for, leading to the assembler not correctly recognising when to re-assemble
+- minor bugfix: the logfiles for rejected alignments contained binary data
+
+
+2.9.7
+-----
+- bugfix: 454 reads now are not put through the possible sequence vector
+  clipping routines
+- bugfix: assemblies with several backbone sequences could lead to the
+  assembler aborting with an error. Fixed. Present since 2.7.5, but different
+  bug than the one fixed in 2.7.6.
+- improved new consensus computation routines introduced in the 2.9 series
+  (needed because of hybrid assemblies) to better handle aberrant Sanger cases
+- improved consensus computation for hybrid Sanger / 454 assemblies
+- improved loading speed of qualities in fasta files where the reads are not
+  in the same order as in the sequence files (mostly noticed with 454 data
+  files having millions of reads)
+- renamed output directories to <projectname>_d_info, <projectname>_d_results
+  and <projectname>_d_log
+- small change in output behaviour: contigs are now put first in output files
+  (CAF, GAP4DA, FASTA etc.pp), then follow singlets
+- change in behaviour: debris are now left out from result files of an
+  assembly. Debris are reads that are too short or do not align to any other
+  read in the data set. Also, 454 reads that could not be assembled into a
+  contig are treated as debris (even if they potentially aligned to other
+  reads in the assembly).
+- automatically switching off output of GAP4DA format if 454 type data is
+  present (you *really* do not want millions of files in a directory)
+
+
+2.9.6
+-----
+- adapted internal multicopy detection for hybrid assemblies
+- adapted simple 454 overcall editing for hybrid assemblies
+- enhanced XML traceinfo support for files directly from the NCBI trace
+  archive:
+   - support for XML "ti": now, XMLs & FASTAs from NCBI need not to be
+     rewritten (changing names etc.)
+   - support for XML trace_type_code (now possible to mix Sanger type & 454
+     type in one fasta and XML traceinfo respectively)
+- fixed bug in XML traceinfo routines: XML elements with uppercase letters
+  were not recognised
+- fixed ugly bug that led in very rare cases to suboptimal or missed
+  alignments in banded SW. Bug triggered by short read data (454 type),
+  present since MIRA V1.1.1, correction attempt in V2.2.2/2.3.3 only
+  partly successful (ooops).
+- fixed bug that led to slow SW band alignments in development version
+  (introduced through bugfix in V2.9.2)
+
+
+2.9.5
+-----
+- tweaked internal memory handling (STL), reducing memory footprint of MIRA
+
+
+2.9.4
+-----
+- fixed bug in tag type set for SNPs between strains (introduced in 2.9.3)
+- improved repeat resolving when using low number of passes (e.g. only 2) or
+  for highly complicated repetitive projects by adding selective SW alignment
+  iteration after each pass.
+- improved interaction between contig building and 454 contig editing process,
+  leading to less building loops needed to achieve the same result
+
+
+2.9.3
+-----
+- introduced "Carbon-copy Repeat Marker in Reads" (CRMr) which tremendously
+  help assembling repetitive 454 sequences (also good for Sanger sequences)
+- reactivated Sanger repeat recognition with new repeat handling routines
+- fixed bug: when loading sequences with gaps (like in assembled CAF
+  projects), existing gaps in reads were not removed prior to re-assembly
+- fixed bug that prevented mapping assemblies against backbones to be fast
+
+
+2.9.2
+-----
+- added -454:soer:soemq for "simple" editing of errors in 454 reads.
+- MIRA now stores additional information needed for assemblies of strains
+  and/or 454 data in CAF and EXP files in a way that resist to different
+  transformations to and from gap4 databases (MINF tags)
+- bugfix when loading CAF: some attributes were not reset, leading to some
+  reads having attributes of preceding reads in CAF file.
+- fixed bugs that sometimes led to suboptimal alignments when building contig
+  alignments. This became apparent with assembly of highly stacked 454 data
+- first working version of repeat discovery in 454 data
+- first working version of "tricky overcall editing" in 454 data (these things
+  are responsible for most of the frameshift errors)
+
+
+2.9.1
+-----
+- test activation of 454 read-only-editing routines
+
+
+
+Change file for MIRA 2.8.3
+==========================
+
+
+2.8.3
+-----
+- fixed bug in XML traceinfo routines: XML elements with uppercase letters
+  were not recognised (backport from the 2.9 development line)
+
+
+2.8.2
+-----
+- polishing of the MIRA build process, added flex version check, added
+  --enable-static flag to ./configure
+
+
+2.8.1
+-----
+- fixed bug that prevented mapping assemblies against backbones to be fast
+  (backported from 2.9.3)
+- bugfix when loading CAF: some attributes were not reset, leading some reads
+  having attributes of preceding reads in CAF file (backported from 2.9.2)
+
+
+2.8.0
+-----
+- replace tcl dependency in compile process with perl dependency
+
+
+2.6.x -> 2.7.x -> 2.8.0rc2
+--------------------------
+
+The 2.8.x series of MIRA is an intermediate step towards MIRA 3.0. However,
+two major highlights (beside the usual stream of small improvements and
+bugfixes) justify a new production release:
+
+1) Important speedups in a few central places (Reads, Contigs). Additionally,
+   the all-against-all read comparison algorithm (SKIM) has been speeded-up by
+   a factor of >60 (for large number of reads).
+2) MIRA is going Open Source! More specifically, MIRA is being put under the
+   GPL (version 2) as I kindly received the authorisation from both the DKFZ
+   Heidelberg (Deutsches Krebsforschungszentrum, German Cancer Research
+   Center) and from Thomas Pfisterer (the author of the EdIt part in MIRA) to
+   release the code.
+
+Please note that the 2.8 line does still not officially support assembly of
+454 data. These routines are still under development and will be made
+available in the 2.9 development line.
+
+Important notice: a few parameter switches were changed since the 2.6.x
+releases, existing parameter files may have to be changed. Please consult the
+documentation for the new names of the parameters.
+
+
+
+Changes in detail:
+==================
+
+2.7.8
+-----
+- Major bugfix: assembling with more than one strain without backbone produced
+  less than sub-optimal solutions.
+
+
+2.7.7
+-----
+- internal changes
+- fixed error in assembly class in handling bases tagged as SIOx within a
+  strain. (had only minor repercussion in assemblies)
+- fixed bug in skim output: permbans were not updated correctly for the
+  summary. (had no effect whatsover on assemblies, just in the printed skim
+  summary of the MIRA log)
+
+
+2.7.6
+-----
+- smaller internal changes (removed deprecated strstream constructs, removed
+  old code)
+- also put EdIt and other code from Thomas under GPL
+- fixed bug when loading backbones sequences that have no sequence
+- fixed bug when assembling with more than one backbone sequence (introduced
+  in 2.7.5)
+- added -AS:bdq
+- brought documentation up-to-date
+
+
+2.7.5
+-----
+- Larger internal changes. Reduced memory footprint for alignment checks:
+  results are now temporarily written to disks instead of being kept in
+  memory. Useful when working with millions of reads.
+- speedups in contig: moved some redundant costly internal checks
+  into versions compiled only for special bughunting
+- removed -SK:im:mc
+- added -SK:bph:hss:mhim
+- new log file containing SKIM raw hash hit numbers in log directory
+- new log file containing simple readpool info in log directory
+- squashed a small bug in alignment code that sneaked in in 2.7.2
+- switched miraEST on again (switched off in 2.7.4). SNP analysis still the
+  old one though.
+- the pathfinder object is now faster for backbone assembly.
+- put MIRA code under GPL
+
+
+2.7.4
+-----
+- added -454:c454cq (not public yet)
+- change: MIRA now writes files into three direcorties below the starting
+  directory: <projectname>_log, <projectname>_info and
+  <projectname>_results. This helps to keep things a bit cleaner in the
+  directory.
+- due to the above: temporarily switched off miraEST (also wrt the fact that
+  SNP analysis is going to undergo a major rehaul)
+- speeded up endgame (coping with remaining singlets) of assemblies that have
+  a large number of reads.
+- *major* speedup of SKIM (all against all comparison)
+  routine. E.g. SKIMming of 53,000 reads now takes a minute instead of 62
+  minutes.
+- reduced memory footprint for SKIM: results are now written to disks instead
+  of being kept in memory. Useful when working with millions of reads.
+
+2.7.3
+-----
+- first trial version that assembles 454 consensus data (not real 454 data
+  yet)
+- changed pathfinder strategy. Now uses a less aggressive way of determining
+  next read to add. Should improve all "difficult" assemblies with many
+  repeats a bit
+- reworked/changed all existing -454 parameters
+- Change: there is no more default source for the reads to be loaded. It now
+  must be explicitly set, either via -GE:lj or the quickswitches like -fasta
+  etc.
+- Name change: main assembly 'loops' are now called assembly 'passes' for
+  better distinction to PRMB break loops. Renamed -AS:nol:sel:sdllo to
+  -AS:nop:sep:sdlpo, -SB:sbuil to -SB:sbuip, -DP:feil:leil to -DP:feip:leip
+- MIRA now writes clear parameter parsing error messages (if needed) on
+  startup
+
+2.7.2
+-----
+- speedups in assembly & output: moved some redundant costly internal checks
+  into versions compiled only for special bughunting
+- changed consensus quality computation (faster). Results are mostly the same
+  or a tad higher than for the old routines (a tad lower for quality values <=
+  10 or so).
+
+
+2.7.1
+-----
+- fixed small bug in handling of tags for alignments
+
+
+2.7.0
+-----
+- initial takeover from 2.6.0
+
+
+2.4.x -> 2.5.x -> 2.6.0
+-----------------------
+
+Main development focus for the 2.6 production release of the MIRA assembly
+tools was to realise improvements in speed and memory footprint compared to
+the 2.4 line. All changes were extensively tested in the 2.5.x development
+versions and were ported to the new 2.6.0 production version.
+
+Highlights:
+- new, easy to use-and-combine parameter switches for predefined tasks: quick
+  switches. (also called dwim: Do-What-I-Mean switches)
+- constant memory SKIM routine for fast all against all overlap checking. This
+  was needed when assembling larger bacteria or lower eukaryotes in a limited
+  amount of memory. As bonus, this new SKIM is 40% to 60% faster than the old
+  one.
+- reduced memory footprint for stored alignments. 37% reduction in this part,
+  important for big assemblies
+- enhanced read extension routines. The new routines have are now quite
+  efficient in extending reads as much as possible while leaving really bad
+  quality parts untouched
+- new type of output: GBF (GenBank file). Extremely useful when performing
+  assemblies against a backbone (read mapping strategy) which in itself may be
+  a GenBank file containing features.
+- enhanced convert_project utility. Converts more assembly file formats
+- a number of small bugfixes and other improvements
+
+Please note that the 2.6 line does not officially support assembly of 454
+data. These routines are still under development and will be made available in
+the 2.7 development line.
+
+Important notice: a few parameter switches were changed since the 2.4.x
+releases, existing parameter files may have to be changed. Please consult the
+documentation for the new names of the parameters.
+
+Focus for next development cycle:
+- multithreading
+- 454 data
+
+
+2.2.8 to 2.4.0
+--------------
+The new major 2.4 release line of the MIRA assembly tools opens a
+whole new set of possibilities for sequence assembly.
+
+Starting with V2.4.0rc1 (corresponds to 2.3.31 of the development line), there
+were no more restrictions built into the binary regarding time or number of
+sequences that MIRA can handle. Your available memory will be the limit.
+
+Starting with 2.4.0, binaries are now made available for both 32 and 64 bit
+platforms of x86 Linux.
+
+MIRA has learned a number of useful new tricks like assembling against
+other sequences (backbones), usage of strain information in genomic
+assembly (closely related strains can now be assembled in one go), SNP
+analysis, optimised alignments (no more gap base jiggling), loading sequences
+gained from the NCBI trace archive etc.
+
+Compared to the 2.2.x line, speed has increased (sometimes quite
+drastically) and memory requirements have decreased a bit. Several
+smaller and bigger bugs have been fixed. I highly recommend to upgrade
+to this version as soon as possible, even if parameters could not be
+kept 100% backward compatible.
+
+New / changed features
+......................
+- added possibility to load "backbones" and assemble against those
+  sequences. Backbones can be in FASTA, CAF, EXP or even Genbank (GBF,
+  GBK) format. Sequence features / tags are honoured in bankbones.
+- enhanced inference of previously undetected repeat marker bases to
+  include inference of IUPAC support.
+- sequence alignment get nicer for "long" indel regions.
+- alignment scoring function now per default assigns decreasing gap
+  extension penalties. Eases life for assembling against genomic
+  backbones. Drawback: -AL:egp must now be manually selected for
+  for EST assembly and for "real" genome assembly, -CO:amgb:amgbemc
+  are recommended.
+- enhanced handlng of repetitive sequences characterised not by bases,
+  but by insertions and deletions.
+- enhanced contig tagging mechanism
+- added counts of IUPAC and funny characters in contig statistics and
+  _info_contigstats.txt files
+- small change in output when parameter parsing failed: usage is now
+  printed before analysis of error cause
+- changed position columns in different _info and _out files so that
+  now padded and unpadded positions are given.
+- small cosmetic changes in different output files
+- renamed FASTA output files: "raw" files are now named "padded" while
+  previously 'normal' FASTA files without special extension are
+  "unpadded". (getting some consistency with gap4)
+- new result file type TCS: Transposed Contig Summary. Idea "borrowed"
+  *cough* from TIGR .tcov files. Nicely suited for "quick" analyses from
+  commandline tools or even visual inspection. Written only as final
+  result with appendix "_out.tcs". New parameter: -OUT:ors
+- first draft of SNP analysis function, saved in assembly information
+  file "_info_snpanalysis.txt"
+- Can now load GenBank files as backbone reads (new -SB:bft parameter
+  value: "GBF"). Also load the features as GAP4 compatible tags from
+  that file.
+- larger changes in the tag naming scheme that also have repercussions
+  in the parameter options. This was needed to simplify searches for
+  problematic assemblies in editors (like e.g. gap4).
+  Repeat Marker Bases (RMB) are now split into Strong/Weak types and
+  also whether they occur in reads or in the consensus. PRMB becomes
+  SRMr or SRMc, WRMB becomes WRMr or WRMc.
+  The tags PAOS, PIOS and PROS for SNPs are now SAOr/c, SIOr/c and
+  SROr/c.
+  To keep parameter options naming scheme consistent, some parameters
+  had to be renamed: -AS:pbl to -AS:rbl, and -CO:mpc:npz:mgqpt:mgqwpc
+  to -CO:mrc:nrz:mgqrt:mgqwsc
+- SRMc, SROc, SIOc and SAOc tags now get the group quality for each
+  base as additional output in the "_info_consensustags.txt" file
+- cleaned up "_info_consensustags.txt" and "_info_readtags.txt" a bit
+- cleaned up error messages when SCF data is not found
+- standard deviation of inserts are now read in NCBI traceinfo
+  files. Minimum and maximum insert sizes are now calculated as
+  insert_size -/+ 4*stddev.
+- MIRA now automatically corrects sequence names in sequences
+  downloaded from the NCBI traceinfo archive. It replaces the
+  "gnl|ti|....." name with the "real" name (the one after the " name:"
+  string). This allows using FASTA file from the trace archive
+  directly without further preprocessing.
+- if strain names are given, MIRA now also creates extra strain files in
+  FASTA format as result of the assembly
+- the parameters with which MIRA was called are now written at the start of a
+  project into <projectname>_info_callparameters.txt
+
+Performance
+...........
+- removed debugging code that was wrongly left activated in
+  calculation of dynamic programming matrix (for alignments). Speedup
+  in alignment calculation: factor ~6. Speedup in typical assembly
+  project: factor >2. Bug was introduced in V2.2.3 (*sigh*)
+- reduced memory consumption of sequences
+- reduced memory consumption in assembly process: clipping of vectors
+  (-CL:pvc) inflicted a huge memory penalty. This has been resolved.
+- optimised assembly when loading backbones (rails are not aligned
+  anymore)
+- improved handling of similar sequences having (certain) indels:
+  these are now treated as real indels. Takes effect when -CO:amgb is
+  on.
+- improved genome building anchors by starting in non-multicopy sites
+- optimised skimming evaluation
+- small internal speed optimisations
+- speed enhancements: reads that have contradicting PRMBs will now be
+  excluded from the SKIM and alignment phases in subsequent loops
+- major speed increase (> factor 10) when loading larger CAF files
+
+Tools
+.....
+- streamlined tools: merged several small utilities into 'scftools'
+  and 'fastatools'
+
+Options
+.......
+- removed unused options: -AL:emp* (not used since a long time),
+  -CO:mgqwsc:nrz (disappeared in 2.3.29)
+- renamed -CO:ismin:ismax to -CO:dismin:dismax
+- added -OUT:ots for tcs output of temporary results
+- added -CO:np
+- -CO:asir is now also setable by commandline (was reserved for setting
+  only by miraEST)
+- added -SB: options. Also -AL:megpp -CO:amgb:amgbemc
+- renamed -GE:ess:lb:bft:brl parameters to new category -SB
+- renamed -EG:ess to -GE:ess. Moved -EG:lsd to -SB:lsd (and disbanded -EG category)
+- added -AS:sel -SK:mhpr to optimize performance for really deep
+  repeats. Only "n" best hits are given to the SW alignment checks
+- added logic to improve assembly when some reads have too high quality values
+  for wrongly called bases
+- added quick switches -estmode and -horrid
+- quick switches on the command line now print out what they are setting
+
+Bugfixes
+........
+- base positions now won't get multiple equal tags.
+- SNPs were sometimes wrongly disrupting contig building
+- -CO:amgbemc was (still) not honoured. Fixed.
+- the problem of slow loading EXP files has been resolved
+- tags lost their direction when saved as CAF or ACE, fixed.
+- tags got wrong direction when loaded from CAF
+- quality in CAF files were put in one single large line,
+  fixed to multiline
+- -CO:also_mark_gap_bases and -CO:also_mark_gap_bases_even_multicolumn
+  did not work as advertised
+- several small bugfixes in output functions that led MIRA to abort on
+  rare occasions while saving results to files.
+- CAF and ACE files now get "correct" multiline tags
+- TG tags in EXP files were all converted to be on both directions
+- fixed small bug while parsing -SB parameters
+- fixed ugly bug in template handling (introduced 2.3.11, the 2.2.x
+  line was fortunately not affected). This led to really bad
+  assemblies when template information was used.
+- potential problem fix: changed output in EXP files for ON entries to
+  be now multiline, so that the Staden iolib can cope with large
+  entries
+- the unpadded fasta quality result file contained, in fact, the
+  padded fasta results, fixed.
+- in rare cases, low quality bases were taken into account when
+  searching for Possible Repeat Marker Bases (PRMBs). Fixed.
+- in rare cases, mira would stop in loops>1 when internal tag
+  handling discovered an error. Error cause has been fixed.
+- skimmer: some hits for non-exact matches were not found.
+- CAF files containing "Ligation_no" lines caused errors while reading
+  them
+- HTML output function crashed on some systems, this should now not happen
+  anymore.
+- progress counter during contig building makes "nicer" progress
+  report
+- several small typos: parameter options should now be in sync again
+  with the documentation (man pages etc.)
+
+
+
+
+Changes in detail:
+==================
+
+2.6.0rc1 to 2.6.0rc2:
+---------------------
+- improved contig building time by reducing need for alignment recalculation
+- fixed rare problem that led to abortion of mira in contig building
+
+2.5.12 to 2.6.0rc1:
+-------------------
+- introduced DWIM (Do What I Mean) parameter switches:
+    -genomedraft, -genomenormal, -genomeaccurate
+    -mappingdraft, -mappingnormal, -mappingaccurate
+    -clippinglight, -clippingnormal, -clippingheavy
+    -highlyrepetitive
+    -highqualitydata
+- fixed dumb error in vector clipping (-CL:pvc) that clipped away too much
+  when vector clipping was performed on a read
+- fixed rare problem where mira aborted while extending reads. (-DP:ure)
+- optimised partioned skim parameters for present day quality Sanger type
+  shotgun sequences. Runtime -18%. No effect with 454 type data.
+- fixed errors in parameter parsing: -OUT:org:orf -AS:sel
+- quick switches for loading files (e.g. -fasta, -phd etc.) have been cut back
+  to exactly this functionality (loading), without further side effects (like
+  switching of read extension etc.). Functionality transfered to DWIM switches
+  (see above)
+
+2.5.12
+------
+- improved algorithm for computing read extensions on Smith-Waterman aligned
+  sub-sequences, now switched on per default for pre-assembly read extension
+- added -DP:rewl:rewme:feil:leil
+- added -CO:amgbnbs
+
+2.5.11
+------
+- fixed a problem while loading CAF files with exposed sequence vectors
+  that led to wrong sequence positioning in a contig
+- when CAF files loaded as backbone do not contain contigs, then the reads
+  themselves are used as backbones.
+- added special mode for backbone assembly, faster and more accurate
+- changed genomic assembly mode, faster and more accurate
+
+2.5.10
+------
+- deleted -CO:mrc parameter
+- added -CO:mrpg parameter
+
+2.5.9
+-----
+- reworking of internal data structures leads to 37% decrease of memory
+  consumption of stored alignment data. Important for 454 type data,
+  e.g. project with 250000 reads now uses 850M for this part instead of
+  1350M.
+- improved alignment algorithms lead to better alignments of 454 type data
+  (improvements also noticable for Sanger type data, but less so)
+- bugfix: in very rare cases, sequences could be wrongly inserted into a
+  consensus, leading to slight misalignments. Problem seen first with 454 type
+  data
+- new parameter: -SB:abnc
+
+2.5.8
+-----
+- railreads and backbones in contigs now have no SCF files (and exp)
+  files assigned
+- new parameters: -454:mdis454:hybrid (partly functional)
+
+2.5.7
+-----
+- renamed -CO:uti to -GE:uti
+- MIRA switches off usage of template information when no useful information
+  for this is present in data
+- changes in pathfinder to speed up building contigs with many reads (454
+  data) or when genome sized backbones are used
+- new "hidden" parameter: -PF:swcs
+- CAF sequence names may now contain "#" and "|" as sequence names (the later
+  perhaps not being very useful)
+- FASTA sequence names may now contain "#" as character
+- FASTA sequence names containing "|" are rewritten to contain "_"
+
+2.5.6
+-----
+- added additional Genbank tags as "dont analyse for SNPS" in
+  assout::saveFeatureAnalysis()
+- first test versions capable of acceptable 454 data assembly
+
+2.5.5
+-----
+- adjusted typos in documentation: -CO:dismin and dismax lacked the "d" in
+  some parts of the docs (due to a parameter rename earlier *sigh*)
+- fixed typos in -CL:mlcr:smlc documentation
+
+2.5.4
+-----
+- new partitioned skim routine: faster, less memory consumption. Current
+  drawback: number of hits cannot currently be limited per read (-SK:mhpr has
+  no effect)
+- new quick switch: -454data. Please note that as of this writing, mira is not
+  yet optimally suited to handle this type of data well, there is still some
+  development needed in this area. Relying on the consensus of MIRA is NOT
+  recommended at this time!
+- ommission in manual corrected: -CL:emlc:mlcr:slmc were not described.
+
+2.5.3
+-----
+- GBF output now complete: protein translation also written when Genbank
+  features are present as tags in the assembly
+- convert_project: fasta output now also writes out the consensus of contigs
+  in an assembly when the input was CAF
+- convert_project: added -q
+- convert_project: added aliases caf2fasta, caf2gbf, caf2text, caf2html,
+  gbf2caf and gbf2fasta as aliases to convert_project which have -f and -t
+  already set accordingly
+
+2.5.2
+-----
+- decreased memory usage for skim routine by 50%, almost non-noticable speed
+  penalty
+
+2.5.0 ->
+--------
+- ace2caf: new option -F and small improvements
+- small bugfixes
+- first GBF output
+
+
+2.4.0rc2h
+---------
+- added -SB:sbuil parameter option
+- fixed bug when reading GBF files where positions have a ">" in front
+- change: assembly of multiple strains improved
+- change: /note entries are now also read from GBF files and put into tags
+- change: tags for Repeat Marker Bases and SNPs in reads now do not get any
+  comment, only the consensus tag gets the full comment. Saves quite some
+  space in .exp and .caf files for projects with many such tags.
+- added GBF as outtype for the "convert_project" program
+- added demodata for backbone assembly
+
+
+2.4.0rc2c to 2.4.0rc2g
+----------------------
+- added logic to improve assembly when some reads have too high quality values
+  for wrongly called bases
+- added quick switches -estmode and -horrid
+- quick switches on the command line now print out what they are setting
+- small bugfix in determination of multicopy reads when using backbone
+  assembly
+- internal rearrangements
+
+
+2.4.0rc2 to 2.4.0rc2c
+---------------------
+- the parameters with which MIRA was called are now written at the start of a
+  project into <projectname>_info_callparameters.txt
+- improved pathfinder that now better bridges repetitive sequences
+- fixed bug that struck the pathfinder (endless loop) when a) disk was full
+  and b) -AS:max_contig_buildtime was used
+- major speed increase in pathfinder when using backbone assembly. Rearranged
+  pruning in pathfinder, leading to dropping untaken paths earlier in the
+  evaluation. Results of the pathfinder are the same as in earlier versions,
+  no change there.
+- improvement in handling of repeats characterised only by indels: these are
+  now correctly treated as are repeats characterised by basechanges. leads to
+  vastly improved assemblies of repetitive regions. Also due to SRMx tags that
+  were triggered by gaps now induce multibase (multicolumn) tags. These are
+  also set on the ends of stretches of equal bases
+- backbone contigs consisting of a single sequence now get the name of the
+  sequence as name of the contig
+- if strain names are given, MIRA now also creates extra strain files in
+  FASTA format as result of the assembly
+- major speed increase (> factor 10) when loading larger CAF files
+
+
+2.4.0rc2
+--------
+Mostly bugfixes and last tweaking on small things. This should be the
+last release candidate before 2.4.0, which will include more
+documentation and examples.
+
+- bugfix: a fatal bug in 2.4.0rc1 prevented traceinfo XML files from
+  being correctly read. So, when one relied on the XML files, this
+  lead to sequencing vector not being clipped, bad quality being
+  included etc. This has been fixed.
+- bugfix: HTML output function crashed on some systems, this should
+  now not happen anymore.
+- progress counter during contig building makes "nicer" progress
+  report
+- added documentation entry for -AS:ugpf
+- standard deviation of inserts are now read in NCBI traceinfo
+  files. Minimum and maximum insert sizes are now calculated as
+  insert_size -/+ 4*stddev.
+- MIRA now automatically corrects sequence names in sequences
+  downloaded from the NCBI traceinfo archive. It replaces the
+  "gnl|ti|....." name with the "real" name (the one after the " name:"
+  string). This allows using FASTA file from the trace archive
+  directly without further preprocessing.
+
+
+2.3.30
+------
+- removed unused options: -AL:emp* (not used since a long time),
+  -CO:mgqwsc:nrz (disappeared in 2.3.29)
+- enhanced inference of previously undetected repeat marker bases to
+  include inference of IUPAC support.
+- removed debugging code that was wrongly left activated in
+  calculation of dynamic programming matrix (for alignments). Speedup
+  in alignment calculation: factor ~6. Speedup in typical assembly
+  project: factor >2. Bug was introduced in V2.2.3 (*sigh*)
+
+2.3.29
+------
+- alignment scoring function now per default assigns decreasing gap
+  extension penalties. Eases life for assembling against genomic
+  backbones. Drawback: -AL:egp must now be manually selected for
+  for EST assembly and for "real" genome assembly, -CO:amgb:amgbemc
+  are recommended.
+- sequence alignment get nicer for "long" indel regions.
+- enhanced handlng of repetitive sequences characterised not by bases,
+  but by insertions and deletions.
+- enhanced contig tagging mechanism
+- bugfix: base positions now won't get multiple equal tags.
+
+2.3.28
+------
+- further working on SNP/Feature analysis
+- bugfix: SNPs were sometimes wrongly disrupting contig building
+- streamlined tools: merged several small utilities into 'scftools'
+  and 'fastatools'
+- renamed -CO:ismin:ismax to -CO:dismin:dismax
+- bufix: -CO:amgbemc was (still) not honoured. Fixed.
+
+2.3.27
+------
+- further working on SNP/Feature analysis
+- bugfix: the problem of slow loading EXP files has been resolved
+- bugfix: tags lost their direction when saved as CAF or ACE, fixed.
+- bugfix: tags got wrong direction when loaded from CAF
+- first internal changes to make compiling -Wall ... etc. proof
+
+2.3.26
+------
+- bugfix: quality in CAF files were put in one single large line,
+  fixed to multiline
+- multiple internal changes (char * to string, shifting of functions into
+  namespaces etc.)
+
+2.3.25
+------
+- bugfix: -CO:also_mark_gap_bases and -CO:also_mark_gap_bases_even_multicolumn
+  did not work as advertised
+- reduced memory consumption of sequences
+- reduced memory consumption in assembly process: clipping of vectors
+  (-CL:pvc) inflicted a huge memory penalty. This has been resolved.
+
+2.3.24
+------
+- several small bugfixes in output functions that led MIRA to abort on
+  rare occasions while saving results to files.
+- added counts of IUPAC and funny characters in _info_contigstats.txt
+  files
+
+2.3.23
+------
+- small change in output when parameter parsing failed: usage is now
+  printed before analysis of error cause
+- changed position columns in different _info and _out files so that
+  now padded and unpadded positions are given.
+- small cosmetic changes in different output files
+
+2.3.22
+------
+- added -OUT:ots for tcs output of temporary results
+- fleshed out the SNP analysis
+- renamed FASTA output files: "raw" files are now named "padded" while
+  previously 'normal' FASTA files without special extension are
+  "unpadded". (getting some consistency with gap4)
+
+2.3.21
+------
+- bugfix: CAF and ACE files now get "correct" multiline tags
+- new result file type TCS: Transposed Contig Summary. Idea "borrowed"
+  *cough* from TIGR .tcov files. Nicely suited for "quick" analyses from
+  commandline tools or even visual inspection. Written only as final
+  result with appendix "_out.tcs". New parameter: -OUT:ors
+- first draft of SNP analysis function, saved in assembly information
+  file "_info_snpanalysis.txt"
+
+2.3.20
+------
+- bugfix: TG tags in EXP files were all converted to be on both
+  directions
+- Can now load GenBank files as backbone reads (new -SB:bft parameter
+  value: "GBF"). Also load the features as GAP4 compatible tags from
+  that file.
+- optimised assembly when loading backbones (rails are not aligned anymore)
+
+2.3.19
+------
+- larger changes in the tag naming scheme that also have repercussions
+  in the parameter options. This was needed to simplify searches for
+  problematic assemblies in editors (like e.g. gap4).
+  Repeat Marker Bases (RMB) are now split into Strong/Weak types and
+  also whether they occur in reads or in the consensus. PRMB becomes
+  SRMr or SRMc, WRMB becomes WRMr or WRMc.
+  The tags PAOS, PIOS and PROS for SNPs are now SAOr/c, SIOr/c and
+  SROr/c.
+  To keep parameter options naming scheme consistent, some parameters
+  had to be renamed: -AS:pbl to -AS:rbl, and -CO:mpc:npz:mgqpt:mgqwpc
+  to -CO:mrc:nrz:mgqrt:mgqwsc
+- the -SB:bol option has been removed
+
+2.3.18
+------
+- fixed small bug while parsing -SB parameters
+- improved handling of similar sequences having (certain) indels:
+  these are now treated as real indels. Takes effect when -CO:amgb is
+  on.
+
+2.3.17
+------
+- fixed ugly bug in template handling (introduced 2.3.11, the 2.2.x
+  line was fortunately not affected). This led to really bad
+  assemblies when template information was used.
+- improved genome building anchors by starting in non-multicopy sites
+- new utility program: scf_remix. Useful for "fixing" broken SCFs or
+  SCFs that are out of sync with other data sources
+
+2.3.16
+------
+- added -CO:np
+- -CO:asir is now also setable by commandline (was reserved for setting
+  only by miraEST)
+- PRMB, PROS, PIOS and PAOS tags now get the group quality for each
+  base as additional output in the "_info_consensustags.txt" file
+- cleaned up "_info_consensustags.txt" and "_info_readtags.txt" a bit
+- added counts for IUPAC bases and funny characters in contig
+  statistics
+
+2.3.15
+------
+- added -SB:bol:bbq -AL:megpp -CO:amgb:amgbemc
+- cleaned up error messages when SCF data is not found
+- potential problem fix: changed output in EXP files for ON entries to
+  be now multiline, so that the Staden iolib can cope with large
+  entries
+
+
+2.3.14
+------
+- renamed -GE:ess:lb:bft:brl parameters to new category -SB
+- added possibility to load FASTA files as backbone (-SB:bft=FASTA)
+- added possibility to give backbone sequences a strain name (-SB:bn)
+- bugfix: the fasta quality result file contained, in fact, the raw
+  fasta results, fixed.
+- bugfix: in rare cases, low quality bases were taken into account
+  when searching for Possible Repeat Marker Bases (PRMBs). Fixed.
+
+
+2.3.13
+------
+- added possibility to load "backbones" (CAF) and assemble against
+  those. New parameters -GE:lb:bft:brl
+- renamed -EG:ess:lsd to -GE:ess:lsd (and disbanded -EG category)
+- bugfix: in rare cases, mira would stop in loops>1 when internal tag
+  handling discovered an error. Error cause has been fixed.
+
+
+2.3.12
+------
+- bugfix in skimmer: some hits for non-exact matches were not found.
+- optimised skimming evaluation
+- added -AS:sel -SK:mhpr to optimize performance for really deep
+  repeats. Only "n" best hits are given to the SW alignment checks
+- small internal speed optimisations
+
+
+2.3.11
+------
+- small bugfix: CAF files containing "Ligation_no" lines caused errors
+  while reading them
+- speed enhancements: reads that have contradicting PRMBs will now be
+  excluded from the SKIM and alignment phases in subsequent loops
+- several small typos: parameter options should now be in sync again
+  with the documentation (man pages etc.)
+
+2.2.7 to 2.2.8 (2.3.10)
+-----------------------
+
+This is an intermediate optimisation release. Although I wanted to
+build in some more (exiting) new features, especially the spoiler
+detection and the speed improvements justify releasing the
+improvements as they are. They make assembly of genomes from 1 to 10mb
+a bit more fun.
+
+- added -AS:sd:sdllo to detect and remedy assembly "spoiler". Only
+  recommended for assembly of genomic sequences! These spoiler can be
+  either chimeric reads or reads with long parts of unclipped vector
+  sequence (that was too long for the -CL: vector leftover
+  clippings). These spoiler typically prevent contigs to be joined,
+  MIRA will cut them back so that they present no more harm.
+- added -GE:rns to support naming schemes of different sequencing
+  centers. Sanger and TIGR naming schemes are now supported.
+- added -GE:pd flag for controlling date output in ouput log
+- major speed improvements for projects where large contigs (>500kb)
+  with many reads are built.
+- minor bugfix: some overlap where not correctly recognised by the
+  SKIMmer
+- minor bugfix: now got the percentage progress report bar right, it
+  sometimes showed false status.
+- minor bugfix: added -AS:umcbt:bts to adapt for larger assemblies on
+  slower machines. More useful for EST assembly than for genomic.
+- starting with gcc 3.4, mira is now compiled with -O3 as standard
+  optimisation level. Gain of ~5-10% in many algorithms
+- known issue: I apparently "optimised" some pathfinding routines too
+  much for EST data. Sometimes, for genomic data, some contigs are not
+  at their optimal length. This most likely occurs in low coverage
+  shotguns (<=4), high coverage (>=6) should be ok. I'm working on it.
+
+2.2.6 to 2.2.7 (2.3.9)
+----------------------
+- fixed serious bug that led to suboptimal assembly of genomic
+  sequences. Upgrade to this version *highly* recomended.
+- added -OUT:oetas, exttmp singlets now not saved by default
+- exttemp contigs now not saved as "post" when no change (either
+  repeat marked or edits) happened
+- *sigh* fixed error in parameter setting for extended_gap_penalty:
+  _long_ gaps sometimes were given a lower penalty than expected
+- fixed error in .txt output of a contig: some HTML was thrown in
+  sometimes
+
+2.2.5 to 2.2.6
+--------------
+- fixed a bug in .ace files that prevented consed to load them
+  ("clview" from TIGR was not affected)
+- fixed rare bug that led to an assembler panic and subsequent abort
+  of the assembly process.
+- brought the provided demonstration parameter file up-to-date
+
+2.2.4 to 2.2.5
+--------------
+- fixed typo in miraEST internal standard parameters, miraEST would not
+  start
+
+2.2.3 to 2.2.4 (2.3.7)
+----------------------
+- added ability to merge data from NCBI trace info files in XML format
+  (-GE:mxti and -FI:xtii)
+- put -GE:lsd:ess to new group -ESTGENERAL (-EG:lsd:ess)
+- general update and overhaul of documention
+
+2.2.2 to 2.2.3
+--------------
+- fixed typos again in on-screen text
+
+2.2.1 to 2.2.2 (2.3.3)
+----------------------
+- fixed ugly bug in banded Smith-Waterman that lead to misses in some
+  cases
+
+2.2.0 to 2.2.1
+--------------
+- fixed typos in on-screen text
+
+2.1.22 declared 2.2.0, forked 2.3 branch
+----------------------------------------
+
+2.1.21 to 2.1.22
+----------------
+- fixed minor bug in computation of alignment scores. It lead
+  sometimes to suboptimal alignments at the ends of an overlap. Effect
+  was frequently seen in EST projects
+- new parameters -AL:extra_mlsmatch_penalty:emp*
+- new FASTA output for the consensus: the raw format, with gaps,
+  lowercase for normal consensus, upper case for special features like
+  PRMB, WRMB, PAOS, PROS, PIOS
+  files are named .raw.fasta
+
+2.1.20 to 2.1.21
+----------------
+- miraEST gets starting step as parameter: -GE:ess
+- fine tuning of gap penalty level for est_splitsplices variant
+
+2.1.19 to 2.1.20
+----------------
+- optimised memory requirements when reading FASTA files
+- slight optimisation of memory requirements for reads
+- fixed bug when reading FASTA quality files that had more sequences
+  than the FASTA files themselves
+- fixed a number of minor internal bugs that were found with valgrind
+  which had no traceable effects on the assembly
+- introduced the TEST versions of MIRA and miraEST
+
+2.1.18 to 2.1.19
+----------------
+- fixed small bug that caused some reads with PRMB/WRMB tags that
+   matched ok to be rejected as overlap. Influence on assemblies:
+   light, but annoying
+
+2.1.17 to 2.1.18
+----------------
+- fixed dumb bug in SKIM which caused suboptimal hit numbers
+  *deepsigh*
+- fixed small memory leaks here and there (valgrind rocks)
+
+
+2.1.16 to 2.1.17
+----------------
+- fixed (dumb dumb dumb) bug: check of minimum alignment score did not
+  take the score multiplier into account *sigh* this resulted in good,
+  but somewhat shorter alignments to be rejected
+- slight tweak in consensus algorithm (less IUPAC codes)
+- new parameter: -DP:pvcmla. Enables quite effective sequencing vector
+  leftover clipping without loosing splice variants (variants with
+  lower number of bases than -DP:pvcmla will get lost though).
+- Sequences not adhering to Sanger (and probably St. louis) naming
+  scheme now loose template information. Allows better assembly for
+  projects that don't have this scheme.
+- miraEST comes with some enhanced standard parametersets
+
+2.1.15 to 2.1.16
+----------------
+- changed behaviour of contig: when assume_snp_instead_prmb, now also
+   tags PROS as PRMB
+- polybase masking now uses an enhanced algorithm, -DP: options
+   changed too to reflect this
+- minor enhancements in IUPAC consensus computation
+
+2.1.14 to 2.1.15
+----------------
+- Reading of SCF V2 was borken on x86, fixed
+
+2.1.13 to 2.1.14
+----------------
+- fixed bug that affected consensus: in (really) rare cases, a base in
+   the consensus was replaced by another base in the consensus output
+
+2.1.12 to 2.1.13
+----------------
+- improved consensus quality calculation: supporting reads add a bit
+   more to a quality
+- fixed dumb bug *sigh* that lead to suboptimal assembly results in
+   some cases involving PRMB tags
+- during assembly, contigs are now only edited when no unresolved
+   misassembly was detected in that contig. (TODO: auch bei nur WRMBs?)
+
+2.1.11 to 2.1.12
+----------------
+- added POLY and IUPAC tags for HTML output
+- small bugfix in HTML output for MISM tag
+- bugfix in HTML output: tags in consensus are now shown
+- progressbar when loading FASTA files re-enabled
+- miraEST now names single-read-contigs (result of step 2) now
+   _Singlet instead of _Contig
+- helper programs (scf2other etc.) now mention the MIRALIB version in
+   their usage text
+
+2.1.10 to 2.1.11
+----------------
+- adapted base version for diss
+
+2.1.9 to 2.1.10
+---------------
+- tweaked consensus base probabilities
+- marking of repeats: only when dubious bases are surrounded by good
+quality (new parameter -CO:mnq)
+
+2.1.8 to 2.1.9
+--------------
+- improved consensus algorithm when non-clipped vector leftovers occur
+- improved tagging of possibly misassembled repeats: single read
+misassemblies now better under control
+- fixed off by one bugs in tagging of polybases at read ends
+- new parameter class -SKIM
+
+2.1.7 to 2.1.8
+--------------
+- improved consensus algorithm for uncertain base/gap candidates
+- renamed -AL:gpl=est_default to est_splitsplices
+- new parameter class -DATAPROCESSING
+- moved -AS:mr put to -CO:mr and -AS:ure to -DP:ure
+- new parameter option -DP:tpae to enable/disable tagging of poly-A/T
+  at read ends, options for polybase tagging in DP
+
+2.1.2 through 2.1.7
+-------------------
+- Consensus disregards bases that are 'masked from consensus' (for the
+time being the tag POLY for poly-A or poly-T at ends of reads)
+- Consensus is now given with IUPAC bases if base evidence is
+  contradictory
+- Overall improved IUPAC support
+- bugfix: clusters were wrongly computed (affected only output)
+- SKIM algorithm can be parameterised
+- new extra gap penalty level (egp): 10 (est_default)
+
+
+2.0.1 to 2.1.2
+--------------
+- bugfix: parameters for clippings (qual and masked chars) were not used (only 'defaults')
+- added computing and output of possible clusters
+- better alignments for difficult cases
+- writes clustering logfiles
+- emergency search stops now work on time dependent basis
+- reworked blacklisting of reads for EST assemblies
+
+2.0.0 to 2.0.1
+--------------
+- fixed typos
+- -AS:uess:esspd for restraining computing time on pathological cases
+  of coverages are now functional
+- fixed bug, standard parameters for third step of miraEST were in
+  wrong section
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ - Fixed error in contig: wrong assumption about insert sizes lead to
+   halt.
+ - New Pathfinder algorithm (faster in resolving) CHECKME!
+ - New banning strategy for found misassemblies CHECKME!
+ - New parameter -CO:emea, -DI:gap4da
+ - Added .ace output (alpha) (Tags?)
+ - Added gap4 directed assembly output
+ - Screened out bases (Xs) are now (durchgeschleift) and not
+   transformed to Ns in reads anymore.
+ - Sequences loaded as FASTA can now also fall back on SCF files for
+   qualities and editing if those are present
+ - standard filenames for in and out changed to "mira"
+ - fixed bug in EdIt that caused crashes when SCF was not present
+   (thank you valgrind! :).
+ - added -GE:project to quickly change standard filenames for in and
+   out.
+ - added quickparams --fasta, --project, --phd
+ - quietened EdIt when analysing stretches containing reads with no
+   SCF data
+ - switching automatic contig editing off when no SCF present for the
+   reads
+ - added possibility to save contig consensus (and qualities) as
+   FASTA: parameters -GE:orf:otf
+ - Singlets are now named "Singlet" instead of "Contig" in result
+   files. They still get the same continuous number as if they were
+   contigs though.
+ - contigs are now more permissive on errors when template partners
+   are in range (rodirs*2)
+ - added -CO:ismin:ismax for controlling default template insert size
+ - PHD files can now be read, added -FI:pi:fpi (fofnphd tut noch nicht)
+ - relocated output parameters to -OUTPUT, added extended temporary output flags
+ - when loading from fasta or phd, template names are now deduced
+   from read name if they're in Sanger Centre scheme
+ - added options to perform clipping on reads by quality
+   (-CL:qc:qcmq:qcwl)
+ - added options to perform clipping on reads by masked bases
+   (-CL:mbc:mbcgs:mbcmfg:mbcmeg)
+ - repositioned -GE:cpv to -CL:pvc
+ - added _reads_invalid and _reads_too_short as output files
+ - added several info and error files as output (for statistics etc.)
+ - cleaned output as text and put into file
+ - speeded up read extension
+ - SCF files are now found even if the filenames differ from given
+   names by appending a .Z or .gz, .scf, .scf.Z etc.
+ - practically doubled speed of banded SW alignment using memrecache
+   algorithms (yeeehaah!)
+ - added -CO:mgcpt:mgcwpc
+ - added possibility to load parameters from file (-params)
+ - added -GE:discard_read_on_eq_error
+ - write a lot of statistics files at the end of an assembly
+ - added clustering log files
+
+TODO: Statistiken und Listen (Orphans / Singlets / Cluster?)
+TODO: fofnphd realisieren
+TODO: mehrere Inputfiles laden, vorher anzahl reads zaehlen und per reserve() anmelden
+TODO: singlets in andere files trennen?
+TODO: contigs.C: template handling in addRead verbessern
+TODO: versteckte STL Containerspeicherlecks (reserve()) suchen
+
+*Changes from V1.5.2 to V1.5.3
+ - Added -GE:cpv for clipping possible sequencing vector leftovers in
+   reads (just on the left side at the moment)
+
+*Changes from V1.5.1 to V1.5.2
+ - Added new parameter -DIR:exp:scf:log to specify input and output
+   directories (log doesn't work yet)
+ - Fixed a bug that caused segmentation faults when SCF files with 0
+   bases were used.
+
+*Changes from V1.5 to V1.5.1
+ - Added new parameters -AS:pbl (maximum prmb break loops)  -CO:npz (num_prmb_zones)
+ - new function to transfer sequencing vectors expressed as tags in
+   EXPs to clips: searches with a tolerance from clips and strat/end
+   of read, transfers tags found there to clips.
+ - New! EST assembly now supported by usage of strains. Added new
+   parameters -GE:lsd and -FI:sdi
+ - New routine for finding possible repeats (PRMB) and possible SNPs (PSNP)
+ - Added WRMB as weak repeat marker bases
+ - Comments are now allowed in the file of filenames file (fofn)
+
+*Changes from V1.4.1  to V1.5
+ - New read comparison routine (experimental): Skim. Speed factor to
+   the Zebra routines: 10 to 50, depending on memory. Drawbacks:
+   probably isn't as sensitive as ZEBRA, no possibility to subdivide
+   the search space for the time being.
+ - Change in behaviour while loading SCF files: 'fatal' errors in SCFs
+   now do not lead to a halt, but are logged (and the reads concerned
+   excluded from the assembly).
+ - option -FI:fastaqualin added. new FASTA reading routines now load
+   also quality files in FASTA format.
+ - fixed template handling bug: distance of reads was calculated
+   wrongly in the contig (affected assembly only when -CO:uti was on).
+ - New building mechanism using automake and autoconf.
+
+*Changes from V1.4.0rc2 to V1.4.1
+ - the option to load FASTA files was lost somewhere in earlier
+   revisions, thanks to the people who pointed that out.
+
+*Changes from V1.4.0rc1 to V1.4.0rc2
+ - option -GE:filecheck_only added
+ - logfile "log.scfread_fail" added
+ - Bug in EdIt removed that sometimes caused crashes on unclipped
+   sequences
+ - Bug in parameter parsing removed that caused wrong parameters not
+   to be recognised.
+
+*Changes from V1.3.20 to V1.4.0rc1
+ - Reworked HTML format a bit.
+ - Merged tools for project conversion into convert_project.
+ - MIRA complained when it encountered PHRED SCF files that contained
+   irregularities/errors. It will now 'correct' the error internally
+   and continue.
+ - Read extension is now additionally performed _before_ the first
+   assembly (if read extension is enabled)
+ - new command line option '-borg'. This will trigger a lot of
+   parameters to be set into a mode where MIRA is likely to assemble
+   everything that might look like ok to assemble. Albeit this slows
+   down the assemble _a lot_.
+ - Integrated editor had a few bugs fixed.
+ - A few code cleanups
+
+*Changes from V1.3.19 to V1.3.20 (maintenance release)
+ - The EdIt routines for ALF data (mira_l) had not been actualised and
+   were not working right: a lot of bases that could have been
+   corrected were not corrected.
+ - In rare cases, buggy SCF files caused the integrated editor to
+   crash. Fixed by augmenting the ability to recognise buggy SCFs.
+ - Added optional HTML output for contigs
+ - Added -GE:orh, -GE:otc and -GE:oth (see man page) for controlling
+   html output and temporary CAF|HTML output files
+
+*Changes from V1.3.18 to V1.3.19
+ - Added -FILE options. File and project names can now be freely chosen
+ - CAF read routine had a small bug. Affected people who worked from
+   the very first base in reads (that wasn't clipped off through
+   quality and/or sequencing vector)
+
+*Changes from V1.3.17 to V1.3.18
+ - Small changes in EdIt. Bugfixes in MIRA and EdIt. If MIRA didn't
+   crash on you, you probably weren't affected.
+
+*Changes from V1.3.16 to V1.3.17
+ - Argl, bad bug in 1.3.16 while loading files which caused mira to
+   crash. Sorry.
+
+*Changes from V1.3.15 to V1.3.16
+ - Integrated EdIt had memory leak and crashed
+ - Minor bug in CAF writing fixed for Solaris and Linux version. Bug
+   did not affect quality of assembly, it's just that not-existing
+   Clonevec names were replaced by the string "(null)".
+
+*Changes from V1.3.14 to V1.3.15
+ - The EdIt (automatic editor) routines contained an error that struck
+   in very rare cases and crashed the assembler when -GE:ace was
+   set. Fixed.
+ - Memory requirements decreased again
+ - Small bugfixes
+ - SGI version now runs in true 64 bit mode
+
+*Changes from V1.3.13 to V1.3.14
+ - Fixed error in handling of repeat marker bases (this could have
+   lead to a crash)
+
+*Changes from V1.3.12 to V1.3.13
+ - Substantially decreased memory requirements phase. Well,
+   requirements decreased incredibly, drastically, dramatically,
+   ... you get the picture.
+ - Fixed small bug when compiling with gcc: filenames were sometimes
+   garbled (Linux, Solaris)
+
+*Changes from V1.3.11 to V1.3.12
+ - added extended checkpointing: each contig is now saved separately during
+   the assembly in log.loop_W_cbX_iY_Z.caf where W ist numeric loop
+   number, X is numeric contig number in this loop, Y is numeric
+   iteration number for this contig in this loop, Z ist either 'pre'
+   or 'post' - indicating before the contig has been edited or after.
+ - Inserted or changed bases now get a quality value != 0. The quality
+   is interpolated from neighbouring non-N and non-gap bases. Rough,
+   but works.
+
+*Changes from V1.3.10 to V1.3.11
+ - Added checkpointing capability (files: bla_out_loop.X.caf) where X
+   stands for the loop number.
+ - Fixed severe bug that caused MIRA to stop. Introduced somewhere in
+   1.3.x
+
+*Changes from V1.3.9 to V1.3.10
+ - First prototype auf automatic repeat marker
+
+*Changes from V1.3.8 to V1.3.9
+ - Added -AS:nol, -AS:ure and -AS:ace
+ - Added -CO:uti to try making use of template information (insert
+   size)
+
+*Changes from V1.2 through V1.3.8
+ - First integration of MIRA with EdIt, the automatic editor.
+ - Added template handling
+ - Added consensus tags
+ - Removed memory leaks
+ - bugfixes
+ - some more bugfixes
+ - tons of bugfixes *sigh* (note: if the program did not stop or
+   crash in previous version, you were NOT affected, all of your
+   assemblies were correct)
+
+*Changes from V1.1.1 to V1.2
+ - Added -AL:bip, -AL:bmin and -AL:bmax options, to make banded SW
+   configurable
+
+*Changes from V1.0.1 to V1.1.1
+ - Now using banded Smith-Waterman alignment functions. Speed increase
+   between 300% and 700% in the alignment phases. BSW functions might
+   miss a valid alignment, but only in very very rare cases. BSW were
+   needed as labs increasingly show up with read length between 400
+   and 1000 bases.
+ - added IUPAC uncertainty codes for EXP, SCF and CAF reading
+   routines. These will be treated as N internally and appear as N in
+   the resulting alignment.
+ - fixed bug: the signal analysis routines were never called
+   (oooops). This bug appeared probably in 0.99b6.
+ - fixed bug: temporary files in the SCF load function were not
+   removed when an error occurred
+
+*Changes from V1.0 to V1.0.1
+ - added -AL:mo parameter
+ - version schemes now similar to the linux kernel. Even major numbers
+   represent 'stable' version, uneven are 'test' version with features
+   that weren't tested thoroughly on real data sets.
+
+*Changes from V0.99b7 to V1.0 (not publicly released)
+ - Faster filter functions with increased sensitivity and specificity
+   built in. Filtering is now done with Zebra-Blocking instead of
+   DNASAND. This is a major improvement in terms of speed (roughly 4x)
+   in the filter phase.
+ - Memory consumption in the assembly phase has been significantly
+   reduced. It should now be perfectly possible to assemble projects
+   with 50,000 to 100,000 reads (though _PLEASE_ contact the author
+   before doing this, so that tips in speed enhancement can be given).
+ - removed SANDSIEVE parameter options
+ - added -AL:egp and gpl options
+ - added ZEBRABLOCKING options
+ - Used parameters are now dumped to stdout when MIRA starts
+ - Unknown identifiers in EXP files do not generate warnings anymore
+ - fixed reported bugs
+
+*Changes from V0.99b6 to V0.99b7:
+ - experiment files now don't need to be available when loading CAF
+   projects
+ - bug fixed in parsing command line options: -GE:lj=FOFNEXP wasn't recognised
+ - some debug output removed that happened to be printed when loading
+   CAF files
+ - bugfix when reading experiment files: one line tags like
+        TG   WARN - 127..167 "POSSIBLY VECTOR: puc18 289 249 2686"
+   were misinterpreted
+ - can now read quality values in EXP files
+ - added -GE:eq and -GE:eqo options to specify quality sources
+
+*Changes from V0.99b5 to V0.99b6:
+ - bug fixed in CAF loading routines
+ - potential bug fixed in contig handling
+ - fixed bug in parsing command line options introduced in 0.99b3
+
+Changes from V0.99b4 to V0.99b5:
+ - changed logic for analysing danger zones (ALUS and REPT): checking
+   should be stricter now
+ - fixed bug in contig: in some rare cases, a division by zero error occurred
+
+Changes from V0.99b3 to V0.99b4:
+ - fixed bug in dynamic programing algorithm: * in reads are now
+   treated like N
+
+Changes from V0.99b2 to V0.99b3:
+ - switched on (experimental) possibility to reassemble CAF projects
+ - added -GENERAL parameter options
+ - temporary files are now removed automatically after the
+   assembly. Use -GENERAL:clean_tmp_files=off if you plan to
+   experiment with different assembly options.
+ - fixed a bug: the -CONTIG:rej_on_dropinrelscore given as parameter
+   was ignored
+ - the -CONTIG:rej_on_dropinrelscore default is 7%, not 5 as I wrote

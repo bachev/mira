@@ -1,0 +1,24 @@
+Files in this directory are meant as help for supporting interaction
+with other genomic software.
+
+Currently, only a small definition file for defining tags in the
+Staden package (GAP4) and the consed package are present, but this
+section should grow.
+
+Files included: 
+
+For the STADEN package:
+
+  GTAGDB   For the gap4 package, so that it knows the tags used by
+	   mira, miraEST and EdIt
+
+
+For the consed package
+
+  consedrc.13.0 For the consed package 13.0 (or perhaps 12.0, I don't
+		know). Put this line into your .consedrc and let it
+		point to the consedtaglib.txt that you use
+
+  consedtaglib.txt For the consed package 13.0 and up (or perhaps
+		   12.0, I don't know). Add these lines to the file
+		   you use as tag library.

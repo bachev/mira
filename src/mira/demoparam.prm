@@ -1,0 +1,321 @@
+#############################################################################################
+# 
+# MIRA genome and EST assembler
+#
+# Demo parameter file which just lists all possible parameters (or at least
+# tries to), but does _not_ form a sensible parameter set on its own.
+#
+#	$Id$	
+#
+#############################################################################################
+#
+# The parameter file contains several sections (-GENERAL, -ASSEMBLY
+#  etc.) with each section containing certain options.
+# The sections need not to be in a certain order and can be mixed,
+#  e.g. after some -ASSEMBLY parameteres some -GENERAL can be given
+#  and then again some -ASSEMBLY
+#
+#############################################################################################
+#
+# These parameters can be taken verbatim to the command line (in
+#  verbose form or using the aliases) by putting a colon between
+#  different options of a section.
+#
+# E.g.
+#  -ASSEMBLY
+#  mrl                       = 40
+# -CLIPPING		   	     
+# possible_vector_clip       = yes
+# quality_clip               = yes
+#
+# could become: -AS:mrl=40 -CO:pvc=yes:qc=yes
+# or even:      -AS:mrl=40 -CO:pvc=yes -CO:qc=yes
+#
+#
+# Please note: when using the parameters on the command line, then
+#  spaces are NOT allowed between sections and parameters or between
+#  parameters and values
+# That is:
+#   -AS:mrl=40    is ok on the commandline
+#   -AS mrl=40    is NOT ok on the commandline
+#   -AS:mrl = 40  is NOT ok on the commandline
+
+
+
+
+
+# Here we go
+
+#
+# General options control a few fundamental behaviours
+#
+
+-GENERAL
+
+projectname                = demo     # project name;               aliases: 'project', 'pro'
+load_job                   = fofnexp  # load data from;             alias: 'lj'
+filecheck_only             = no       # only check files by load;   alias: 'fo'
+external_quality           = SCF      # load ext. qual. from;       alias: 'eq'
+external_quality_override  = yes      # overide with ext. qualities alias: 'eqo'
+readnaming_scheme	   = sanger   # naming scheme of reads      alias: 'rns'
+merge_xmltraceinfo	   = yes      # merge ancillary XML data?   alias: 'mxti'
+use_template_information   = yes      # Use templ. info in assembly alias: 'uti'
+discard_read_on_eq_error   = no       # discard or use default qual alias: 'droeqe'
+print_date		   = yes      # print date in ouput log     alias: 'pd'
+
+#
+# This options taking effect only for the EST assembly
+#
+est_startstep		   = 1	      # start in step 1, 2 or 3     alias: 'ess'
+
+
+#
+# Options that control usage / loading of straindata and backbone data
+# in assembly
+#
+
+-STRAIN/BACKBONE
+load_straindata            = no       # load organism data file     alias: 'lsd'
+load_backbone		   = no	      # load backbone for assembly  alias: 'lb'
+backbone_filetype	   = caf      # file type of backbone       alias: 'bft'
+backbone_raillength	   = 2500     # raillengths for backbone    alias: 'brl'
+backbone_strainname        = mystrain # strain name for backbone    alias: 'bsn'
+backbone_basequals	   = 30       # default quals for backbone  alias: 'bbq'
+alsobuildnewcontigs        = yes      # not only map on backbone    alias: 'abnc'
+startbackboneusage_inpass  = 3	      # only use backbones then	    alias: 'sbuil'
+
+#
+# Assembly options control basic behaviour 
+#  (number of iterations, resolve repeats etc.)
+#
+
+-ASSEMBLY
+
+minimum_read_length        = 40             # minimum read len. for ass.  alias: 'mrl'
+num_of_passes              = 2              # number of assembly passes;  alias: 'nop'
+skim_each_pass             = yes            # run skim alg. each pass?    alias: 'sep'
+rmb_break_loops            = 5              # max. num. of loops in prmb; alias: 'pbl'
+spoiler_detection	   = yes	    # detect reads preven. joins; alias: 'sd'
+sd_last_pass_only	   = yes	    # only last pass or anytime?; alias: 'sdlpo'
+use_emergency_search_stop  = yes            # for high coverage searches; alias: 'uess'
+ess_partnerdepth           = 500            #  enable on this # of partn. alias: 'esspd'
+use_emergency_blacklist    = no		    # blacklisting for hc search; alias: 'uebl'
+use_max_contig_buildtime   = no		    # use time restr. to build c. alias: 'umcbt'
+buildtime_in_seconds	   = 10000	    # seconds alloted to 1 cont.  alias: 'bts'
+
+#
+# Special options for 454 assembly (testing)
+#
+#
+#-454DATA
+#main_data_is_454 = yes   # defines reads to be 454 of type;  alias: 'mdis454'.
+
+
+#
+# Special options for data preprocessing (if wanted)
+#
+
+-DATAPROCESSING
+use_read_extension              = yes       # extend reads if possible;   alias: 'ure'
+read_extension_window_len	= 30	    #  window len for ext.routines;alias: 'rewl'
+read_extension_window_maxerrors = 2	    #  max errors for ext.routines;alias: '0'
+first_extension_in_pass		= 0	    #  start extending after pass;alias: 'feip'
+last_extension_in_pass		= 0	    #  stop extending after pass ;alias: 'leip'
+tag_polyat_at_ends		= no	    # tag polyAT stretches?       alias: 'tpae'
+polybase_window_len		= 7	    #  window for tagging;        alias: 'pbwl'
+polybase_window_maxerrors	= 2	    #  max non-AT in window;      alias: 'pbwme'
+polybase_window_gracedistance	= 9	    #  distance before stoping;   alias: 'pbwgc'
+
+
+
+#
+# SKIM is the fast all-against-all read comparison
+#
+
+-SKIM
+
+bases_per_hash        = 16          # wordsize (8-30);                alias: 'bph'
+hash_save_stepping    = 4	    # ratio of hashes saved;          alias: 'hss'
+percent_required      = 50	    # skim percent identity required; alias: 'pr'
+max_hashes_in_memory  = 15000000    # hashes generated in mem.;       alias: 'mhim'
+maxhits_perread       = 200	    # max. num. of hits per read;     alias: 'mhpr'
+
+
+#
+# Clipping options control if and how sequences should be clipped
+#
+			   	     
+-CLIPPING		   	     
+			   	     
+possible_vector_clip       = yes      # clip possible seq. vectors; alias: 'pvc'
+pvc_maxlenallowed	   = 12	      #  but only if <= num bases;  alias: 'pvcmla'
+quality_clip               = yes      # perform quality clip;       alias: 'qc'
+qc_minimum_quality         = 20       # min. qual. for clip;        alias: 'qcmq'
+qc_window_length           = 30       # window len. for qual. clip; alias: 'qcwl'
+maskedbase_clip            = yes      # clip masked bases (X);      alias: 'mbc'
+mbc_gap_size               = 15       # mb clip max. internal gap;  alias: 'mbcgs'
+mbc_max_front_gap          = 30       # mb clip max. front gap;     alias: 'mbcmfg'
+mbc_max_end_gap            = 60       # mb clip max. end gap;       alias: 'mbcmeg'
+ensure_minimum_left_clip   = Yes      # clip minimum number left?   alias: 'emlc'
+minimum_left_clip_required = 25	      # minimum number left req.    alias: 'mlcr'
+set_minimum_left_clip_to   = 30	      # set to this, if num<'mlcr'  alias: 'smlc'
+
+#
+# Align options for controlling the Smith-Waterman (banded) alignment
+#  and the alignment post-processing
+#
+
+-ALIGN
+
+bandwidth_in_percent       = 15  	    # SW bandwidth in percent      alias: 'bip'
+bandwidth_max              = 100  	    #  but max bandwidth           alias: 'bx'
+bandwidth_min              = 10  	    #  but min bandwidth           alias: 'bn'
+min_score                  = 15  	    # Min. SW score                alias: 'ms'
+min_overlap                = 15  	    # Min. overlap length          alias: 'mo'
+min_relative_score         = 65  	    # Min. relative score          alias: 'mrs'
+extra_gap_penalty          = yes  	    # Use an extra gap penalty     alias: 'egp'
+egp_level		   = low  	    #  Extra gap penalty level     alias: 'egpl'
+
+
+#
+# Contig options
+#  Contigs are implemented as intelligent objects who fully control which
+#  sequences they choose to add and which they reject.
+#  They also have routines to recognize misassemblies due to possible
+#  repeats and mark important repeat discerning bases (PRMB = Possible
+#  Repeat Marker Base) or SNPs when running in EST assembly mode
+#
+
+-CONTIG
+
+analysis                          = signal  # perform error analysis       alias: 'an'
+rej_on_dropinrelscore             = 10      # max.drop in relscore allowed alias: 'rodirs'
+danger_max_error_rate             = 1       # Max. error rate in d. zone   alias: 'dmer'
+mark_repeats			  = yes     # mark repeats;                alias: 'mr'
+min_reads_per_group               = 2       # Min. reads in a group to tag alias: 'mrpg'
+min_rmb_neighbor_qual		  = 20	    # Min. qual of neigh. to tag;  alias: 'mnq'
+min_groupqual_for_rmb_tagging     = 30      # Min. groupqual for tagging   alias: 'mgqpt
+endread_mark_exclusion_area       = 15      # Exclude num. bases at ends   alias: 'emea'
+also_mark_gap_bases		  = yes	    # Mark columns with gap bases  alias: 'amgb'
+also_mark_gap_bases_even_multicolumn = yes  #:even with neighbouring gaps  alias: 'amgbemc'
+also_mark_gap_bases_needbothstrands = yes    #:only if gaps in both strands alias: 'amgbnbs'
+defaultinsertsizeminimum          = 500     # Min. insert size of template alias: 'ismin'
+defaultinsertsizemaximum          = 5000    # Max. insert size of template alias: 'ismax'
+
+
+#
+# EdIt parameters for controling the integrated automatic editor
+#  which uses available SCF data to resolve conflicts
+#
+
+-EDIT
+
+automatic_contig_editing   = yes            # edit contigs using scf data? alias: 'ace'
+confirmation_threshold     = 80             # editing confirmation thresh. alias: 'ct'
+strict_editing_mode        = yes            # use strict editing mode?     alias: 'sem'
+
+
+#
+# Directory names where to find or where to write data
+# Note: log directory will have the project name prepended
+#
+
+-DIRECTORY
+
+gap4da        		   = gap4da         # Dir. for gapda output
+exp	      		   = exp	    # Dir. for input of exp files
+scf	      		   = scf	    # Dir. for input of scf files
+fasta         		   = fasta          # Dir. for input of fast files
+log	      		   = miralog	    # Dir. for output temp. log
+
+
+#
+# File names
+#
+
+-FILE
+
+fofnexpin      		   = demofe.fofn    # name of fofn of exp files   alias: 'fei'
+fofnphdin      		   = demoph.fofn    # name of fofn of phd file    alias: 'fpi'
+phdin          		   = demoin.phd     # name of phd infile          alias: 'pi'
+fastain        		   = demoin.fasta   # name of fasta infile        alias: 'fai'
+fastaqualin    		   = demoin.fasta.qual # name of fasta qual. infile  alias: 'fqi'
+straindatain   		   = straindata.txt # name of straindata infile   alias: 'sdi'
+cafin          		   = demoin.caf     # name of caf infile          alias: 'ci'
+cafout         		   = demores.caf    # name of caf outfile         alias: 'co'
+xmltraceinfoin		   = demo_t_in.xml  # name of trace info file     alias: 'xtii'
+
+#
+# Options for controling which results to write and to which type of files
+#
+
+-OUTPUT			   
+
+output_result_caf          = yes      # output in caf format;       alias: 'orc'
+output_result_gap4da       = yes      # output as gap4 dir.ass.for. alias: 'orf'
+output_result_fasta        = yes      # output in fasta format      alias: 'org'
+output_result_ace          = yes      # output in ace format        alias: 'ora'
+output_result_text         = yes      # output in text format       alias: 'ort'
+output_result_html         = no       # output in html format       alias: 'orh'
+
+output_tmpresult_caf       = no       # temporary results are       alias: 'otc'
+output_tmpresult_gap4da    = no       #  results after each         alias: 'otg'
+output_tmpresult_fasta     = no       #  main pass.		    alias: 'otf'
+output_tmpresult_ace       = no       # 			    alias: 'ota'
+output_tmpresult_text      = no       # 			    alias: 'ott'
+output_tmpresult_html      = no       # 			    alias: 'oth'
+
+output_exttmpresult_caf    = no       # extra temporary results     alias: 'oetc'
+output_exttmpresult_gap4da = no       #  can happen inbetween a     alias: 'oetg'
+output_exttmpresult_fasta  = no       #  pass if, e.g., a contig    alias: 'oetf'
+output_exttmpresult_ace    = no       #  must be rebuilt because    alias: 'oeta'
+output_exttmpresult_html   = no       #  of clashes in repeats      alias: 'oeth'
+oetas			   = no	      # also singlets?              alias: 'output_exttmpresult_alsosinglets'
+
+text_chars_per_line  = 60    # number of bases in a text alignment line    alias: 'tcpl'
+html_chars_per_line  = 60    # number of bases in a HTML alignment line    alias: 'hcpl'
+text_endgap_fillchar = " "   # endgap character for text alignment line    alias: 'tegfc'
+html_endgap_fillchar = " "   # endgap character for text alignment line    alias: 'hegfc'
+
+
+
+#
+# Quick mode switches
+#  These switches set default parameters considered useful when
+#  assembling projects having a certain file input type
+#
+
+-fasta
+-phd
+-caf
+
+# 
+# These modes also have a version where the filename of the input data
+#  can be given
+#
+
+-fasta   = demoin.fasta
+-phd     = demoin.phd
+-caf     = demoin.caf
+
+
+#
+# Setting the project name (via this switch or via the -GENERAL one)
+#  automatically sets a lot of different default input and output file
+#  and directory names to reflect the name of the project.
+#
+
+-projectname  = demoproject           # aliases: '-project', '--project', '--projectname'
+
+
+# other quickswitches
+-borg
+-horrid
+-estmode
+
+#
+# Loading parameters from other files is also possible
+#
+#
+#--params       = somefile.prm
+

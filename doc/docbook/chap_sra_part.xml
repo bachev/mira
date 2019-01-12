@@ -1,0 +1,145 @@
+<?xml version="1.0" ?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.docbook.org/xml/4.5/docbookx.dtd">
+<chapter id="chap_sra">
+  <chapterinfo>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="versionfile"/>
+    <author>
+      <firstname>Bastien</firstname>
+      <surname>Chevreux</surname>
+      <email>bach@chevreux.org</email>
+    </author>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="copyrightfile"/>
+  </chapterinfo>
+  <blockquote>
+    <attribution>Solomon Short</attribution>
+    <para>
+      <emphasis><quote>........ .</quote></emphasis>
+    </para>
+  </blockquote>
+  <title>The Trace &amp; Short Read Archive at NCBI</title>
+  <sect1 id="sect_sra_introduction">
+    <title>
+      Introduction
+    </title>
+    <para>
+      ...
+    </para>
+  </sect1>
+  <sect1 id="sect_sra_SFF">
+    <title>
+      SFF format and file conversion
+    </title>
+    <para>
+      The basic data type you will get from the sequencing instruments from
+      454 &amp; Ion Torrent will be SFF files. Those files contain almost all
+      information needed for an assembly, but SFFs need to be converted into
+      more standard files before MIRA can use this information.
+    </para>
+    <para>
+      We'll use the <command>sff_extract</command> script to do that.
+    </para>
+    <warning>
+      For MIRA versions &lt; 3.9.0, make sure you have the <command>sff_extract</command> version 0.2.*. Starting with MIRA version 3.9.0, you <emphasis role="bold">MUST</emphasis> have <command>sff_extract</command> version &ge; 0.3.0
+    </warning>
+    <note>
+      Make sure you have Python installed on your system
+    </note>
+    <sect2 id="sect_sra_extracting_unpaired_data_from_sff">
+      <title>
+	Extracting unpaired data
+      </title>
+      <screen><prompt>arcadia:/path/to/myProject$</prompt> <userinput>sff_extract -o bchoc EV10YMP01.sff EV5RTWS01.sff EVX95GF02.sff</userinput></screen>
+      <para>
+	The parameters to <command>sff_extract</command> tell it to extract to
+	FASTQ (which is the default nowadays), give the output files a prefix
+	name we chose (via -o) and convert the SFFs named
+	<filename>EV10YMP01.sff</filename>, <filename>EV5RTWS01.sff</filename>
+	and <filename>EVX95GF02.sff</filename>.
+      </para>
+      <para>
+	This can take some time, the 1.2 million FLX reads from this example
+	need approximately 9 minutes for conversion. Your directory should now
+	look something like this:
+      </para>
+      <screen>
+<prompt>arcadia:/path/to/myProject$</prompt> <userinput>ls -lR</userinput>
+-rw-r--r-- 1 bach users 231698898 2007-10-21 15:16 bchoc.fastq
+-rw-r--r-- 1 bach users 193962260 2007-10-21 15:16 bchoc.xml
+-rw-rw-rw- 1 bach users 475849664 2007-09-23 10:10 EV10YMP01.sff
+-rw-rw-rw- 1 bach users 452630172 2007-09-25 08:59 EV5RTWS01.sff
+-rw-rw-rw- 1 bach users 436489612 2007-09-21 08:39 EVX95GF02.sff
+      </screen>
+    </sect2>
+    <sect2 id="sect_sra_extracting_pairedend_data_from_sff">
+      <title>
+	Extracting paired-end data
+      </title>
+      <para>
+	The paired-end protocol of 454 will generate reads which contain the
+	front and the back of a DNA template, separated by a linker sequence. You have
+	to know the linker sequence! Ask your sequencing provider to give it
+	to you. If standard protocols were used, then the linker sequence for
+	GS20 and FLX will be
+      </para>
+      <screen>
+&gt;flxlinker
+GTTGGAACCGAAAGGGTTTGAATTCAAACCCTTTCGGTTCCAAC</screen>
+      <para>
+	while for Titanium data, you need to use two linker sequences
+      </para>
+      <screen>
+&gt;titlinker1
+TCGTATAACTTCGTATAATGTATGCTATACGAAGTTATTACG
+&gt;titlinker2
+CGTAATAACTTCGTATAGCATACATTATACGAAGTTATACGA</screen>
+      <para>
+	For this example, the sequencing provider used the standard unmodified
+	454 FLX linker. Put that linker sequence into a FASTA file and copy
+	to wherever you like.
+      </para>
+      <screen>
+<prompt>arcadia:bceti_assembly/data$</prompt> <userinput>cp /from/whereever/your/file/is/linker.fasta ../origdata</userinput>
+<prompt>arcadia:bceti_assembly/data$</prompt> <userinput>ls -l ../origdata</userinput>
+-rw-r--r-- 1 bach users        53 2008-11-08 17:32 linker.fasta
+-rw-r--r-- 1 bach users 544623256 2008-11-08 16:49 SRR005481.sff
+-rw-r--r-- 1 bach users 476632488 2008-11-08 16:55 SRR005482.sff
+<prompt>arcadia:bceti_assembly/data$</prompt> <userinput>cat ../origdata/linker.fasta</userinput>
+&gt;flxlinker
+GTTGGAACCGAAAGGGTTTGAATTCAAACCCTTTCGGTTCCAAC</screen>
+      <para>
+	Now let's extract the paired end sequences, and this may take eight to
+	ten minutes.
+      </para>
+      <screen>
+<prompt>arcadia:bceti_assembly/data$</prompt> <userinput>sff_extract -Q -o bceti
+  -a -l linker.fasta
+  SRR005482.sff</userinput>
+
+Testing whether SSAHA2 is installed and can be launched ...  ok.
+Working on &apos;SRR005482.sff&apos;:
+Creating temporary file from sequences in &apos;SRR005482.sff&apos; ... done.
+Searching linker sequences with SSAHA2 (this may take a while) ...  ok.
+Parsing SSAHA2 result file ...  done.
+Converting &apos;SRR005482.sff&apos; ...  done.
+Converted 268084 reads into 415327 sequences.</screen>
+      <para>
+	The above text tells you that the conversion process saw 268084 reads
+	in the SFF. Searching for the paired-end linker and removing it,
+	415327 sequences were created. Obviously, some sequences had either no
+	linker or the linker was on the far edges of the read so that the
+	'split' resulted into just one sequences.
+      </para>
+      <para>
+	The directory will now look like this:
+      </para>
+      <screen>
+<prompt>arcadia:bceti_assembly/data$</prompt> <userinput>ls -l</userinput>
+-rw-r--r-- 1 bach users 170346423 2008-11-08 17:55 bceti.fastq
+-rw-r--r-- 1 bach users 165413112 2008-11-08 17:55 bceti.xml
+-rw-r--r-- 1 bach users 476632488 2008-11-08 16:55 SRR005482.sff</screen>
+      <para>
+	That's it.
+      </para>
+    </sect2>
+  </sect1>
+</chapter>

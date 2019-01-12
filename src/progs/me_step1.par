@@ -1,0 +1,27 @@
+#############################################################################################
+# 
+# MIRA EST assembler
+#
+# Step 1 parameter file
+#
+#
+#############################################################################################
+
+# assemble everything possible in this step
+
+COMMON_SETTINGS
+-GE:proout=step1:esps=1
+-SB:lsd=yes
+-AS:nop=1:rbl=20
+-CO:mr=yes:mroir=no:asir=no
+-OUT:orc=yes:orf=yes:org=no:ora=no:ort=no:orh=no
+
+SANGER_SETTINGS
+-AL:ms=15:mo=15:mrs=65:egpl=low
+-CO:emea=15:amgb=yes:amgbemc=yes:amgbnbs=yes
+-ED:ace=no
+
+454_SETTINGS
+-AL:ms=15:mo=15:mrs=65:egpl=low
+-CO:emea=5:amgb=no
+-ED:ace=yes

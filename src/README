@@ -1,0 +1,39 @@
+The sources of MIRA (and EdIt) are distributed across the following
+directories
+
+
+MIRA
+----
+stdinc          Some "standard" include files for MIRA
+errorhandling   Errorhandling, mostly for fatal errors
+io              I/O (mostly I) routines
+mira            Libraries containing all needed algorithms
+util            Some utility functions that did not fit elsewhere
+progs           MIRA and other programs
+
+support         Support files that enable 3rd party programs to understand
+                MIRA tag types
+scripts         A few simplistic but sometimes very useful scripts in Tcl
+                (need documentation)
+
+test            Contains *very* old regression tests, don't use anymore
+
+examples_programming     A few examples on how to use the MIRA classes in
+			 own programs.
+
+
+skimmer         deprecated
+lec		deprecated
+makefiles	deprecated
+
+
+
+
+EdIt
+----
+caf             CAF input routines (should rather go to io)
+EdIt            Main logic of the automatic Sanger editor
+examine		Routines to analyse trace data
+knn_abi373      Neural Network trained on ABI 373 data
+knn_alf         Neural Network trained on ALF data
+

@@ -1,0 +1,466 @@
+<?xml version="1.0" ?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.docbook.org/xml/4.5/docbookx.dtd">
+<chapter id="chap_denovo">
+  <chapterinfo>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="versionfile"/>
+    <author>
+      <firstname>Bastien</firstname>
+      <surname>Chevreux</surname>
+      <email>bach@chevreux.org</email>
+    </author>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="copyrightfile"/>
+  </chapterinfo>
+  <blockquote>
+    <attribution>Solomon Short</attribution>
+    <para>
+      <emphasis><quote>The universe is full of surprises - most of them nasty.</quote></emphasis>
+    </para>
+  </blockquote>
+  <title>Cookbook: de-novo genome assemblies</title>
+  <sect1 id="sect_dn_introduction">
+    <title>
+      Introduction
+    </title>
+    <para>
+      This guide assumes that you have basic working knowledge of Unix systems, know
+      the basic principles of sequencing (and sequence assembly) and what assemblers
+      do.
+    </para>
+    <para>
+      While there are step by step instructions on how to setup your data and
+      then perform an assembly, this guide expects you to read at some point in time
+    </para>
+    <itemizedlist>
+      <listitem>
+	<para>
+	  Before the assembly, <xref xrefstyle="select: label quotedtitle
+	  pageabbrev" linkend="chap_dataprep"/> to know what to do (or not to
+	  do) with the sequencing data before giving it to MIRA.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  After the assembly, <xref xrefstyle="select: label quotedtitle
+	  pageabbrev" linkend="chap_results"/> to know what to do with the
+	  results of the assembly. More specifically, <xref xrefstyle="select: label quotedtitle
+	  pageabbrev" linkend="sect_res_looking_at_results"/>, <xref xrefstyle="select: label quotedtitle
+	  pageabbrev" linkend="sect_res_first_look:the_assembly_info"/>, <xref xrefstyle="select: label quotedtitle
+	  pageabbrev" linkend="sect_res_converting_results"/>, <xref xrefstyle="select: label quotedtitle
+	  pageabbrev" linkend="sect_res_filtering_of_results"/> and <xref xrefstyle="select: label quotedtitle
+	  pageabbrev" linkend="sect_res_places_of_importance_in_a_de_novo_assembly"/>.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  And also <xref xrefstyle="select: label quotedtitle pageabbrev"
+	  linkend="chap_reference"/> to look up how manifest files should be
+	  written (<xref xrefstyle="select: label quotedtitle pageabbrev"
+	  linkend="sect_ref_manifest_basics"/> and <xref xrefstyle="select: label quotedtitle pageabbrev"
+	  linkend="sect_ref_manifest_readgroups"/> and <xref xrefstyle="select: label quotedtitle pageabbrev"
+	  linkend="sect_ref_manifest_parameters"/>), some command line options as well as general information on
+	  what tags MIRA uses in assemblies, files it generates etc.pp
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Last but not least, you may be interested in some observations about
+	  the different sequencing technologies and the traps they may
+	  contain, see <xref xrefstyle="select: label quotedtitle pageabbrev"
+	  linkend="chap_seqtechdesc"/> for that. For advice on what to pay
+	  attention to <emphasis>before</emphasis> going into a sequencing
+	  project, have a look at <xref xrefstyle="select: label quotedtitle
+	  pageabbrev" linkend="chap_seqadvice"/>.
+	</para>
+      </listitem>
+    </itemizedlist>
+  </sect1>
+  <sect1 id="sect_dn_general">
+    <title>
+      General steps
+    </title>
+    <para>
+      This part will introduce you step by step how to get your data together
+      for a simple de-novo assembly. I'll make up an example using an
+      imaginary bacterium: <emphasis>Bacillus chocorafoliensis</emphasis> (or
+      short: <emphasis>Bchoc</emphasis>). You collected the strain you want to
+      assemble somewhere in the wild, so you gave the strain the name
+      <emphasis>Bchoc_wt</emphasis>.
+    </para>
+    <para>
+      Just for laughs, let's assume you sequenced that bug with lots of more
+      or less current sequencing technologies: Sanger, 454, Illumina, Ion
+      Torrent and Pacific Biosciences.
+    </para>
+    <sect2 id="sect_dn_ge_copying_and_naming_the_sequence_data">
+      <title>
+	Copying and naming the sequence data
+      </title>
+      <para>
+	You need to create (or get from your sequencing provider) the
+	sequencing data in any supported file format. Amongst these, FASTQ and
+	FASTA + FASTA-quality will be the most common, although the latter is
+	well on the way out nowadays. The following walkthrough uses what most
+	people nowadays get: FASTQ.
+      </para>
+      <para>
+	Create a new project directory (e.g. <filename>myProject</filename>)
+	and a subdirectory of this which will hold the sequencing data
+	(e.g. <filename>data</filename>).
+      </para>
+      <screen><prompt>arcadia:/path/to</prompt> <userinput>mkdir myProject</userinput>
+<prompt>arcadia:/path/to</prompt> <userinput>cd myProject</userinput>
+<prompt>arcadia:/path/to/myProject$</prompt> <userinput>mkdir data</userinput></screen>
+      <para>
+	Put the FASTQ data into that <filename>data</filename> directory so
+	that it now looks perhaps like this:
+      </para>
+      <screen><prompt>arcadia:/path/to/myProject$</prompt> <userinput>ls -l data</userinput>
+-rw-r--r-- 1 bach users 263985896 2008-03-28 21:49 bchocwt_lane6.solexa.fastq</screen>
+    <note>
+      I completely made up the file names above. You can name them anyway you
+      want. And you can have them live anywhere on the hard-disk, you do not
+      need to put them in this <filename>data</filename> directory. It's just
+      the way I do it ... and it's where the example manifest files a bit
+      further down in this chapter will look for the data files.
+    </note>
+    <para>
+      We're almost finished with the setup. As I like to have things neatly separated, I always create a directory called <filename>assemblies</filename> which will hold my assemblies (or different trials) together. Let's quickly do that:
+    </para>
+    <screen><prompt>arcadia:/path/to/myProject$</prompt> <userinput>mkdir assemblies</userinput>
+<prompt>arcadia:/path/to/myProject$</prompt> <userinput>mkdir assemblies/1sttrial</userinput>
+<prompt>arcadia:/path/to/myProject$</prompt> <userinput>cd assemblies/1sttrial</userinput></screen>
+    </sect2>
+    <sect2 id="sect_dn_ge_writing_a_simple_manifest_file">
+      <title>
+	Writing a simple manifest file
+      </title>
+      <para>
+	A manifest file is a configuration file for MIRA which tells it what
+	type of assembly it should do and which data it should load. In this
+	case we'll make a simple assembly of a genome with unpaired Illumina
+	data
+      </para>
+      <screen># Example for a manifest describing a genome de-novo assembly with
+# unpaired Illumina data
+
+# First part: defining some basic things
+# In this example, we just give a name to the assembly
+#  and tell MIRA it should map a genome in accurate mode
+
+<userinput>project = <replaceable>MyFirstAssembly</replaceable>
+job = <replaceable>genome,denovo,accurate</replaceable></userinput>
+
+# The second part defines the sequencing data MIRA should load and assemble
+# The data is logically divided into "readgroups"
+
+# here comes the unpaired Illumina data
+
+<userinput>readgroup = <replaceable>SomeUnpairedIlluminaReadsIGotFromTheLab</replaceable>
+data = <replaceable>../../data/bchocwt_lane6.solexa.fastq</replaceable>
+technology = <replaceable>solexa</replaceable></userinput></screen>
+      <note>
+	<para>
+	  Please look up the parameters of the manifest file in the main
+	  manual or the example manifest files in the following section.
+	</para>
+	<para>
+	  The ones above basically say: make an accurate denovo assembly of
+	  unpaired Illumina reads.
+	</para>
+      </note>
+    </sect2>
+    <sect2 id="sect_dn_ge_starting_assembly">
+      <title>Starting the assembly</title>
+      <para>
+	Starting the assembly is now just a matter of a simple command line:
+      </para>
+      <screen><prompt>arcadia:/path/to/myProject/assemblies/1sttrial$</prompt> <userinput>mira <replaceable>manifest.conf &gt;&amp;log_assembly.txt</replaceable></userinput></screen>
+      <para>
+	For this example - if you followed the walk-through on how to prepare the data
+	- everything you might want to adapt in the first time are the following thing in the manifest file:
+	options:
+      </para>
+      <itemizedlist>
+	<listitem>
+	  <para>
+	    project= (for naming your assembly project)
+	  </para>
+	</listitem>
+      </itemizedlist>
+      <para>
+	Of course, you are free to change any option via the extended parameters, but
+	this is the topic of another part of this manual.
+      </para>
+    </sect2>
+  </sect1>
+  <sect1 id="sect_dn_manifest_files_use_cases">
+    <title>
+      Manifest files for different use cases
+    </title>
+    <para>
+      This section will introduce you to manifest files for different use
+      cases. It should cover the most important uses, but as always you are
+      free to mix and match the parameters and readgroup definitions to suit
+      your specific needs.
+    </para>
+    <para>
+      Taking into account that there may be <emphasis>a lot</emphasis> of
+      combinations of sequencing technologies, sequencing libraries (shotgun,
+      paired-end, mate-pair, etc.) and input file types (FASTQ, FASTA,
+      GenBank, GFF3, etc.pp), the example manifest files just use Illumina and
+      454 as technologies, GFF3 as input file type for the reference sequence,
+      FASTQ as input type for sequencing data ... and they do not show the
+      multitude of more advanced features like, e.g., using ancillary clipping
+      information in XML files, ancillary masking information in SSAHA2 or
+      SMALT files etc.pp.
+    </para>
+    <para>
+      I'm sure you will be able to find your way by scanning through the
+      corresponding section on manifest files in the reference chapter :-)
+    </para>
+    <sect2 id="sect_dn_mf_denovo_with_shotgun_data">
+      <title>
+	Manifest for shotgun data
+      </title>
+      <para>
+	Well, we've seen that already in the section above, but here it is
+	again ... but this time with 454 data.
+      </para>
+      <screen># Example for a manifest describing a denovo assembly with
+# unpaired 454 data
+
+# First part: defining some basic things
+# In this example, we just give a name to the assembly
+#  and tell MIRA it should map a genome in accurate mode
+
+<userinput>project = <replaceable>MyFirstAssembly</replaceable>
+job = <replaceable>genome,denovo,accurate</replaceable></userinput>
+
+# The second part defines the sequencing data MIRA should load and assemble
+# The data is logically divided into "readgroups"
+
+# here's the 454 data
+
+<userinput>readgroup = <replaceable>SomeUnpaired454ReadsIGotFromTheLab</replaceable>
+data = <replaceable>../../data/some454data.fastq</replaceable>
+technology = <replaceable>454</replaceable></userinput></screen>
+    </sect2>
+    <sect2 id="sect_dn_mf_assembling_with_multiple_technologies">
+      <title>
+	Assembling with multiple sequencing technologies (hybrid assemblies)
+      </title>
+      <para>
+	Hybrid de-novo assemblies follow the general manifest scheme: tell
+	what you want in the first part, then simply add as separate readgroup
+	the information MIRA needs to know to find the data and off you
+	go. Just for laughs, here's a manifest for 454 shotgun with Illumina
+	shotgun
+      </para>
+      <screen># Example for a manifest describing a denovo assembly with
+# shotgun 454 and shotgun Illumina data
+
+# First part: defining some basic things
+# In this example, we just give a name to the assembly
+#  and tell MIRA it should map a genome in accurate mode
+
+<userinput>project = <replaceable>MyFirstAssembly</replaceable>
+job = <replaceable>genome,denovo,accurate</replaceable></userinput>
+
+# The second part defines the sequencing data MIRA should load and assemble
+# The data is logically divided into "readgroups"
+
+# now the shotgun 454 data
+<userinput>readgroup = <replaceable>DataForShotgun454</replaceable>
+data = <replaceable>../../data/project454data.fastq</replaceable>
+technology = <replaceable>454</replaceable></userinput>
+
+# now the shotgun Illumina data
+
+<userinput>readgroup = <replaceable>DataForShotgunIllumina</replaceable>
+data = <replaceable>../../data/someillumina.fastq</replaceable>
+technology = <replaceable>solexa</replaceable></userinput></screen>
+    </sect2>
+    <sect2 id="sect_dn_mf_manifest_for_pairedend_data">
+      <title>
+	Manifest for data sets with paired reads
+      </title>
+      <para>
+	When using paired-end data, you should know
+      </para>
+      <orderedlist>
+	<listitem>
+	  <para>
+	    the orientation of the reads toward each other. This is specific
+	    to sequencing technologies and / or the sequencing library preparation.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    at which distance these reads should be. This is specific to the
+	    sequencing library preparation and the sequencing lab should tell
+	    you this.
+	  </para>
+	</listitem>
+      </orderedlist>
+      <para>
+	In case you do not know one (or any) of the above, don't panic! MIRA
+	is able to estimate the needed values during the assembly if you tell
+	it to.
+      </para>
+      <para>
+	The following manifest shows you the most laziest way to define a
+	paired data set by simply adding <emphasis>autopairing</emphasis> as keyword to a
+	readgroup (using Illumina just as example):
+      </para>
+      <screen># Example for a lazy manifest describing a denovo assembly with
+# one library of paired reads
+
+# First part: defining some basic things
+# In this example, we just give a name to the assembly
+#  and tell MIRA it should map a genome in accurate mode
+
+<userinput>project = <replaceable>MyFirstAssembly</replaceable>
+job = <replaceable>genome,denovo,accurate</replaceable></userinput>
+
+# The second part defines the sequencing data MIRA should load and assemble
+# The data is logically divided into "readgroups"
+
+# now the Illumina paired-end data
+
+<userinput>readgroup = <replaceable>DataIlluminaPairedLib</replaceable>
+<replaceable>autopairing</replaceable>
+data = <replaceable>../../data/project_1.fastq ../../data/project_2.fastq</replaceable>
+technology = <replaceable>solexa</replaceable></userinput></screen>
+      <para>
+	If you know the orientation of the reads and/or the library size, you
+	can tell this MIRA the following way (just showing the readgroup
+	definition here):
+      </para>
+      <screen><userinput>readgroup = <replaceable>DataIlluminaPairedEnd500Lib</replaceable>
+data = <replaceable>../../data/project_1.fastq ../../data/project_2.fastq</replaceable>
+technology = <replaceable>solexa</replaceable>
+template_size = <replaceable>250 750</replaceable>
+segment_placement = <replaceable>---&gt; &lt;---</replaceable></userinput></screen>
+      <para>
+	In cases you are not 100% sure about, e.g., the size of the DNA
+	template, you can also give a (generous) expected range and then tell
+	MIRA to automatically refine this range during the assembly based on
+	real, observed distances of read pairs. Do this with <emphasis>autorefine</emphasis>
+	modifier like this:
+      </para>
+      <screen><userinput>template_size = <replaceable>50 1000 autorefine</replaceable></userinput></screen>
+      <para>
+	The following manifest file is an example for assembling with several
+	different libraries from different technologies. Do not forget you
+	can use <emphasis>autopairing</emphasis> or <emphasis>autorefine</emphasis> :-)
+      </para>
+      <screen># Example for a manifest describing a denovo assembly with
+# several kinds of sequencing libraries
+
+# First part: defining some basic things
+# In this example, we just give a name to the assembly
+#  and tell MIRA it should map a genome in accurate mode
+
+<userinput>project = <replaceable>MyFirstAssembly</replaceable>
+job = <replaceable>genome,denovo,accurate</replaceable></userinput>
+
+# The second part defines the sequencing data MIRA should load and assemble
+# The data is logically divided into "readgroups"
+
+# now the Illumina paired-end data
+
+<userinput>readgroup = <replaceable>DataIlluminaForPairedEnd500bpLib</replaceable>
+data = <replaceable>../../data/project500bp-1.fastq ../../data/project500bp-2.fastq</replaceable>
+technology = <replaceable>solexa</replaceable>
+strain = <replaceable>bchoc_se1</replaceable>
+template_size = <replaceable>250 750</replaceable>
+segment_placement = <replaceable>---&gt; &lt;---</replaceable></userinput>
+
+# now the Illumina mate-pair data
+
+<userinput>readgroup = <replaceable>DataIlluminaForMatePair3kbLib</replaceable>
+data = <replaceable>../../data/project3kb-1.fastq ../../data/project3kb-2.fastq</replaceable>
+technology = <replaceable>solexa</replaceable>
+strain = <replaceable>bchoc_se1</replaceable>
+template_size = <replaceable>2500 3500</replaceable>
+segment_placement = <replaceable>&lt;--- ---&gt;</replaceable></userinput>
+
+# some Sanger data (6kb library)
+
+<userinput>readgroup = <replaceable>DataForSanger6kbLib</replaceable>
+data = <replaceable>../../data/sangerdata.fastq</replaceable>
+technology = <replaceable>sanger</replaceable>
+template_size = <replaceable>5500 6500</replaceable>
+segment_placement = <replaceable>---&gt; &lt;---</replaceable></userinput>
+
+# some 454 data
+
+<userinput>readgroup = <replaceable>DataFo454Pairs</replaceable>
+data = <replaceable>../../data/454data.fastq</replaceable>
+technology = <replaceable>454</replaceable>
+template_size = <replaceable>8000 1200</replaceable>
+segment_placement = <replaceable>2---&gt; 1---&gt;</replaceable></userinput>
+
+# some Ion Torrent data
+
+<userinput>readgroup = <replaceable>DataFoIonPairs</replaceable>
+data = <replaceable>../../data/iondata.fastq</replaceable>
+technology = <replaceable>iontor</replaceable>
+template_size = <replaceable>1000 300</replaceable>
+segment_placement = <replaceable>2---&gt; 1---&gt;</replaceable></userinput></screen>
+    </sect2>
+    <sect2 id="sect_dn_mf_denovo_with_multiple_strains">
+      <title>
+	De-novo with multiple strains
+      </title>
+      <para>
+	MIRA will make use of ancillary information present in the manifest
+	file. One of these is the information to which strain (or organism or
+	cell line etc.pp) the generated data belongs.
+      </para>
+      <para>
+	You just need to tell in the manifest file which data comes from which
+	strain. Let's assume that in the example from above, the "lane6" data
+	were from a first mutant named <emphasis>bchoc_se1</emphasis> and the
+	"lane7" data were from a second mutant
+	named <emphasis>bchoc_se2</emphasis>. Here's the manifest file you
+	would write then:
+      </para>
+      <screen># Example for a manifest describing a de-novo assembly with
+# unpaired Illumina data, but from multiple strains
+
+# First part: defining some basic things
+# In this example, we just give a name to the assembly
+#  and tell MIRA it should map a genome in accurate mode
+
+<userinput>project = <replaceable>MyFirstAssembly</replaceable>
+job = <replaceable>genome,denovo,accurate</replaceable></userinput>
+
+# The second part defines the sequencing data MIRA should load and assemble
+# The data is logically divided into "readgroups"
+
+# now the Illumina data
+
+<userinput>readgroup = <replaceable>DataForSE1</replaceable>
+data = <replaceable>../../data/bchocse_lane6.solexa.fastq</replaceable>
+technology = <replaceable>solexa</replaceable>
+strain = <replaceable>bchoc_se1</replaceable></userinput>
+
+<userinput>readgroup = <replaceable>DataForSE2</replaceable>
+data = <replaceable>../../data/bchocse_lane7.solexa.fastq</replaceable>
+technology = <replaceable>solexa</replaceable>
+strain = <replaceable>bchoc_se2</replaceable></userinput></screen>
+      <note>
+	While assembling de-novo with multiple strains is
+	possible, the interpretation of results may become a bit daunting in
+	some cases. For many scenarios it might therefore be preferable to
+	successively use the data sets in own assemblies or mappings.
+      </note>
+      <para>
+	This <emphasis>strain</emphasis> information for each readgroup is
+	really the only change you need to perform to tell MIRA everything it
+	needs for handling strains.
+      </para>
+    </sect2>
+  </sect1>
+</chapter>

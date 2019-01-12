@@ -1,0 +1,15 @@
+# This is not an entirely regular FASTA file
+# Every name and every sequence must be on just one line
+# Furthermore, comment lines are (obviously) allowed as they
+#  will be stripped before processing with xxd, but restrain
+#  from adding comments to FASTA names (e.g. ">s1 some comment")
+#
+# Note that if you want to have sequences searched in
+# reverse complement direction, then the reverse complemented
+# sequences must be included extra in this file (see "rev_*"
+# down below
+#
+>unknown_lookslike_adaptorB
+ACTCGTATAGTGACACGCAACAGGGGATAGACAAGGCACACAGGGGATA
+>unknown_from_cDNA_project_titanium450bp
+TTCGCAGTGAGTGACAGGCCACTGAGACTGCCAAGGCACACGAGGGGATAGG

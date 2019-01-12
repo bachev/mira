@@ -1,0 +1,609 @@
+<?xml version="1.0" ?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.docbook.org/xml/4.5/docbookx.dtd">
+<chapter id="chap_est">
+  <chapterinfo>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="versionfile"/>
+    <author>
+      <firstname>Bastien</firstname>
+      <surname>Chevreux</surname>
+      <email>bach@chevreux.org</email>
+    </author>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="copyrightfile"/>
+  </chapterinfo>
+  <blockquote>
+    <attribution>Solomon Short</attribution>
+    <para>
+      <emphasis><quote>Expect the worst. You'll never get disappointed.
+      </quote></emphasis>
+    </para>
+  </blockquote>
+  <title>Cookbook: de-novo EST / RNASeq assemblies</title>
+  <sect1 id="sect1_est_introduction">
+    <title>
+      Introduction
+    </title>
+    <para>
+      This document is not complete yet and some sections may be a bit
+      unclear. I'd be happy to receive suggestions for improvements.
+    </para>
+    <note>
+      <title>
+	Some reading requirements
+      </title>
+      <para>
+	This guide assumes that you have basic working knowledge of Unix systems, know
+	the basic principles of sequencing (and sequence assembly) and what assemblers
+	do. Basic knowledge on mRNA transcription should also be present.
+      </para>
+      <para>
+	Please read at some point in time
+      </para>
+      <itemizedlist>
+	<listitem>
+	  <para>
+	    Before the assembly, <xref xrefstyle="select: label quotedtitle
+	    pageabbrev" linkend="chap_dataprep"/> to know what to do (or not to
+	    do) with the sequencing data before giving it to MIRA.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    For setting up the assembly, <xref xrefstyle="select: label
+	    quotedtitle pageabbrev" linkend="chap_denovo"/> to know how to
+	    start a denovo assembly (except you obviously will need to change
+	    the --job setting from <emphasis>genome</emphasis> to
+	    <emphasis>est</emphasis>).
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    After the assembly, <xref xrefstyle="select: label quotedtitle
+	    pageabbrev" linkend="chap_results"/> to know what to do with the
+	    results of the assembly. More specifically, <xref xrefstyle="select: label quotedtitle
+	    pageabbrev" linkend="sect_res_looking_at_results"/>, <xref xrefstyle="select: label quotedtitle
+	    pageabbrev" linkend="sect_res_first_look:the_assembly_info"/>, <xref xrefstyle="select: label quotedtitle
+	    pageabbrev" linkend="sect_res_converting_results"/>, <xref xrefstyle="select: label quotedtitle
+	    pageabbrev" linkend="sect_res_filtering_of_results"/> and <xref xrefstyle="select: label quotedtitle
+	    pageabbrev" linkend="sect_res_places_of_importance_in_a_de_novo_assembly"/>.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    And also <xref xrefstyle="select: label quotedtitle pageabbrev"
+	    linkend="chap_reference"/> to look up how manifest files should be
+	    written (<xref xrefstyle="select: label quotedtitle pageabbrev"
+	    linkend="sect_ref_manifest_basics"/> and <xref xrefstyle="select: label quotedtitle pageabbrev"
+	    linkend="sect_ref_manifest_readgroups"/> and <xref xrefstyle="select: label quotedtitle pageabbrev"
+	    linkend="sect_ref_manifest_parameters"/>), some command line options as well as general information on
+	    what tags MIRA uses in assemblies, files it generates etc.pp
+	  </para>
+	</listitem>
+      </itemizedlist>
+    </note>
+  </sect1>
+  <sect1 id="sect1_est_preliminaries:on_the_difficulties_of_assembling_ests">
+    <title>
+      Preliminaries: on the difficulties of assembling ESTs /RNASeq
+    </title>
+    <para>
+      Assembling ESTs can be, from an assemblers point of view, pure
+      horror. E.g., it may be that some genes have thousands of transcripts
+      while other genes have just one single transcript in the sequenced
+      data. Furthermore, the presence of 5' and 3' UTR, transcription
+      variants, splice variants, homologues, SNPs etc.pp complicates the
+      assembly in some rather interesting ways.
+    </para>
+    <sect2 id="sect2_est_poly-a_tails_in_est_data">
+      <title>
+	Poly-A tails
+      </title>
+      <para>
+	Poly-A tails are part of the mRNA and therefore also part of sequenced
+	data. They can occur as poly-A or poly-T, depending from which
+	direction and which part of the mRNA was sequenced. Having poly-A/T
+	tails in the data is a something of a double edged sword. More
+	specifically., if the 3' poly-A tail is kept unmasked in the data,
+	transcripts having this tail will very probably not align with similar
+	transcripts from different splice variants (which is basically
+	good). On the other hand, homopolymers (multiple consecutive bases of
+	the same type) like poly-As are features that are pretty difficult to
+	get correct with today's sequencing technologies, be it Sanger, Solexa
+	or, with even more problems problems, 454. So slight errors in the
+	poly-A tail could lead to wrongly assigned splice sites ... and
+	wrongly split contigs.
+      </para>
+      <para>
+	This is the reason why many people cut off the poly-A tails. Which in
+	turn may lead to transcripts from different splice variants being
+	assembled together.
+      </para>
+      <para>
+	Either way, it's not pretty.
+      </para>
+    </sect2>
+    <sect2 id="sect2_est_lowly_expressed_transcripts">
+      <title>
+	Lowly expressed transcripts
+      </title>
+      <para>
+	Single transcripts (or very lowly expressed transcripts) containing
+	SNPs, splice variants or similar differences to other, more highly
+	expressed transcripts are a problem: it's basically impossible for an
+	assembler to distinguish them from reads containing junky data
+	(e.g. read with a high error rate or chimeras). The standard setting
+	of many EST assemblers and clusterers is therefore to remove these
+	reads from the assembly set. MIRA handles things a bit differently:
+	depending on the settings, single transcripts with sufficiently large
+	differences are either treated as debris or can be saved as
+	<emphasis>singlet</emphasis>.
+      </para>
+    </sect2>
+    <sect2 id="sect2_est_library_normalisation">
+      <title>
+	Very highly expressed transcripts
+      </title>
+      <para>
+	Another interesting problem for de-novo assemblers are non-normalised
+	libraries. In each cell, the number of mRNA copies per gene may
+	differ by several orders of magnitude, from a single transcripts to
+	several tens of thousands. Pre-sequencing normalisation is a wet-lab
+	procedure to approximately equalise those copy numbers. This can
+	however, introduce other artifacts.
+      </para>
+      <para>
+	If an assembler is fed with non-normalised EST data, it may very well
+	be that an overwhelming number of the reads comes only from a few
+	genes (house-keeping genes). In Sanger sequencing projects this could
+	mean a couple of thousand reads per gene. In 454 sequencing projects,
+	this can mean several tens of thousands of reads per genes. With
+	Solexa data, this number can grow to something close to a million.
+      </para>
+      <para>
+	Several effects then hit a de-novo assembler, the three most annoying
+	being (in ascending order of annoyance): a) non-random sequencing
+	errors then look like valid SNPs, b) sequencing and library
+	construction artefacts start to look like valid sequences if the data
+	set was not cleaned "enough" and more importantly, c) an explosion in
+	time and memory requirements when attempting to deliver a "good"
+	assembly. While MIRA has methods to deal with this kind of data
+	(e.g. via digital normalisation), a sure sign of the latter are messages
+	from MIRA about <emphasis>megahubs</emphasis> in the data set.
+      </para>
+      <note>
+	The guide on how to tackle <emphasis>hard</emphasis> projects with
+	MIRA gives an overview on how to hunt down sequences which can lead to
+	the assembler getting confused, be it sequencing artefacts or highly
+	expressed genes.
+      </note>
+    </sect2>
+    <sect2 id="sect_est_chimeras">
+      <title>
+	Chimeras
+      </title>
+      <para>
+	Chimeras are sequences containing adjacent base stretches which are
+	not occurring in an organism as sequenced, neither as DNA nor as
+	(m)RNA. Chimeras can be created through recombination effects during
+	library construction or sequencing. Chimeras can, and often do, lead
+	to misassemblies of sequence stretches into one contig although they
+	do not belong together. Have a look at the following example where two
+	stretches (denoted by <literal>x</literal> and <literal>o</literal>
+	are joined by a chimeric read <emphasis>r4</emphasis> containing both
+	stretches:
+      </para>
+      <screen>
+r1 xxxxxxxxxxxxxxxx
+r2 xxxxxxxxxxxxxxxxx
+r3 xxxxxxxxxxxxxxxxx
+r4 xxxxxxxxxxxxxxxxxxx|oooooooooooooo
+r5                        ooooooooooo
+r6                        ooooooooooo
+r7                          ooooooooo</screen>
+    <para>
+      The site of the recombination event is denoted by <literal>x|o</literal>
+      in read <emphasis>r4</emphasis>.
+    </para>
+    <para>
+      MIRA does have a chimera detection -- which works very well in genome
+      assemblies due to high enough coverage -- by searching for sequence
+      stretches which are not covered by overlaps. In the above example, the
+      chimera detection routine will almost certainly flag read
+      <emphasis>r4</emphasis> as chimera and only use a part of it: either the
+      <literal> x</literal> or <literal>o</literal> part, depending on which
+      part is longer. There is always a chance that <emphasis>r4</emphasis> is
+      a valid read though, but that's a risk to take.
+    </para>
+    <para>
+      Now, that strategy would also work totally fine in EST projects if one
+      would not have to account for lowly expressed genes. Imagine the
+      following situation:
+    </para>
+    <screen>
+s1 xxxxxxxxxxxxxxxxx
+s2         xxxxxxxxxxxxxxxxxxxxxxxxx
+s3                          xxxxxxxxxxxxxxx
+    </screen>
+    <para>
+      Look at read <emphasis>s2</emphasis>; from an overlap coverage
+      perspective, <emphasis>s2</emphasis> could also very well be a chimera,
+      leading to a break of an otherwise perfectly valid contig if
+      <emphasis>s2</emphasis> were cut back accordingly. This is why chimera
+      detection is switched off by default in MIRA.
+    </para>
+    <warning>
+      <para>
+	When starting an EST assembly via the <literal>--job=est,...</literal>
+	switch, chimera detection is switched off by default. It is absolutely
+	possible to switch on the SKIM chimera detection afterwards via
+	<arg>-CL:ascdc</arg>. However, this will have exactly the effects
+	described above: chimeras in higher coverage contigs will be detected,
+	but perfectly valid low coverage contigs will be torn apart.
+      </para>
+      <para>
+	It is up to you to decide what you want or need.
+      </para>
+    </warning>
+    </sect2>
+  </sect1>
+  <sect1 id="est_sect1_est_preprocessing">
+    <title>
+      Preprocessing of ESTs
+    </title>
+<!--
+Appears in HTML, but not in PDF :-(
+    <sect1info>
+      <authorgroup>
+	<author>
+	  <firstname>Katrina</firstname>
+	  <surname>Dlugosch</surname>
+	</author>
+	<collab>
+	  <collabname>
+	    Bastien Chevreux
+	  </collabname>
+	</collab>
+      </authorgroup>
+    </sect1info>
+-->
+    <para>
+      With contributions from Katrina Dlugosch
+    </para>
+    <para>
+      EST sequences necessarily contain fragments of vectors or primers used
+      to create cDNA libraries from RNA, and may additionally contain primer
+      and adaptor sequences used during amplification-based library
+      normalisation and/or high-throughput sequencing.  These contaminant
+      sequences need to be removed prior to assembly.  MIRA can trim sequences
+      by taking contaminant location information from a SSAHA2 or SMALT search
+      output, or users can remove contaminants beforehand by trimming
+      sequences themselves or masking unwanted bases with lowercase or other
+      characters (e.g. 'x', as with <command>cross_match</command>).  Many
+      folks use preprocessing trimming/masking pipelines because it can be
+      very important to try a variety of settings to verify that you've
+      removed all of your contaminants (and fragments thereof) before sending
+      them into an assembly program like MIRA.  It can also be good to spend
+      some time seeing what contaminants are in your data, so that you get to
+      know what quality issues are present and how pervasive.
+    </para>
+    <para>
+      Two features of next generation sequencing can introduce errors into
+      contaminant sequences that make them particularly difficult to remove,
+      arguing for preprocessing: First, most next-generation sequence
+      platforms seem to be sensitive to excess primers present during library
+      preparation, and can produce a small percentage of sequences composed
+      entirely of concatenated primer fragments.  These are among the most
+      difficult contaminants to remove, and the program TagDust (<ulink
+      url="http://genome.gsc.riken.jp/osc/english/dataresource/"/>) was
+      recently developed specifically to address this problem. Second, 454 EST
+      data sets can show high variability within primer sequences designed to
+      anchor to polyA tails during cDNA synthesis, because 454 has trouble
+      calling the length of the necessary A and T nucleotide repeats with
+      accuracy.
+    </para>
+    <para>
+      A variety of programs exist for preprocessing.  Popular ones include
+      cross_match (<ulink url="http://www.phrap.org/phredphrapconsed.html"/>)
+      for primer masking, and SeqClean (<ulink
+      url="http://compbio.dfci.harvard.edu/tgi/software/"/>), Lucy (<ulink
+      url="http://lucy.sourceforge.net/"/>), and SeqTrim (<ulink
+      url="http://www.scbi.uma.es/cgi-bin/seqtrim/seqtrim_login.cgi"/>) for
+      both primer and polyA/T trimming.  The pipeline SnoWhite (<ulink
+      url="http://evopipes.net"/>) combines Seqclean and TagDust with custom
+      scripts for aggressive sequence and polyA/T trimming (and is tolerant of
+      data already masked using cross_match).  In all cases, the user must
+      provide contaminant sequence information and adjust settings for how
+      sensitive the programs should be to possible matches.  To find the best
+      settings, it is helpful to look directly at some of the sequences that
+      are being trimmed and inspect them for remaining primer and/or polyA/T
+      fragments after cleaning.
+    </para>
+    <warning>
+      When using <command>mira</command> with the the simplest parameter
+      calls (using the "--job=..." quick switches), the default settings used
+      include pretty heavy sequence pre-processing to cope with noisy
+      data. Especially if you have your own pre-processing pipeline, you
+      <emphasis>must</emphasis> then switch off different clip algorithms that
+      you might have applied previously yourself. Especially poly-A clips
+      should never be run twice (by your pipeline and by
+      <command>mira</command>) as they invariably lead to too many bases being
+      cut away in some sequences,
+    </warning>
+    <note>
+      Here too: In some cases MIRA can get confused if something with the
+      pre-processing went wrong because, e.g., unexpected sequencing artefacts
+      like unknown sequencing vectors or adaptors remain in data. The guide on
+      how to tackle <emphasis>hard</emphasis> projects with MIRA gives an
+      overview on how to hunt down sequences which can lead to the assembler
+      getting confused, be it sequencing artefacts or highly expressed genes.
+    </note>
+  </sect1>
+  <sect1 id="sect1_est_est_difference_assembly_clustering">
+    <title>
+      The difference between <emphasis>assembly</emphasis> and
+      <emphasis>clustering</emphasis>
+    </title>
+    <para>
+      MIRA in its base settings is an <emphasis>assembler</emphasis> and not a
+      <emphasis>clusterer</emphasis>, although it can be configured as such. As
+      assembler, it will split up read groups into different contigs if it
+      thinks there is enough evidence that they come from different RNA
+      transcripts.
+    </para>
+    <sect2 id="sect2_est_snp_splitting">
+      <title>
+	Splitting transcripts into contigs based on SNPs
+      </title>
+      <para>
+	Imagine this simple case: a gene has two slightly different alleles and you've
+	sequenced this:
+      </para>
+      <screen>
+A1-1  ...........T...........
+A1-2  ...........T...........
+A1-3  ...........T...........
+A1-4  ...........T...........
+A1-5  ...........T...........
+B2-1  ...........G...........
+B2-2  ...........G...........
+B2-3  ...........G...........
+B2-4  ...........G...........
+      </screen>
+      <para>
+	Depending on base qualities and settings used during the assembly
+	like, e.g., <arg>-CO:mr:mrpg:mnq:mgqrt:emea:amgb</arg> MIRA will
+	recognise that there's enough evidence for a T and also enough
+	evidence for a G at that position and create two contigs, one
+	containing the "T" allele, one the "G". The consensus will be >99%
+	identical, but not 100%.
+      </para>
+      <para>
+	Things become complicated if one has to account for errors in
+	sequencing. Imagine you sequenced the following case:
+      </para>
+      <screen>
+A1-1  ...........T...........
+A1-2  ...........T...........
+A1-3  ...........T...........
+A1-4  ...........T...........
+A1-5  ...........T...........
+B2-1  ...........<emphasis role="bold">G</emphasis>...........
+      </screen>
+      <para>
+	It shows very much the same like the one from above, except that
+	there's only one read with a "G" instead of 4 reads. MIRA will, when
+	using standard settings, treat this as erroneous base and leave all
+	these reads in a contig. It will likewise also not mark it as SNP in
+	the results. However, this could also very well be a lowly expressed
+	transcript with a single base mutation. It's virtually impossible to
+	tell which of the possibilities is right.
+      </para>
+      <note>
+	You can of course force MIRA to mark situations like the one depicted
+	above by, e.g., changing the parameters
+	for <arg>-CO:mrpg:mnq:mgqrt</arg>. But this may have the side-effect
+	that sequencing errors get an increased chance of getting flagged as
+	SNP.
+      </note>
+      <para>
+	Further complications arise when SNPs and potential sequencing errors
+	meet at the same place. consider the following case:
+      </para>
+      <screen>
+A1-1  ...........T...........
+A1-2  ...........T...........
+A1-3  ...........T...........
+A1-4  ...........T...........
+B1-5  ...........T...........
+B2-1  ...........G...........
+B2-2  ...........G...........
+B2-3  ...........G...........
+B2-4  ...........G...........
+E1-1  ...........<emphasis role="bold">A</emphasis>...........
+      </screen>
+      <para>
+	This example is exactly like the first one, except an additional read
+	<literal>E1-1</literal> has made it's appearance and has an "A"
+	instead of a "G" or "T". Again it is impossible to tell whether this
+	is a sequencing error or a real SNP. MIRA handles these cases in the
+	following way: it will recognise two valid read groups (one having a
+	"T", the other a "G") and, in assembly mode, split these two groups
+	into different contigs. It will also play safe and define that the
+	single read <literal>E1-1</literal> will not be attributed to either
+	one of the contigs but, if it cannot be assembled to other reads, form
+	an own contig ... if need to be even only as single read (a
+	<emphasis>singlet</emphasis>).
+      </para>
+      <note>
+	Depending on some settings, singlets may either appear in the regular
+	results or end up in the debris file.
+      </note>
+    </sect2>
+    <sect2 id="sect2_est_gap_splitting">
+      <title>
+	Splitting transcripts into contigs based on larger gaps
+      </title>
+      <para>
+	Gaps in alignments of transcripts are handled very cautiously by
+	MIRA. The standard settings will lead to the creation of different
+	contigs if three or more consecutive gaps are introduced in an
+	alignment. Consider the following example:
+      </para>
+      <screen>
+A1-1  ..........CGA..........
+A1-2  ..........*GA..........
+A1-3  ..........**A..........
+B2-1  ..........<emphasis role="bold">***</emphasis>..........
+B2-2  ..........<emphasis role="bold">***</emphasis>..........
+      </screen>
+      <para>
+	Under normal circumstances, MIRA will use the reads
+	<literal>A1-1</literal>, <literal>A1-2</literal> and
+	<literal>A1-3</literal> to form one contig and put
+	<literal>B2-1</literal> and <literal>B2-2</literal> into a separate
+	contig. MIRA would do this also if there were only one of the B2
+	reads.
+      </para>
+      <para>
+	The reason behind this is that the probability for having gaps of
+	three or more bases only due to sequencing errors is pretty
+	low. MIRA will therefore treat reads with such attributes as coming
+	from different transcripts and not assemble them together, though
+	this can be changed using the <arg>-AL:egp:egpl</arg> parameters of
+	MIRA if wanted.
+      </para>
+      <warning>
+	<title>
+	  Problems with homopolymers, especially in 454, Ion Torrent and high
+	  coverage Illumina
+	</title>
+	<para>
+	  As 454 and Ion Torrent sequencing has a general problem with
+	  homopolymers, this rule of MIRA will sometimes lead formation of
+	  more contigs than expected due to sequencing errors at "long"
+	  homopolymer sites ... where long starts at ~6-7 bases. Though MIRA
+	  does know about the problem in 454 homopolymers and has some
+	  routines which try to mitigate the problem. this is not always
+	  successful.
+	</para>
+	<para>
+	  The same applies for Illumina data with long homopolymers (~ 8-9 bp)
+	  and high coverage (&ge; 100x).
+	</para>
+      </warning>
+    </sect2>
+  </sect1>
+  <sect1 id="sect1_est_demopipeline">
+    <title>
+      A simple step by step pipeline for reliable RNASeq assembly of eukaryotes
+    </title>
+    <orderedlist>
+      <listitem>
+	<para>
+	  Remove rRNA sequences. For that I use <command>mirabait</command> like this:
+	</para>
+<screen><prompt>arcadia:/path/to/myProject$</prompt> <userinput>mirabait -I -j rrna <replaceable>-p norRNAfile_1.fastq norRNAfile_2.fastq ...</replaceable></userinput></screen>
+      </listitem>
+      <listitem>
+	<para>
+	  Clean the data. For this I use mira, asking it to perform only a
+	  preprocessing of the data from step 1 via a line like this
+	</para>
+	<screen>parameters = -AS:ppo=yes</screen>
+	<para>
+	  in the manifest file. After preprocessing, the results will be
+	  present as MAf file in the file
+	  <filename>*_assembly/*_d_chkpt/readpool.maf</filename>.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  As the MAF file contains paired reads together, they need to be
+	  separated again. Additionally, I perform a hard cut of the clipped
+	  sequence. This is a job for <command>miraconvert</command>:
+	</para>
+<screen><prompt>arcadia:/path/to/myProject$</prompt> <userinput>miraconvert -C -F -F readpool.maf</userinput></screen>
+      </listitem>
+      <listitem>
+	<para>
+	  I then use FLASH to merge paired read together, using high overlap and zero allowed errors.
+	</para>
+<screen><prompt>arcadia:/path/to/myProject$</prompt> <userinput>...</userinput></screen>
+	<para>
+	  FLASH will create three file for this: one file with joined pairs,
+	  one file with unjoined pairs and one file with orphan reads (i.e.,
+	  reads which have no mate). I generally continue with just the joined
+	  and unjoined files.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Reduce the dataset to a reasonable size. Using 3 or 4 gigabases to
+	  reconstruct an eukaryotic transcriptome should yield in pretty good
+	  transcripts without too much noise and loose all but the rarest
+	  transcripts.
+	</para>
+	<para>
+	  Depending on the Illumina read length (100, 125, 150, 250 or 300) I
+	  generally go for a 1:1 or 2:1 ratio of joined versus unjoined
+	  reads. E.g., if I need to extract 2 gigabases of joined FLASH
+	  results and 1 gigabase of unjoined FLASH results I do this:
+<screen><prompt>arcadia:/path/to/myProject$</prompt> <userinput>miraconvert -Y 2000000 <replaceable>flashjoined.fastq reduced2gb_flashjoined.fastq</replaceable></userinput>
+<prompt>arcadia:/path/to/myProject$</prompt> <userinput>miraconvert -Y 1000000 <replaceable>flashunjoined.fastq reduced1gb_flashunjoined.fastq</replaceable></userinput></screen>
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Assemble the cleaned, joined and reduced data set. A simple manifest
+	  file like this will suffice:
+	</para>
+	<screen>project = myRNASEQ
+job=est,denovo,accurate
+
+readgroup
+technology=solexa
+autopairing
+data=reduced2gb_flashjoined.fastq reduced1gb_flashunjoined.fastq
+</screen>
+      </listitem>
+    </orderedlist>
+    <para>
+      The result can be annotated and quality controlled. However, this will
+      still contain duplicate genes (due to, e.g., ploidy variants) or gene
+      fragements (due to ploidy variants, splice variants, sequencing
+      errors). To reduce this number I generally do the following:
+    </para>
+    <orderedlist>
+      <listitem>
+	Extract CDS of the annotated sequences. make sure that your pipeline
+	also annotates hypothetical proteins with a length &ge; 300bp.
+      </listitem>
+      <listitem>
+	<para>
+	  Cluster the CDS sequences with MIRA, using a high similarity threshold:
+	</para>
+	<screen>project = myRNASEQclustering
+job=est,clustering,accurate
+parameters = --noclipping
+parameters = TEXT_SETTINGS -AS:mrs=94
+
+readgroup
+technology=text
+autopairing
+data=fna::CDSfromAnnotation.fasta
+</screen>
+      </listitem>
+    </orderedlist>
+  </sect1>
+  <sect1>
+    <title>
+      Solving common problems of EST assemblies
+    </title>
+    <para>
+      ... continue here ...
+    </para>
+    <para>
+      Megahubs =&gt; track down reason (high expr, seqvec or adaptor: see
+      mira_hard) and eliminate it
+    </para>
+  </sect1>
+</chapter>

@@ -1,0 +1,220 @@
+<?xml version="1.0" ?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.docbook.org/xml/4.5/docbookx.dtd">
+<chapter id="chap_logfiles">
+  <chapterinfo>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="versionfile"/>
+    <author>
+      <firstname>Bastien</firstname>
+      <surname>Chevreux</surname>
+      <email>bach@chevreux.org</email>
+    </author>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="copyrightfile"/>
+  </chapterinfo>
+  <blockquote>
+    <attribution>Solomon Short</attribution>
+    <para>
+      <emphasis><quote>The amount of entropy in the universe is constant - except when it increases.
+      </quote></emphasis>
+    </para>
+  </blockquote>
+  <title>Log and temporary files used by MIRA</title>
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="warning_frontofchapter.xml"/>
+  <sect1 id="sect1_logf_introduction">
+    <title>
+      Introduction
+    </title>
+    <para>
+      The tmp directory used by mira (usually
+      <filename>&lt;projectname&gt;_d_tmp</filename>) may contain a number of
+      files with information which could be interesting for other uses than
+      the pure assembly. This guide gives a short overview.
+    </para>
+    <note>
+      This guide is probably the least complete and most out-of-date as it is
+      updated only very infrequently. If in doubt, ask on the MIRA talk
+      mailing list.
+    </note>
+    <warning>
+      Please note that the format of these files may change over time,
+      although I try very hard to keep changes reduced to a minimum.
+    </warning>
+    <note>
+      Remember that mira has two options that control whether log and
+      temporary files get deleted: while <arg>-OUT:rtd</arg> removes the
+      complete tmp directory after an assembly, <arg>-OUT:rrot</arg> removes
+      only those log and temporary files which are not needed anymore for the
+      continuation of the assembly. Setting both options to <emphasis
+      role="underline">no</emphasis> will keep all log and temporary files.
+    </note>
+  </sect1>
+  <sect1 id="sect1_logf_the_files">
+    <title>
+      The files
+    </title>
+    <para>
+    </para>
+    <sect2 id="sect2_logf_mira_error_reads_invalid">
+      <title>
+	mira_error_reads_invalid
+      </title>
+      <para>
+	A simple list of those reads that were invalid (no sequence or similar
+	problems).
+      </para>
+    </sect2>
+    <sect2 id="sect2_logf_mira_info_reads_tooshort">
+      <title>
+	mira_info_reads_tooshort
+      </title>
+      <para>
+	A simple list of those reads that were sorted out because the unclipped
+	sequence was too short as defined by <arg>-AS:mrl</arg>.
+      </para>
+    </sect2>
+    <sect2 id="sect2_logf_mira_int_alignextends_preassembly10txt">
+      <title>
+	mira_int_alignextends_preassembly1.0.txt
+      </title>
+      <para>
+	If read extension is used (<arg>-DP:ure</arg>), this file contains the read
+	name and the number of bases by which the right clipping was extended.
+      </para>
+    </sect2>
+    <sect2 id="sect2_logf_mira_int_clippings0txt">
+      <title>
+	mira_int_clippings.0.txt
+      </title>
+      <para>
+	If any of the <arg>-CL:</arg> options leads to the clipping of a read, this
+	file will tell when, which clipping, which read and by how much (or to where)
+	the clippings were set.
+      </para>
+    </sect2>
+    <sect2 id="sect2_logf_mira_int_posmatch_megahubs_passxlst">
+      <title>
+	mira_int_posmatch_megahubs_pass.X.lst
+      </title>
+      <para>
+	Note: replace the <emphasis>X</emphasis> by the pass of mira. Should any read be
+	categorised as megahub during the all-against-all search (SKIM3), this file
+	will tell you which.
+      </para>
+    </sect2>
+    <sect2 id="sect2_logf_mira_int_posmatch_multicopystat_preassembly0txt">
+      <title>
+	mira_int_posmatch_multicopystat_preassembly.0.txt
+      </title>
+      <para>
+	After the initial all-against-all search (SKIM3), this file tells you to how
+	many other reads each read has overlaps. Furthermore, reads that have more
+	overlaps than expected are tagged with ``mc'' (multicopy).
+      </para>
+    </sect2>
+    <sect2 id="sect2_logf_mira_int_posmatch_rawhashhits_passxlst">
+      <title>
+	mira_int_posmatch_rawhashhits_pass.X.lst
+      </title>
+      <para>
+	Note: replace the <emphasis>X</emphasis> by the pass of mira. Similar to
+	<filename>mira_int_posmatch_multicopystat_preassembly.0.txt</filename>, this counts the
+	kmer hits of each read to other reads. This time however per pass.
+      </para>
+    </sect2>
+    <sect2 id="sect2_logf_mira_int_skimmarknastyrepeats_hist_passxlst">
+      <title>
+	mira_int_skimmarknastyrepeats_hist_pass.X.lst
+      </title>
+      <para>
+	Note: replace the <emphasis>X</emphasis> by the pass of mira. Only written if
+	<arg>-KS:mnr</arg> is set to <emphasis role="underline">yes</emphasis>. This file contains a
+	histogram of kmer occurrences encountered by SKIM3.
+      </para>
+    </sect2>
+    <sect2 id="sect2_logf_mira_int_skimmarknastyrepeats_nastyseq_passxlst">
+      <title>
+	mira_int_skimmarknastyrepeats_nastyseq_pass.X.lst
+      </title>
+      <para>
+	Note: replace the <emphasis>X</emphasis> by the pass of mira.  Only written if
+	<arg>-KS:mnr</arg> is set to <emphasis role="underline">yes</emphasis>. One of the more interesting
+	files if you want to know the repetitive sequences cause the assembly to be
+	really difficult: for each masked part of a read, the masked sequences is
+	shown here.
+      </para>
+      <para>
+	E.g.
+      </para>
+      <screen>
+	U13a04h11.t1    TATATATATATATATATATATATA
+	U13a05b01.t1    TATATATATATATATATATATATA
+	U13a05c07.t1    AAAAAAAAAAAAAAA
+	U13a05e12.t1    CTCTCTCTCTCTCTCTCTCTCTCTCTCTC
+      </screen>
+      <para>
+	Simple repeats like the ones shown above will certainly pop-up there,
+	but a few other sequences (like e.g. rDNA/rRNA or SINEs, LINEs in
+	eukaryotes) will also appear.
+      </para>
+      <para>
+	Nifty thing to try out if you want to have a more compressed overview: sort
+	and unify by the second column.
+      </para>
+      <screen>
+	sort -k 2 -u mira_int_skimmarknastyrepeats_nastyseq_pass.X.lst
+      </screen>
+      <para>
+      </para>
+    </sect2>
+    <sect2 id="sect2_logf_mira_int_vectorclip_passxtxt">
+      <title>
+	mira_int_vectorclip_pass.X.txt
+      </title>
+      <para>
+	Note: replace the <emphasis>X</emphasis> by the pass of mira. Only written if
+	<arg>-CL:pvlc</arg> is set to <emphasis role="underline">yes</emphasis>. Tells you where possible
+	sequencing vector (or adaptor) leftovers were found and clipped (or not
+	clipped).
+      </para>
+    </sect2>
+    <sect2 id="sect2_logf_miratmpads_passxforward_and_miratmpads_passxcomplement">
+      <title>
+	miratmp.ads_pass.X.forward and miratmp.ads_pass.X.complement
+      </title>
+      <para>
+	Note: replace the <emphasis>X</emphasis> by the pass of mira. Which read aligns with
+	Smith-Waterman against which other read, 'forward-forward' and
+	'forward-complement'.
+      </para>
+    </sect2>
+    <sect2 id="sect2_logf_miratmpads_passxreject">
+      <title>
+	miratmp.ads_pass.X.reject
+      </title>
+      <para>
+	Note: replace the <emphasis>X</emphasis> by the pass of mira. Which possible read
+	overlaps failed the Smith-Waterman alignment check.
+      </para>
+    </sect2>
+    <sect2 id="sect2_logf_miratmpnoqualities">
+      <title>
+	miratmp.noqualities
+      </title>
+      <para>
+	Which reads went completely without qualities into the assembly.
+      </para>
+    </sect2>
+    <sect2 id="sect2_logf_miratmpusedids">
+      <title>
+	miratmp.usedids
+      </title>
+      <para>
+	Which reads effectively went into the assembly (after clipping etc.).
+      </para>
+    </sect2>
+    <sect2 id="sect2_logf_mira_readpoolinfolst">
+      <title>
+	mira_readpoolinfo.lst
+      </title>
+    </sect2>
+  </sect1>
+</chapter>

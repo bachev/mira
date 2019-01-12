@@ -1,0 +1,169 @@
+This is MIRA V1.4.0rc1.
+
+Mail questions, bug reports, ideas or suggestions to:
+	b.chevreux@dkfz-heidelberg.de
+
+Boundtracking mode on.
+Bugtracking mode on.
+Used parameter settings:
+  General (-GE):
+	Clean tmp files (ctf): no
+	Load job (lj): EXP file of filenames
+	External quality (eq): from SCF
+	Ext. qual. override (eqo): No
+	Use read extensions (ure): bold
+	Automatic contig editing (ace): Yes
+	Number of loop iterations (nol): 3
+
+  Fast read filtering with zebra blocking functions (-ZB):
+	Block size (bs): 30
+	Thick length (tl): 32
+
+  Assembly options (-AS):
+	Minimum read length (mrl): 40
+
+  Align parameters for Smith-Waterman align (-AL):
+	Bandwidth in percent (bip): 15
+	Bandwidth max (bx): 100
+	Bandwidth min (bn): 10
+	Minimum score (ms): 15
+	Minimum overlap (mo): 15
+	Minimum relative score in % (mrs): 65
+	Extra gap penalty (egp): no
+
+  Pathfinder options (-PF):
+	Search height (sh): 4
+	Search width (sw): 4
+
+  Contig parameters (-CO):
+	Reject on drop in relative alignment score (%): 7
+	Use template information (uti): No
+	Error analysis (an): SCF signal
+	Max. error rate in dangerous zones in % (dmer): 1
+
+Input files:
+	When loading EXP fofn: fofn.txt
+	When loading project from CAF: bla_in.caf
+	When loading sequences from FASTA: bla_in.fasta
+
+Output files:
+	Saved as CAF in: bla_out.caf
+
+Temporary files:
+	Aligned dual sequences that passed Smith-Waterman: log.ads
+	Unused read ids in contig building: log.unused_ids
+
+Loading project as file of EXP filenames.
+Loading EXP files from: fofn.txt
+ [0%] .......... [10%] .......... [20%] .......... [30%] .......... [40%] .......... [50%] .......... [60%] .......... [70%] .......... [80%] .......... [90%] .......... [100%] 
+Done.
+There haven been 3636 Files given, 3636 of which have been loaded.
+Checking SCF files (loading qualities only if needed):
+ [0%] .......... [10%] .......... [20%] .......... [30%] .......... [40%] .......... [50%] .......... [60%] .......... [70%] .......... [80%] .......... [90%] .......... [100%] 
+Done.
+Pool has 3636 reads.
+3636 reads with valid data for assembly.
+U84a01c01.t1 has only 36 good bases. Will not be assembled into contigs.
+U84a01e04.t1 has only 36 good bases. Will not be assembled into contigs.
+U84a01g03.t1 has only 31 good bases. Will not be assembled into contigs.
+U84a01h03.t1 has only 36 good bases. Will not be assembled into contigs.
+U84b01a09.t1 has only 31 good bases. Will not be assembled into contigs.
+U84b01b06.t1 has only 38 good bases. Will not be assembled into contigs.
+U84b01b10.t1 has only 26 good bases. Will not be assembled into contigs.
+U84b01d04.t1 has only 39 good bases. Will not be assembled into contigs.
+U84b01e01.t1 has only 37 good bases. Will not be assembled into contigs.
+U84b01e03.t1 has only 38 good bases. Will not be assembled into contigs.
+U84b01f08.t1 has only 19 good bases. Will not be assembled into contigs.
+U84b02d11.t1 has only 25 good bases. Will not be assembled into contigs.
+U84b02f04.t1 has only 29 good bases. Will not be assembled into contigs.
+U84b02g01.t1 has only 35 good bases. Will not be assembled into contigs.
+U84b02g12.t1 has only 24 good bases. Will not be assembled into contigs.
+U84b03b08.t1 has only 28 good bases. Will not be assembled into contigs.
+U84b03c12.t1 has only 38 good bases. Will not be assembled into contigs.
+U84b03f02.t1 has only 24 good bases. Will not be assembled into contigs.
+U84b03f08.t1 has only 33 good bases. Will not be assembled into contigs.
+U84b03g08.t1 has only 27 good bases. Will not be assembled into contigs.
+U84b04b09.t1 has only 36 good bases. Will not be assembled into contigs.
+U84b04f02.t1 has only 34 good bases. Will not be assembled into contigs.
+U84b04f03.t1 has only 27 good bases. Will not be assembled into contigs.
+U84b04f12.t1 has only 21 good bases. Will not be assembled into contigs.
+U84b04g08.t1 has only 37 good bases. Will not be assembled into contigs.
+U84c01d01.t1 has only 34 good bases. Will not be assembled into contigs.
+U84c01d02.t1 has only 34 good bases. Will not be assembled into contigs.
+U84c01e02.t1 has only 31 good bases. Will not be assembled into contigs.
+U84c01f02.t1 has only 36 good bases. Will not be assembled into contigs.
+U84c01f07.t1 has only 33 good bases. Will not be assembled into contigs.
+U84d02a12.t1 has only 30 good bases. Will not be assembled into contigs.
+U84d02d01.t1 has only 26 good bases. Will not be assembled into contigs.
+U84d02f03.t1 has only 31 good bases. Will not be assembled into contigs.
+U84d03a10.pm1 has only 29 good bases. Will not be assembled into contigs.
+U84d03a12.pm1 has only 36 good bases. Will not be assembled into contigs.
+U84d03d12.pm1 has only 33 good bases. Will not be assembled into contigs.
+U84d03e12.pm1 has only 39 good bases. Will not be assembled into contigs.
+U84d03g11.pm1 has only 36 good bases. Will not be assembled into contigs.
+U84d03h03.pm1 has only 24 good bases. Will not be assembled into contigs.
+U84d03h11.pm1 has only 38 good bases. Will not be assembled into contigs.
+U84d03h12.pm1 has only 39 good bases. Will not be assembled into contigs.
+U84d04e05.t1 has only 31 good bases. Will not be assembled into contigs.
+U84d05f02.t1 has only 31 good bases. Will not be assembled into contigs.
+U84d06d12.t1 has only 31 good bases. Will not be assembled into contigs.
+U84d06f05.t1 has only 33 good bases. Will not be assembled into contigs.
+U84d08a12.t1 has only 31 good bases. Will not be assembled into contigs.
+U84d08b04.t1 has only 36 good bases. Will not be assembled into contigs.
+U84d09h08.t1 has only 38 good bases. Will not be assembled into contigs.
+U84d10g06.t1 has only 32 good bases. Will not be assembled into contigs.
+U84d11b12.t1 has only 31 good bases. Will not be assembled into contigs.
+U84d12g08.t1 has only 34 good bases. Will not be assembled into contigs.
+U84d13e03.t1 has only 32 good bases. Will not be assembled into contigs.
+U84d13g03.t1 has only 34 good bases. Will not be assembled into contigs.
+U84d13g12.t1 has only 32 good bases. Will not be assembled into contigs.
+U84d15c01.t1 has only 0 good bases. Will not be assembled into contigs.
+U84d17b04.t1 has only 32 good bases. Will not be assembled into contigs.
+U84d17d07.t1 has only 32 good bases. Will not be assembled into contigs.
+U84d17g01.t1 has only 36 good bases. Will not be assembled into contigs.
+U84d17h05.t1 has only 31 good bases. Will not be assembled into contigs.
+U84d18g08.t1 has only 36 good bases. Will not be assembled into contigs.
+U84d26a06.t1 has only 31 good bases. Will not be assembled into contigs.
+U84d26f03.t1 has only 36 good bases. Will not be assembled into contigs.
+U84d26h07.t1 has only 31 good bases. Will not be assembled into contigs.
+U84d27c07.t1 has only 37 good bases. Will not be assembled into contigs.
+U84d27e02.t1 has only 36 good bases. Will not be assembled into contigs.
+U84d27e09.t1 has only 34 good bases. Will not be assembled into contigs.
+U84d27e10.t1 has only 34 good bases. Will not be assembled into contigs.
+U84d27e11.t1 has only 35 good bases. Will not be assembled into contigs.
+U84d28c11.t1 has only 24 good bases. Will not be assembled into contigs.
+U84d28g09.t1 has only 34 good bases. Will not be assembled into contigs.
+U84d29d04.t1 has only 34 good bases. Will not be assembled into contigs.
+U84d31g04.t1 has only 29 good bases. Will not be assembled into contigs.
+U84d33a09.t1 has only 33 good bases. Will not be assembled into contigs.
+U84d33b09.t1 has only 35 good bases. Will not be assembled into contigs.
+U84d33e11.t1 has only 36 good bases. Will not be assembled into contigs.
+U84d33f09.t1 has only 39 good bases. Will not be assembled into contigs.
+U84d33g08.t1 has only 31 good bases. Will not be assembled into contigs.
+U84d33g09.t1 has only 34 good bases. Will not be assembled into contigs.
+U84d33h11.t1 has only 32 good bases. Will not be assembled into contigs.
+U84d33h12.t1 has only 39 good bases. Will not be assembled into contigs.
+U84d34b11.t1 has only 38 good bases. Will not be assembled into contigs.
+U84d34f10.t1 has only 27 good bases. Will not be assembled into contigs.
+U84d36d05.t1 has only 36 good bases. Will not be assembled into contigs.
+U84d36f06.t1 has only 39 good bases. Will not be assembled into contigs.
+U84d38d08.t1 has only 33 good bases. Will not be assembled into contigs.
+U84d38g09.t1 has only 37 good bases. Will not be assembled into contigs.
+U84d39a12.t1 has only 34 good bases. Will not be assembled into contigs.
+U84d39h04.t1 has only 6 good bases. Will not be assembled into contigs.
+U84d40h02.t1 has only 35 good bases. Will not be assembled into contigs.
+U84d41c06.t1 has only 0 good bases. Will not be assembled into contigs.
+U84d41h07.t1 has only 0 good bases. Will not be assembled into contigs.
+91 reads have not enough good bases for assembly.
+3545 reads used for assembly.
+Mean length of good parts of used reads: 272
+Generated 0 unique template ids for 3636 reads.
+
+Searching for possible overlaps:
+ [0%] .......... [10%] .......... [20%] .......... [30%] .......... [40%] .......... [50%] .......... [60%] .......... [70%] .......... [80%] .......... [90%] .......... [100%] 
+Zebra-blocking:
+6608430 sequence comparisons done.
+Found 88176 times evidence for forward match (56996 validated).
+Found 83817 times evidence for complement match (52877 validated).
+
+Aligning possible forward matches:

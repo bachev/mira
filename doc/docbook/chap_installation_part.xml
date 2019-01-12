@@ -1,0 +1,858 @@
+<?xml version="1.0" ?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.docbook.org/xml/4.5/docbookx.dtd">
+<chapter id="chap_installation">
+  <chapterinfo>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="versionfile"/>
+    <author>
+      <firstname>Bastien</firstname>
+      <surname>Chevreux</surname>
+      <email>bach@chevreux.org</email>
+    </author>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="copyrightfile"/>
+  </chapterinfo>
+  <blockquote>
+    <attribution>Solomon Short</attribution>
+    <para>
+      <emphasis><quote>A problem can be found to almost every solution.
+      </quote></emphasis>
+    </para>
+  </blockquote>
+
+  <title>Installing MIRA</title>
+  <sect1 id="sect_install_wheretofetch">
+    <title>
+      Where to fetch MIRA
+    </title>
+    <sect2 id="sect_install_where_binaries">
+      <title>
+	Source package and precompiled binaries: SourceForge
+      </title>
+      <para>
+	SourceForge: <ulink url="https://sourceforge.net/projects/mira-assembler/files/MIRA/"/>
+      </para>
+      <para>
+	There you will normally find two directories (stable and development),
+	both with a couple of precompiled binaries -- usually for Linux and Mac
+	OSX -- or the source package for compiling yourself.
+      </para>
+      <para>
+	Precompiled binary packages are named in the following way:
+      </para>
+      <para>
+	<filename>mira_<replaceable>miraversion</replaceable>_<replaceable>OS-and-binarytype</replaceable>.tar.bz2</filename>
+      </para>
+      <para>
+	where
+      </para>
+      <itemizedlist>
+	<listitem>
+	  <para>
+	    For <filename><replaceable>miraversion</replaceable></filename>, the
+	    stable versions of MIRA with the general public as audience usually
+	    have a version number in three parts, like
+	    <filename>3.0.5</filename>, sometimes also followed by some postfix
+	    like in <filename>3.2.0rc1</filename> to denote release candidate 1
+	    of the 3.2.0 version of MIRA. On very rare occasions, stable
+	    versions of MIRA can have four part like in, e.g.,
+	    <filename>3.4.0.1</filename>: these versions create identical
+	    binaries to their parent version (<filename>3.4.0</filename>) and
+	    just contains fixes to the source build machinery.
+	  </para>
+	  <para>
+	    The version string sometimes can have a different format:
+	    <filename><emphasis>sometext</emphasis>-0-g<emphasis>somehexnumber</emphasis></filename>
+	    like in, e.g.,
+	    <filename>ft_fastercontig-0-g4a27c91</filename>. These versions of
+	    MIRA are snapshots from the development tree of MIRA and usually
+	    contain new functionality which may not be as well tested as the
+	    rest of MIRA, hence contains more checks and more debugging output
+	    to catch potential errors
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    <filename><replaceable>OS-and-binarytype</replaceable></filename>
+	    finally defines for which operating system and which processor class
+	    the package is destined. E.g.,
+	    <filename>linux-gnu_x86_64_static</filename> contains static
+	    binaries for Linux running a 64 bit processor.
+	  </para>
+	</listitem>
+      </itemizedlist>
+      <para>
+	Source packages are usually named
+      </para>
+      <para>
+	<filename>mira-<replaceable>miraversion</replaceable>.tar.bz2</filename>
+      </para>
+      <para>
+	Examples for packages at SourceForge:
+      </para>
+      <itemizedlist>
+	<listitem>
+	  <filename>mira_3.0.5_prod_linux-gnu_x86_64_static.tar.bz2</filename>
+	</listitem>
+	<listitem>
+	  <filename>mira_3.0.5_prod_OSX_snowleopard_x86_64_static.tar.bz2</filename>
+	</listitem>
+	<listitem>
+	  <filename>mira-3.0.5.tar.bz2</filename>
+	</listitem>
+      </itemizedlist>
+    </sect2>
+    <sect2 id="sect_install_where_github">
+      <title>
+	Git repository: GitHub
+      </title>
+      <para>
+	GitHub: <ulink url="https://github.com/bachev/mira"/>
+      </para>
+      <para>
+	GitHub contains the live source of MIRA. Two main branches are
+	generally interesting to the public: "master" and "development". To
+	get the content from GitHub, do:
+      </para>
+      <screen>
+<userinput>git clone https://github.com/bachev/mira.git
+cd mira
+./bootstrap.sh</userinput></screen>
+      <para>
+	Once bootstrap has run through (see below for necessary
+	prerequisites), the system is ready for a ./configure call.
+      </para>
+    </sect2>
+  </sect1>
+  <sect1 id="sect_install_precompiledbinary">
+    <title>
+      Installing from a precompiled binary package
+    </title>
+    <para>
+      The distributable package follows the
+      one-directory-which-contains-everything-which-is-needed philosophy, but
+      after unpacking and moving the package to its final destination, you
+      need to run a script which will create some data files.
+    </para>
+    <orderedlist>
+      <listitem>
+	<para>
+	  Download the package, unpack it.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Move the directory somewhere to your disk. Either to one of the
+	  "standard" places like, e.g., <filename>/opt/mira</filename>,
+	  <filename>/usr/local/mira</filename> or somewhere in your home
+	  directory
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Softlink the binaries which are in the 'bin' directory into a
+	  directory which is in your shell PATH. Then have the shell reload
+	  the location of PATH binaries (either <literal>hash -r</literal>
+	  for sh/bash or <literal>rehash</literal> for csh/tcsh.
+	</para>
+	<para>
+	  Alternatively, add the <filename>bin</filename> directory of the
+	  MIRA package to your PATH variable.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Test whether the binaries are installed ok via <literal>mirabait
+	  -v</literal> which should return with the current version you
+	  downloaded and installed.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Now you need to run a script which will unpack and reformat some
+	  data needed by MIRA. That script is located in the
+	  <filename>dbdata</filename> directory of the package and should
+	  be called with the name of the <emphasis>SLS</emphasis> file present
+	  in the same diretory like this:
+	</para>
+	<screen>
+<prompt>arcadia:/path/to/mirapkg$</prompt> <userinput>cd dbdata</userinput>
+<prompt>arcadia:/path/to/mirapkg/dbdata$</prompt> <userinput>ls -l</userinput>
+drwxr-xr-x 3 bach bach     4096 2016-03-18 14:31 mira-createsls
+-rwxr-xr-x 1 bach bach     2547 2015-12-14 04:33 mira-install-sls-rrna.sh
+-rw-r--r-- 1 bach bach      337 2016-01-01 14:50 README.txt
+lrwxrwxrwx 1 bach bach 10421035 2016-03-18 14:28 rfam_rrna-21-12.sls.gz
+<prompt>arcadia:/path/to/mirapkg/dbdata$</prompt> <userinput>./mira-install-sls-rrna.sh rfam_rrna-21-12.sls.gz</userinput></screen>
+        <para>
+	  This will take a minute or so. Then you're done for MIRA.
+        </para>
+      </listitem>
+    </orderedlist>
+    <para>
+      Additional scripts for special purposes are in the
+      <filename>scripts</filename> directory. You might or might not want to
+      have them in your $PATH.
+    </para>
+    <para>
+      Scripts and programs for MIRA from other authors are in the
+      <filename>3rdparty</filename> directory. Here too, you may or may not
+      want to have (some of them) in your $PATH.
+    </para>
+  </sect1>
+  <sect1 id="sect_install_third_party_integration">
+    <title>
+      Integration with third party programs (gap4, consed)
+    </title>
+    <para>
+      MIRA sets tags in the assemblies that can be read and interpreted by the
+      Staden <command>gap4</command> package or
+      <command>consed</command>. These tags are extremely useful to
+      efficiently find places of interest in an assembly (be it de-novo or
+      mapping), but both <command>gap4</command> and <command>consed</command>
+      need to be told about these tags.
+    </para>
+    <para>
+      Data files for a correct integration are delivered in the
+      <filename>support</filename> directory of the distribution. Please
+      consult the README in that directory for more information on how to
+      integrate this information in either of these packages.
+    </para>
+  </sect1>
+  <sect1 id="sect_install_compiling">
+    <title>
+      Compiling MIRA yourself
+    </title>
+    <sect2 id="sect_install_comp_prereq">
+      <title>
+	Prerequisites
+      </title>
+      <note>
+	As a general rule of thumb, you do NOT want to compile MIRA yourself. Fetch a
+	precompiled binary if possible.
+      </note>
+      <para>
+	Compiling the 5.x series of MIRA needs a C++14 compatible tool chain, i.e.,
+	systems starting from 2013/2014 should be OK. The
+	requisites for <emphasis>compiling</emphasis> MIRA are:
+      </para>
+      <itemizedlist>
+	<listitem>
+	  <para>
+	    gcc &ge; 6.1, with libstdc++6. Or clang &ge; 3.5.
+	  </para>
+	  <para>
+	    You really want to use a simple installation package
+	    pre-configured for your system, but in case you want or have to
+	    install gcc or clang yourself, you will have a lot of fun.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    BOOST library &ge; 1.48 (&ge; 1.61 on OSX).
+	  </para>
+	  <para>
+	    You really want to use a simple installation package
+	    pre-configured for your system, but in case you want or have to
+	    install BOOST yourself, please refer to <ulink
+	    url="http://www.boost.org/"/> for more information on the BOOST
+	    library.
+	  </para>
+	  <warning>
+	    Do NOT use a so called <emphasis>staged</emphasis> BOOST library,
+	    that will not work.
+	  </warning>
+	</listitem>
+	<listitem>
+	  zlib. Should your system not have zlib installed or available as
+	  simple installation package, please see <ulink
+	  url="http://www.zlib.net/"/> for more information regarding zlib.
+	</listitem>
+	<listitem>
+	  GNU make. Should your system not have gmake installed or available
+	  as simple installation package, please see <ulink
+	  url="www.gnu.org/software/make/"/> for more information regarding
+	  GNU make.
+	</listitem>
+	<listitem>
+	  GNU flex &ge; 2.6.0. Should your system not have flex installed or
+	  available as simple installation package, please see <ulink
+	  url="http://flex.sourceforge.net/"/> for more information regarding
+	  flex.
+	</listitem>
+	<listitem>
+	  Expat library &ge; 2.0.1. Should your system not have the Expat library and
+	  header files already installed or available as simple installation
+	  package, you will need to download and install a yourself. Please see
+	  <ulink url="http://www.libexpat.org/"/> and <ulink
+	  url="http://sourceforge.net/projects/expat/"/> for information on how
+	  to do this.
+	</listitem>
+	<listitem>
+	  xxd. A small utility from the <command>vim</command> package.
+	</listitem>
+      </itemizedlist>
+      <para>
+	For <emphasis>building the documentation</emphasis>, additional
+	prerequisites are from the DocBook tool chain:
+      </para>
+      <itemizedlist>
+	<listitem>
+	  xsltproc + docbook-xsl for HTML output
+	</listitem>
+	<listitem>
+	  a LaTEX system and dblatex for PDF output
+	</listitem>
+      </itemizedlist>
+      <para>
+	When <emphasis>building from a GitHub checkout</emphasis>, additional
+	prerequisites are a couple of additional tools:
+      </para>
+      <itemizedlist>
+	<listitem>
+	  current automake and autoconf
+	</listitem>
+	<listitem>
+	  current libtool
+	</listitem>
+      </itemizedlist>
+    </sect2>
+    <sect2 id="sect_install_comp_comp">
+      <title>
+	Compiling and installing
+      </title>
+      <para>
+	If you're lucky, after fetching the source (and eventually calling
+	<command>./bootstrap.sh</command> if you worked from a GitHub
+	checkout), all you need to do is basically:
+      </para>
+      <screen>
+<prompt>arcadia:/path/to/mira-5.0.0$</prompt> <userinput>./configure</userinput>
+<prompt>arcadia:/path/to/mira-5.0.0$</prompt> <userinput>make</userinput>
+<prompt>arcadia:/path/to/mira-5.0.0$</prompt> <userinput>make install</userinput></screen>
+      <para>
+	This should install the following programs:
+      </para>
+      <itemizedlist>
+	<listitem>
+	  <command>mira</command>
+	</listitem>
+	<listitem>
+	  <command>miraconvert</command>
+	</listitem>
+	<listitem>
+	  <command>mirabait</command>
+	</listitem>
+	<listitem>
+	  <command>miramer</command>
+	</listitem>
+	<listitem>
+	  <command>miramem</command>
+	</listitem>
+      </itemizedlist>
+      <para>
+	Should the <literal>./configure</literal> step fail for some reason or
+	another, you should get a message telling you at which step this
+	happens and and either install missing packages or tell
+	<command>configure</command> where it should search the packages it
+	did not find. See also next section or the system specific
+	walkthroughs in this chapter.
+      </para>
+    </sect2>
+    <sect2 id="sect_install_comp_conf">
+      <title>
+	Configure arguments for MIRA
+      </title>
+      <para>
+	MIRA understands all standard autoconf configure arguments, the most
+	important one probably being <literal>--prefix=</literal> to tell
+	where you want to have MIRA installed. Please consult
+	<literal>./configure --help</literal> to get a full list of currently
+	supported arguments.
+      </para>
+      <sect3 id="sect_install_comp_conf_boost">
+	<title>
+	  Configure arguments for the BOOST library
+	</title>
+	<para>
+	  BOOST is maybe the most tricky library to get right in case it does
+	  not come pre-configured for your system. The two main arguments for
+	  helping to locate BOOST are
+	  probably <literal>--with-boost=[ARG]</literal>
+	  and <literal>--with-boost-libdir=LIB_DIR</literal>. Only if those
+	  two fail, try using the other <literal>--with-boost-*=</literal> arguments
+	  you will see from the ./configure help text.
+	</para>
+      </sect3>
+      <sect3 id="sect_install_comp_conf_mira">
+	<title>
+	  MIRA specific configure arguments
+	</title>
+	<para>
+	  The configure scripts honours the following MIRA specific arguments:
+	</para>
+	<variablelist>
+	  <varlistentry>
+	    <term>
+	      --with-compiler=gcc/clang
+	    </term>
+	    <listitem>
+	      Force the compilation to occur with the given compiler. The
+	      default is clang on OSX systems and gcc on all other.
+	      <note>
+		Using homebrew installed GCC on OSX compiled, but the
+		executable did not run (no idea why). Using clang on Linux is
+		untested atm.
+	      </note>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term>
+	      --with-brew
+	    </term>
+	    <listitem>
+	      Automatically configure the build to be made entirely with and
+	      from software (compiler, libraries etc.) installed via
+	      Homebrew. Works perfectly on OSX, untested on Linux.
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term>
+	      --enable-warnings
+	    </term>
+	    <listitem>
+	      Enables compiler warnings, useful only for developers, not for users.
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term>
+	      --enable-debug
+	    </term>
+	    <listitem>
+	      Lets the MIRA binary contain C/C++ debug symbols.
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term>
+	      --enable-mirastatic
+	    </term>
+	    <listitem>
+	      Builds static binaries which are easier to distribute. Some
+	      platforms (like OpenSolaris) might not like this and you will
+	      get an error from the linker.
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term>
+	      --enable-optimisations
+	    </term>
+	    <listitem>
+	      Instructs the configure script to set optimisation arguments for compiling
+	      (on by default). Switching optimisations off (warning, high impact on
+	      run-time) might be interesting only for, e.g, debugging with valgrind.
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term>
+	      --enable-publicquietmira
+	    </term>
+	    <listitem>
+	      Some parts of MIRA can dump additional debug information during
+	      assembly, setting this switch to "no" performs this. Warning:
+	      MIRA will be a bit chatty, using this is not recommended for
+	      public usage.
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term>
+	      --enable-developmentversion
+	    </term>
+	    <listitem>
+	      Using MIRA with enabled development mode may lead to extra
+	      output on stdout as well as some additional data in the results
+	      which should not appear in real world data
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term>
+	      --enable-boundtracking
+	    </term>
+	  </varlistentry>
+	  <varlistentry>
+	    <term>
+	      --enable-bugtracking
+	    </term>
+	    <listitem>
+	      Both flags above compile in some basic checks into mira that
+	      look for sanity within some functions: Leaving this on "yes"
+	      (default) is encouraged, impact on run time is minimal
+	    </listitem>
+	  </varlistentry>
+	</variablelist>
+      </sect3>
+    </sect2>
+  </sect1>
+  <sect1 id="sect_install_walkthroughs">
+    <title>
+      Installation walkthroughs
+    </title>
+    <sect2 id="sect_install_walkthroughs_kubuntu">
+      <title>
+	(K)Ubuntu 18.04
+      </title>
+      <para>
+	You will need to install a couple of tools and libraries before
+	compiling MIRA. Here's the recipe:
+      </para>
+      <screen>
+<userinput>sudo apt-get install gcc make flex
+sudo apt-get install libexpat1-dev libboost-all-dev</userinput></screen>
+      <para>
+	Once this is done, you can unpack and compile MIRA. For a dynamically
+	linked version, use:
+      </para>
+      <screen>
+<userinput>tar xvjf <replaceable>mira-5.0.0.tar.bz2</replaceable>
+cd <replaceable>mira-5.0.0</replaceable>
+./configure
+make &amp;&amp; make install</userinput></screen>
+      <para>
+	For a statically linked version, just change the configure line from
+	above into:
+      </para>
+      <screen>
+<userinput>./configure <replaceable>--enable-mirastatic</replaceable></userinput></screen>
+      <para>
+	In case you also want to build documentation yourself, you will need
+	to install this in addition:
+      </para>
+      <screen><userinput>sudo apt-get install xsltproc docbook-xsl dblatex</userinput></screen>
+      <para>
+	And building the documentation in PDF and HTML format is done like this:
+      </para>
+      <screen><userinput>make docs</userinput></screen>
+      <note>
+	<para>
+	  People working on git checkouts of the MIRA source code will
+	  obviously need some more tools. Get them with this:
+	</para>
+	<screen><userinput>sudo apt-get install automake libtool xutils-dev</userinput></screen>
+      </note>
+    </sect2>
+    <sect2 id="sect_install_walkthroughs_opensuse">
+      <title>
+	openSUSE 12.1
+      </title>
+      <note>
+	This guide for OpenSUSE is outdated, but may give you clues on how to
+	perform this on current systems.
+      </note>
+      <para>
+	You will need to install a couple of tools and libraries before
+	compiling MIRA. Here's the recipe:
+      </para>
+      <screen>
+<userinput>sudo zypper install gcc-c++ boost-devel
+sudo zypper install flex libexpat-devel zlib-devel</userinput></screen>
+<!--libexpat1-dev zlib1g-dev-->
+      <para>
+	Once this is done, you can unpack and compile MIRA. For a dynamically
+	linked version, use:
+      </para>
+      <screen>
+<userinput>tar xvjf <replaceable>mira-5.0.0.tar.bz2</replaceable>
+cd <replaceable>mira-5.0.0</replaceable>
+./configure
+make &amp;&amp; make install</userinput></screen>
+      <para>
+	In case you also want to build documentation yourself, you will need
+	this in addition:
+      </para>
+      <screen><userinput>sudo zypper install docbook-xsl-stylesheets dblatex</userinput></screen>
+      <note>
+	<para>
+	  People working on git checkouts of the MIRA source code will
+	  obviously need some more tools. Get them with this:
+	</para>
+	<screen><userinput>sudo zypper install automake libtool xutils-dev</userinput></screen>
+      </note>
+    </sect2>
+    <sect2 id="sect_install_walkthroughs_fedora">
+      <title>
+	Fedora 17
+      </title>
+      <note>
+	This guide for Fedora is outdated, but may give you clues on how to
+	perform this on current systems.
+      </note>
+      <para>
+	You will need to install a couple of tools and libraries before
+	compiling MIRA. Here's the recipe:
+      </para>
+      <screen>
+<userinput>sudo yum -y install gcc-c++ boost-devel
+sudo yum install flex expat-devel vim-common zlib-devel</userinput></screen>
+<!--libexpat1-dev zlib1g-dev-->
+      <para>
+	Once this is done, you can unpack and compile MIRA. For a dynamically
+	linked version, use:
+      </para>
+      <screen>
+<userinput>tar xvjf <replaceable>mira-5.0.0.tar.bz2</replaceable>
+cd <replaceable>mira-5.0.0</replaceable>
+./configure
+make &amp;&amp; make install</userinput></screen>
+      <para>
+	In case you also want to build documentation yourself, you will need
+	this in addition:
+      </para>
+      <screen><userinput>sudo yum -y install docbook-xsl dblatex</userinput></screen>
+      <note>
+	<para>
+	  People working on git checkouts of the MIRA source code will
+	  obviously need some more tools. Get them with this:
+	</para>
+	<screen><userinput>sudo yum -y install automake libtool xorg-x1-util-devel</userinput></screen>
+      </note>
+    </sect2>
+    <sect2 id="sect_install_walkthroughs_osx">
+      <title>
+	Mac OSX
+      </title>
+      <para>
+	These instructions are for OSX 10.14 (Mojave) and use
+	Homebrew. There are other ways to do this (e.g., see the "compile
+	everything from scratch"), but they are definetly more painful.
+      </para>
+      <para>
+	First, you will need to install the Apple XCode command line
+	tools. This may be as easy as simply open a terminal and typing:
+      </para>
+      <screen>
+<userinput>xcode-select --install</userinput></screen>
+      <para>
+	However, on the machine I have, I got weird compilation errors and
+	found <ulink
+	url="https://github.com/frida/frida/issues/338#issuecomment-426777849"/>
+	which told me to do this for things to work (don't ask me why, but
+	this resolved my problems):
+      </para>
+      <screen>
+<userinput>cd /Library/Developer/CommandLineTools/Packages/
+open macOS_SDK_headers_for_macOS_10.14.pkg</userinput></screen>
+      <para>
+	Then, if you do not already have it, install Homebrew. See <ulink
+	url="https://brew.sh/"/>.
+      </para>
+      <para>
+	Then go on and install with homebrew the LLVM clang compiler suite and
+	a couple of other things needed:
+      </para>
+      <screen>
+<userinput>brew install llvm boost flex expat</userinput>
+</screen>
+      <para>
+	To compile from a git checkout, you will also need these:
+      </para>
+      <screen>
+<userinput>brew install autoconf automake libtool git</userinput>
+</screen>
+      <para>
+	To build the HTML documentation, this:
+      </para>
+      <screen>
+<userinput>brew install docbook-xsl</userinput>
+</screen>
+      <para>
+	And to build the PDF documentation, we need MacTex (huge download,
+	around 1 GiB, 6 GiB on disk) and the dblatex package:
+      </para>
+      <screen>
+<userinput>brew cask install mactex</userinput>
+<userinput>pip install dblatex</userinput>
+</screen>
+      <para>
+	Finally, if you want to build small, rudimentary man pages:
+      </para>
+      <screen>
+<userinput>brew install help2man</userinput></screen>
+      <para>
+	Now unpack MIRA, configure it and compile:
+      </para>
+<screen>
+<userinput>tar xvf mira-5.0.0.tar.bz2</userinput>
+<userinput>cd mira-5.0.0</userinput>
+<userinput>./configure --with-brew --enable-debug</userinput>
+<userinput>make -j 2</userinput>
+</screen>
+      <para>
+	That's it for the dynamic version.
+      </para>
+      <para>
+	For building an almost static version, we need some trickery:
+	configure with the <literal>--enable-mirastatic</literal> argument),
+	then ask the build system to create a distribution. This will launch a
+	toolchain at the end of which you will get a bundle which contains
+	everything needed to run, both on OSX and other Unix systems.
+      </para>
+<screen>
+<userinput>./configure --with-brew --enable-mirastatic --enable-debug</userinput>
+<userinput>make</userinput>
+<userinput>make distrib</userinput>
+</screen>
+    </sect2>
+    <sect2 id="sect_install_walkthroughs_allfromscratch">
+      <title>
+	Compile everything from scratch
+      </title>
+      <para>
+	This lets you build a self-contained static MIRA binary. The only
+	prerequisite here is that you have a working <command>gcc</command>
+	with the minimum version described above. Please download all
+	necessary files (expat, flex, etc.pp) and then simply follow the
+	script below. The only things that you will want to change are the
+	path used and, maybe, the name of some packages in case they were
+	bumped up a version or revision.
+      </para>
+      <para>
+	Contributed by Sven Klages.
+      </para>
+      <screen>
+## whatever path is appropriate
+<userinput>cd <replaceable>/home/gls/SvenTemp/install</replaceable></userinput>
+
+## expat
+<userinput>tar zxvf <replaceable>expat-2.0.1.tar.gz</replaceable>
+cd <replaceable>expat-2.0.1</replaceable>
+./configure <replaceable>--prefix=/home/gls/SvenTemp/expat</replaceable>
+make &amp;&amp; make install</userinput>
+
+## flex
+<userinput>cd <replaceable>/home/gls/SvenTemp/install</replaceable>
+tar zxvf <replaceable>flex-2.5.35.tar.gz</replaceable>
+cd <replaceable>flex-2.5.35</replaceable>
+./configure <replaceable>--prefix=/home/gls/SvenTemp/flex</replaceable>
+make &amp;&amp; make install
+cd <replaceable>/home/gls/SvenTemp/flex/bin</replaceable>
+ln -s flex flex++
+export PATH=<replaceable>/home/gls/SvenTemp/flex/bin</replaceable>:$PATH</userinput>
+
+## boost
+<userinput>cd <replaceable>/home/gls/SvenTemp/install</replaceable>
+tar zxvf <replaceable>boost_1_48_0.tar.gz</replaceable>
+cd <replaceable>boost_1_48_0</replaceable>
+./bootstrap.sh --prefix=<replaceable>/home/gls/SvenTemp/boost</replaceable>
+./b2 install</userinput>
+
+## mira itself
+<userinput>export CXXFLAGS="-I<replaceable>/home/gls/SvenTemp/flex/include</replaceable>"
+
+cd <replaceable>/home/gls/SvenTemp/install</replaceable>
+tar zxvf <replaceable>mira-3.4.0.1.tar.gz</replaceable>
+cd <replaceable>mira-3.4.0.1</replaceable>
+./configure --prefix=<replaceable>/home/gls/SvenTemp/mira</replaceable> \
+--with-boost=<replaceable>/home/gls/SvenTemp/boost</replaceable> \
+--with-expat=<replaceable>/home/gls/SvenTemp/expat</replaceable> \
+--enable-mirastatic
+make &amp;&amp; make install</userinput></screen>
+    </sect2>
+    <sect2 id="sect_install_walkthroughs_dynamic">
+      <title>
+	Dynamically linked MIRA
+      </title>
+      <para>
+	In case you do not want a static binary of MIRA, but a dynamically
+	linked version, the following script by Robert Bruccoleri will give
+	you an idea on how to do this.
+      </para>
+      <para>
+	Note that he, having root rights, puts all additional software in
+	/usr/local, and in particular, he keeps updated versions of Boost and
+	Flex there.
+      </para>
+      <screen>
+#!/bin/sh -x
+
+make distclean
+oze=`find . -name "*.o" -print`
+if [[ -n "$oze" ]]
+then
+   echo "Not clean."
+   exit 1
+
+fi
+
+export prefix=${BUILD_PREFIX:-/usr/local}
+export LDFLAGS="-Wl,-rpath,$prefix/lib"
+
+./configure --prefix=$prefix \
+           --enable-debug=yes \
+           --enable-mirastatic=no \
+           --with-boost-libdir=$prefix/lib \
+           --enable-optimisations \
+           --enable-boundtracking=yes \
+           --enable-bugtracking=yes \
+           --enable-extendedbugtracking=no
+make
+make install</screen>
+    </sect2>
+  </sect1>
+  <sect1 id="sect_install_hintotherplatforms">
+    <title>
+      Compilation hints for other platforms.
+    </title>
+    <sect2 id="sect_install_hintnetbsd5">
+      <title>
+	NetBSD 5 (i386)
+      </title>
+      <para>
+	Contributed by Thomas Vaughan
+      </para>
+      <para>
+	The system flex <emphasis>(/usr/bin/flex)</emphasis> is too old, but the
+	devel/flex package from a recent pkgsrc works fine. BSD make doesn't
+	like one of the lines in <emphasis>src/progs/Makefile</emphasis>, so use GNU make instead
+	(available from <emphasis>pkgsrc</emphasis> as <emphasis>devel/gmake</emphasis>). Other relevant pkgsrc packages:
+	<emphasis>devel/boost-libs</emphasis>, <emphasis>devel/boost-headers</emphasis>
+	and <emphasis>textproc/expat</emphasis>. The configure script has to
+	be told about these pkgsrc prerequisites (they are usually rooted
+	at <emphasis>/usr/pkg</emphasis> but other locations are possible):
+      </para>
+      <screen><userinput>FLEX=/usr/pkg/bin/flex ./configure --with-expat=/usr/pkg --with-boost=/usr/pkg</userinput></screen>
+      <para>
+	If attempting to build a pkgsrc package of MIRA, note that the LDFLAGS
+	passed by the pkgsrc mk files don't remove the need for
+	the <emphasis>--with-boost</emphasis> option.  The configure script
+	complains about flex being too old, but this is harmless because it
+	honours the $FLEX variable when writing out makefiles.
+      </para>
+    </sect2>
+  </sect1>
+  <sect1 id="sect_install_notesformaintainers">
+    <title>
+      Notes for distribution maintainers / system administrators
+    </title>
+    <sect2 id="sect_install_additionaldatafiles">
+      <title>
+	Additional data files
+      </title>
+      <para>
+	Depending on options/paramaters, the MIRA/mirabait binary may need
+	to load some additional data during the run. By default this data will
+	always be searched at this location:
+	<filename>LOCATION_OF_BINARY/../share/mira/...</filename>
+      </para>
+      <para>
+	That is: If the binary is, e.g.,
+	<filename>/opt/mira5/bin/mira</filename> with a softlink pointing from
+	<filename>/usr/local/bin/mira -> /opt/mira5/bin/mira</filename>
+	(because, e.g., <filename>/usr/local/bin</filename> may be by default in your
+	PATH variable), then the additional data will be searched in
+	<filename>/opt/mira5/share/mira/...</filename> and NOT in
+	<filename>/usr/local/share/mira/...</filename>.
+      </para>
+      <note>
+	In short: since MIRA 4.9.6, moving the binary is not enough
+	anymore. Take care to have the <emphasis>share</emphasis> directory in the
+	right place, i.e., adjacent to the directory the MIRA binary lives in.
+      </note>
+    </sect2>
+  </sect1>
+</chapter>

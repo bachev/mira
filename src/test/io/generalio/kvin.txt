@@ -1,0 +1,18 @@
+# testing comment
+#
+# testing empty line
+
+# testing normal key value
+laber1 bla1
+
+# testing second key value
+laber2 bla2
+
+# testing key value (value with spaces)
+laber3 bla3 gna 5			
+
+# testing key value (value with trailing spaces)
+laber4 bla4 gna 5
+
+# Testing key only
+hick6

@@ -1,0 +1,34 @@
+.screen {
+    background-color : gainsboro;
+    color : navy;
+}
+
+.prompt {
+    background-color : gainsboro;
+    color : black;
+}
+
+.userinput {
+    background-color : gainsboro;
+    color : red;
+}
+
+.releaseinfo {
+    color : red;
+}
+
+.light {
+    color : lightgrey;
+}
+
+.underline {
+    text-decoration: underline;
+}
+
+.sidebar {
+  background-color: #FFFFcc ;
+  border: 1px solid #000066 ;
+  margin-left: 1cm;
+  margin-right: 1cm;
+}
+

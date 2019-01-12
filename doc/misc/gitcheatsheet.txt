@@ -1,0 +1,20 @@
+Creating a new central repository
+---------------------------------
+
+/old/mira.git$ cd /wherever/vcshome
+vcshome$ git clone --bare /old/mira.git
+vcshome$ mv mira.git mira.git.git
+vcshome$ cd /old/mira.git
+/old/mira.git$ git push --mirror /wherever/vcshome/mira.git.git
+
+
+Permanently remove files/directories from repo
+----------------------------------------------
+Use BFG Repo-Cleaner. E.g. "minidemo" directory.
+
+mira.git$ git rm -r minidemo
+mira.git$ git commit -m "Permanently removed minidemo from repository"
+mira.git$ git push --all
+mira.git$ cd /vcshome/mira.git.git
+mira.git.git$ java -jar bfg.jar --delete-folders minidemo
+mira.git.git$ git reflog expire --expire=now --all && git gc --prune=now --aggressive

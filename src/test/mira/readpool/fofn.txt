@@ -1,0 +1,7 @@
+# comments are now allowed in fofn :)
+
+U13a01g08.t1
+U13a03f07.t1
+U13a03f09.t1
+U13a05h03.t1
+U13a08c07.t1

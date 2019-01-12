@@ -1,0 +1,688 @@
+<?xml version="1.0" ?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.docbook.org/xml/4.5/docbookx.dtd">
+<chapter id="chap_iontor">
+  <chapterinfo>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="versionfile"/>
+    <author>
+      <firstname>Bastien</firstname>
+      <surname>Chevreux</surname>
+      <email>bach@chevreux.org</email>
+    </author>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="copyrightfile"/>
+  </chapterinfo>
+  <blockquote>
+    <attribution>Solomon Short (modified)</attribution>
+    <para>
+      <emphasis><quote>A baby is Life's way of insisting that the universe give it another chance.
+      </quote></emphasis>
+    </para>
+  </blockquote>
+  <title>Assembly of Ion Torrent data with MIRA3</title>
+  <sect1 id="sect_iontor_introduction">
+    <title>
+      Introduction
+    </title>
+    <para>
+      MIRA can assemble Ion Torrent type data either on its own or together with
+      Sanger, 454 or Solexa type sequencing data (true hybrid assembly). Paired-end
+      sequences coming from genomic projects can also be used if you
+      take care to prepare your data the way MIRA needs it.
+    </para>
+    <para>
+      MIRA goes a long way to assemble sequence in the best possible way: it
+      uses multiple passes, learning in each pass from errors that occurred in
+      the previous passes. There are routines specialised in handling oddities
+      that occur in different sequencing technologies
+    </para>
+    <warning>
+      <para>
+	IonTorrent is - as of January 2014 - still a moving target: there are
+	new protocols every few months and they've come a long way since their
+	very first data sets. The data quality is now more or less comparable
+	to better 454 data sets, at least from what I have seen. It might be
+	that you need to fetch the latest MIRA version available to get the
+	best possible assembly.
+      </para>
+    </warning>
+    <sect2 id="sect_iontor_some_reading_requirements">
+      <title>
+	Some reading requirements
+      </title>
+      <para>
+	This guide assumes that you have basic working knowledge of Unix
+	systems, know the basic principles of sequencing (and sequence
+	assembly) and what assemblers do.
+      </para>
+      <para>
+	While there are step by step walkthroughs on how to setup your Ion
+	Torrent data and then perform an assembly, this guide expects you to
+	read at some point in time
+      </para>
+      <itemizedlist>
+	<listitem>
+	  <para>
+	    the <emphasis>mira_usage</emphasis> introductory help file so that
+	    you have a basic knowledge on how to set up projects in mira for
+	    Sanger sequencing projects.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    and last but not least the <emphasis>mira_reference</emphasis>
+	    help file to look up some command line options.
+	  </para>
+	</listitem>
+      </itemizedlist>
+    </sect2>
+  </sect1>
+  <sect1 id="sect_iontor_walkthrough_unpaired_data">
+    <title>
+      Walkthrough: unpaired data
+    </title>
+    <para>
+      This walkthrough will use two data sets for <emphasis>E. coli</emphasis>
+      strain DH10B made available by IonTorrent and will show you the main steps you need
+      to perform to get assemblies going.
+    </para>
+    <sect2 id="sect_iontor_walkthrough_unpaired_prepfilesystem">
+      <title>
+	Preparing your file system
+      </title>
+      <para>
+	Note: this is how I set up a project, feel free to implement whatever
+	structure suits your needs.
+      </para>
+      <screen>
+<prompt>arcadia:$</prompt> <userinput>mkdir dh10b</userinput>
+<prompt>arcadia:$</prompt> <userinput>cd dh10b</userinput>
+<prompt>arcadia:dh10b$</prompt> <userinput>mkdir origdata data assemblies</userinput></screen>
+      <para>
+	Your directory should now look like this:
+      </para>
+      <screen>
+<prompt>arcadia:dh10b$</prompt> <userinput>ls -l
+drwxr-xr-x 2 bach users 48 2011-08-12 22:43 assemblies
+drwxr-xr-x 2 bach users 48 2011-08-12 22:43 data
+drwxr-xr-x 2 bach users 48 2011-08-12 22:43 origdata</userinput></screen>
+      <para>
+	Explanation of the structure:
+      </para>
+      <itemizedlist>
+	<listitem>
+	  <para>
+	    the <filename>origdata</filename> directory will contain the 'raw'
+	    result files that one might get from sequencing. In our case it
+	    will be the ZIP files from the IonTorrent site.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    the <filename>data</filename> directory will contain the
+	    preprocessed sequences for the assembly, ready to be used by MIRA
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    the <filename>assemblies</filename> directory will contain
+	    assemblies we make with our data (we might want to make more than
+	    one).
+	  </para>
+	</listitem>
+      </itemizedlist>
+    </sect2>
+    <sect2 id="sect_iontor_walkthrough_unpaired_gettingdata">
+      <title>
+	Getting the data for this walkthrough
+      </title>
+    <para>
+      The data sets in question are
+    </para>
+    <orderedlist>
+      <listitem>
+	<para>
+	  E. coli DH10B, PGM run <ulink
+	  url="https://iontorrent.box.net/shared/7djecq4uy3sdiltszmqg">B13-328</ulink>
+	  which you can download from <ulink
+	  url="http://lifetech-it.hosted.jivesoftware.com/docs/DOC-1651"/>
+	  (download the SFF). This data set, subsequently nicknamed B13,
+	  contains data from the 316 chip with reads of an average size of
+	  ~100bp.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  E. coli DH10B, PGM run <ulink
+	  url="http://lifetech-it.hosted.jivesoftware.com/servlet/JiveServlet/download/1848-4-3286/B14_387_CR_0.05.sff.zip">B14-387</ulink>
+	  which you can download from <ulink
+	  url="http://lifetech-it.hosted.jivesoftware.com/docs/DOC-1848"/>. This
+	  data set, subsequently nicknamed B14, contains data from the 314
+	  chip which IonTorrent uses to show off the "longer reads" capability
+	  of its sequencer. "Longer" meaning in this case an average of ~220
+	  bp, which is not bad at all.
+	</para>
+      </listitem>
+    </orderedlist>
+    <para>
+      Save the two ZIP files into the <filename>origdata</filename> directory should now look like this:
+    </para>
+    <screen>
+<prompt>arcadia:dh10b$</prompt> <userinput>ls -l origdata</userinput>
+-rw-r--r-- 1 bach bach 824002890 2011-08-15 21:43 B13_328.sff.zip
+-rw-r--r-- 1 bach bach 327926296 2011-08-14 20:32 B14_387_CR_0.05.sff.zip</screen>
+     <para>
+       Our data is still in ZIP files, let's get them out and put them into the
+       <filename>data</filename> directory:
+     </para>
+     <screen>
+<prompt>arcadia:dh10b$</prompt> <userinput>cd data</userinput>
+<prompt>arcadia:data$</prompt> <userinput>unzip ../origdata/B13_328.sff.zip</userinput>
+Archive:  ../origdata/B13_328.sff.zip
+  inflating: B13_328.sff
+   creating: __MACOSX/
+  inflating: __MACOSX/._B13_328.sff
+<prompt>arcadia:data$</prompt> <userinput>unzip ../origdata/B14_387_CR_0.05.sff.zip</userinput>
+Archive:  ../origdata/B14_387_CR_0.05.sff.zip
+  inflating: R_2011_07_19_20_05_38_user_B14-387-r121336-314_pool30-ms_B14-387_cafie_0.05.sff
+<prompt>arcadia:data$</prompt> <userinput>ls -l</userinput>
+-rw-r--r-- 1 bach bach 1721658336 2011-06-17 01:29 B13_328.sff
+drwxrwxr-x 2 bach bach       4096 2011-06-21 16:16 __MACOSX
+-rw-rw-r-- 1 bach bach  688207032 2011-07-28 23:31 R_2011_07_19_20_05_38_user_B14-387-r121336-314_pool30-ms_B14-387_cafie_0.05.sff</screen>
+      <para>
+	Oooops, quite some chaos ... IonTorrent included some unnecessary
+	things (the <filename>__MACOSX</filename> directory) and gave their
+	data files wildly different names. Let's clean up a bit here:
+      </para>
+      <screen>
+<prompt>arcadia:data$</prompt> <userinput>rm -rf __MACOSX</userinput>
+<prompt>arcadia:data$</prompt> <userinput>mv B13_328.sff B13.sff</userinput>
+<prompt>arcadia:data$</prompt> <userinput>mv R_2011_07_19_20_05_38_user_B14-387-r121336-314_pool30-ms_B14-387_cafie_0.05.sff B14.sff</userinput>
+<prompt>arcadia:data$</prompt> <userinput>ls -l</userinput>
+-rw-r--r-- 1 bach bach 1721658336 2011-06-17 01:29 B13.sff
+-rw-rw-r-- 1 bach bach  688207032 2011-07-28 23:31 B14.sff</screen>
+      <para>
+	There, much nicer.
+      </para>
+    </sect2>
+    <sect2 id="sect_iontor_walkthrough_unpaired_prepdata">
+      <title>
+	Preparing the Ion Torrent data for MIRA
+      </title>
+      <para>
+	MIRA will need the base sequences, quality values attached to those
+	bases and - if already present - clipping points for quality clips and
+	sequencing adaptor clips.
+      </para>
+      <para>
+	The basic data type you will get from the sequencing instruments will
+	be SFF files. Those files contain almost all information
+	needed for an assembly, but SFFs need to be converted into more
+	standard files before MIRA can use this information.
+      </para>
+      <para>
+	In former times this was done using 3 files (FASTA, FASTA quality and
+	XML), but nowadays the FASTQ format is used almost everywhere, so we
+	will need only two files: FASTQ for sequence + quality and XML for
+	clipping information.
+      </para>
+      <note>
+	<title>Tip</title>
+	Use the sff_extract script from Jose Blanca at the
+	University of Valencia. The home of sff_extract is:
+	<ulink url="http://bioinf.comav.upv.es/sff_extract/index.html"/> but I
+	am thankful to Jose for giving permission to distribute the script in
+	the MIRA 3rd party package (separate download on SourceForge).
+      </note>
+      <para>
+	The data sets B13 and B14 have short and long IonTorrent reads and we
+	will want to assemble them together. For the sake of clarity, I want
+	to name the file with a prefix: <emphasis>dh10b_b13b14</emphasis>.
+      </para>
+      <screen>
+<prompt>arcadia:data$</prompt> <userinput>sff_extract -o dh10b_b13b14 B13.sff B14.sff</userinput>
+Working on 'B13.sff':
+Converting 'B13.sff' ...  done.
+Converted 1687490 reads into 1687490 sequences.
+Working on 'B14.sff':
+Converting 'B14.sff' ...  done.
+Converted 350109 reads into 350109 sequences.</screen>
+      <para>
+	The parameters to <command>sff_extract</command> tell it to convert
+	the SFFs named <filename>B13.sff</filename> and
+	<filename>B14.sff</filename> into files where the names start with
+	<filename>dh10b_b13b14</filename>. By default, a FASTQ file and a XML
+	file in NCBI traceinfo will be created.
+      </para>
+      <warning>
+	<title>Do not hard clip sequences!</title>
+	<para>
+	  People "in the know" might want to tell
+	  <command>sff_extract</command> to simply dump hard-clip sequences
+	  into the FASTQ file via the <arg>-c</arg> argument. Hard-clipped
+	  means: the clipped sequence parts of a read are physically trimmed
+	  away, never to be seen again.
+	</para>
+	<para>
+	  This is <emphasis><emphasis role="bold"><emphasis role="underline">D
+	  I S C O U R A G E D !</emphasis></emphasis></emphasis>
+	</para>
+	<para>
+	  Reason: unlike 454, IonTorrent actually uses actively the SFF
+	  feature to set different clipping points for quality and adaptor
+	  clips. This is useful information for MIRA. Furthermore, some of the
+	  quality control algorithms of MIRA use also the clipped part of a
+	  read to improve assembly quality with measurable effect. If a hard
+	  clip was performed on the sequences, these algorithms are not as
+	  effective anymore.
+	</para>
+      </warning>
+      <note>
+	<title>The XML TRACEINFO file</title>
+	<para>
+	  For the die hards out there who really do not want the XML TRACEINFO
+	  files: if MIRA gets only the sequence, it will use the usual
+	  454/Roche convention to treat left and right lower case part of
+	  sequences as clipped and retain the uppercase middle part of a
+	  sequence. <command>sff_extract</command> adheres to this convention,
+	  and while the resulting assemblies are not quite as good as with the
+	  TRACEINFO XML, they're still better than with hard clipped
+	  sequences.
+	</para>
+      </note>
+      <para>
+	The conversion can take some time, the ~2 million IonTorrent reads
+	from this example need approximately 2.5 minutes for conversion. Go
+	grab a coffee, or tea, or whatever.
+      </para>
+      <para>
+	Welcome back. Your directory should now look something like this:
+      </para>
+      <screen>
+<prompt>arcadia:data$</prompt> <userinput>ls -l</userinput>
+-rw-r--r-- 1 bach bach  771462745 2011-08-19 22:24 dh10b_b13b14.fastq
+-rw-r--r-- 1 bach bach  441331004 2011-08-19 22:24 dh10b_b13b14.xml
+-rw-r--r-- 1 bach bach 1721658336 2011-06-17 01:29 B13.sff
+-rw-rw-r-- 1 bach bach  688207032 2011-07-28 23:31 B14.sff</screen>
+      <para>
+	Cool. Last step: we do not need the SFF files here anymore (we still
+	have them as ZIP in the <filename>origdata</filename> folder), let's
+	get rid of them:
+      </para>
+      <screen>
+<prompt>arcadia:data$</prompt> <userinput>rm *sff</userinput>
+<prompt>arcadia:data$</prompt> <userinput>ls -l</userinput>
+-rw-r--r-- 1 bach bach  771462745 2011-08-19 22:24 dh10b_b13b14.fastq
+-rw-r--r-- 1 bach bach  441331004 2011-08-19 22:24 dh10b_b13b14.xml</screen>
+    </sect2>
+    <sect2 id="sect_iontor_walkthrough_unpaired_manifest">
+      <title>
+	Writing a manifest configuration file
+      </title>
+      <para>
+	Good, we're almost there. Let's switch to the
+	<filename>assemblies</filename> directory and create a subdirectory for our
+	first assembly test.
+      </para>
+      <screen>
+<prompt>arcadia:data$</prompt> <userinput>cd ../assemblies/</userinput>
+<prompt>arcadia:assemblies$</prompt> <userinput>mkdir 1sttest</userinput>
+<prompt>arcadia:assemblies$</prompt> <userinput>cd 1sttest</userinput></screen>
+      <para>
+	This directory is quite empty and the IonTorrent data is not
+	present. And it does not need to be as we'll tell MIRA in the manifest
+	configuration file where to find the data and what to do with it.
+      </para>
+      <screen>
+# A manifest file can contain comment lines, these start with the #-character
+
+# First part of a manifest: defining some basic things
+
+# In this example, we just give a name to the assembly
+#  and tell MIRA it should assemble a genome de-novo in accurate mode
+# As special parameter, we want to use 4 threads in parallel (where possible)
+
+<userinput>project = <replaceable>dh10b</replaceable>
+job = <replaceable>genome,denovo,accurate</replaceable>
+parameters = <replaceable>-GE:not=4</replaceable></userinput>
+
+# The second part defines the sequencing data MIRA should load and assemble
+# The data is logically divided into "readgroups", for more information
+#  please consult the MIRA manual, chapter "Reference"
+
+<userinput>readgroup = <replaceable>SomeUnpairedIonTorrentReadsIGotFromTheLab</replaceable>
+technology = <replaceable>iontor</replaceable>
+data = <replaceable>../../data/dh10b*</replaceable></userinput>
+
+# note the wildcard "dh10b*" part in the 'data' line above:
+#  if you followed the walkthrough and have the FASTQ and XML file,
+#  this will automatically load both files (which is what we want)</screen>
+    <para>
+      Save the above lines into a file, we'll use <filename>manifest.conf</filename> in this example.
+    </para>
+    <screen>
+<prompt>arcadia:/path/to/myProject$</prompt> <userinput>ls -l</userinput>
+-rw-r--r-- 1 bach users        756 2011-11-05 17:57 manifest.conf</screen>
+    </sect2>
+    <sect2 id="sect_iontor_walkthrough_unpaired_starting">
+      <title>
+	Starting the assembly
+      </title>
+      <para>
+	Starting the assembly is now just a matter of one line:
+      </para>
+      <screen>
+<prompt>arcadia:1sttest$</prompt> <userinput>mira manifest.conf &gt;&amp;log_assembly.txt </userinput></screen>
+      <para>
+	Now, that was easy, wasn't it? In the above example - for assemblies
+	having only Ion Torrent data and if you followed the walkthrough on
+	how to prepare the data - everything you might want to adapt in the
+	first time are the following entries in the manifest file:
+      </para>
+      <itemizedlist>
+	<listitem>
+	  <para>
+	    --project (for naming your assembly project)
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    --job (perhaps to change the quality of the assembly to 'draft'
+	  </para>
+	</listitem>
+      </itemizedlist>
+      <para>
+	Of course, you are free to change any option via the extended
+	parameters, perhaps change the default number of processors to use
+	from 2 to 4 via <arg>-GE:not=4</arg> or any other of the &gt; 150
+	parameters MIRA has ... but this is covered in the MIRA main reference
+	manual.
+      </para>
+      <warning>
+	<title>Low coverage</title>
+	<para>
+	  MIRA default parameters are optimised for assemblies with decent
+	  coverages. In the case of Ion Torrent, this means an average
+	  coverage of &ge; 20 to 25. If you are working on projects with lower
+	  coverage, please adapt a couple of parameters for low coverage data.
+	</para>
+      </warning>
+      <warning>
+	<title>Do not use too high coverage</title>
+	<para>
+	  As with every sequencing technology, you should not use too much
+	  data as this is detrimental to assembly quality. Long story short:
+	  non-random sequencing errors will, at high coverage, occur
+	  frequently enough to look like valid repeat pattern, leading MIRA to
+	  create more contigs than necessary ... some of them with the
+	  sequencing errors looking like genuine sequence.
+	</para>
+	<para>
+	  As a simple rule of thumb, coverage numbers between 50x and 80x are
+	  OK, coverage above can (and will) lead to problems.
+	</para>
+      </warning>
+    </sect2>
+  </sect1>
+  <sect1 id="sect_iontor_walkthrough_paired">
+    <title>
+      Walkthrough: paired data
+    </title>
+    <sect2 id="sect_iontor_walkthrough_paired_gettingdata">
+      <title>
+	Getting the data
+      </title>
+    <para>
+      This walkthrough will use three data sets to assemble
+      <emphasis>E.coli</emphasis> MG1655: one shotgun/fragment set and two
+      paired-end data sets with different template sizes. Life has put the
+      full data sets for download, but as using the full sets for a bacteria
+      is absolute overkill (and also detrimental to assembly quality), they
+      were also kind enough to prepare sub-sampled data sets which we will use.
+    </para>
+    <para>
+      You will find all files at <ulink
+      url="http://lifetech-it.hosted.jivesoftware.com/docs/DOC-2265"/>
+    </para>
+    <orderedlist>
+      <listitem>
+	<para>
+	  Set with single fragments (unpaired data), down-sampled to 40x
+	  coverage: <ulink
+	  url="http://iontorrent.s3.amazonaws.com/datasets/C11-127/40X_subsample/C11-127_40X.sff.zip">C11-127_40X.sff.zip</ulink>
+	  This data set, subsequently nicknamed C11, contains data from the
+	  316 chip with reads of an average usable size of ~200bp.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Set with paired data from a long paired-end library with an average
+	  size of 3.5kb, down-sampled to 20x coverage: <ulink
+	  url="http://iontorrent.s3.amazonaws.com/datasets/FRA-257/20X_subsample/FRA-257_20X.sff.zip">FRA-257_20X.sff.zip</ulink>
+	  This data set, subsequently nicknamed FRA-257, contains data from the
+	  316 chip with reads of an average usable size of ~xxxxxxxbp.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Set with paired data from a long paired-end library with an average
+	  size of 8.9kb, down-sampled to 20x coverage: <ulink
+	  url="http://iontorrent.s3.amazonaws.com/datasets/C28-140/20X_subsample/C28-140_20X.sff.zip">C28-140_20X.sff.zip</ulink>
+	  This data set, subsequently nicknamed C28, contains data from the
+	  316 chip with reads of an average usable size of ~xxxxxxxbp.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  File with the linker sequences used for the paired-end sequencing. This will be needed by <command>sff_extract</command>: <ulink
+	  url="http://iontorrent.s3.amazonaws.com/datasets/reference/LMP_Linkers.fasta.gz">LMP_Linkers.fasta.gz</ulink>
+	</para>
+      </listitem>
+    </orderedlist>
+    <para>
+      Save all files into the <filename>origdata</filename> directory should now look like this:
+    </para>
+    <screen><prompt>arcadia:origdata$</prompt> <userinput>ls -l</userinput>
+-r--r--r-- 1 bach bach 1826508536 Jun 14 00:04 C11-127_40X.sff.zip
+-r--r--r-- 1 bach bach  681739117 Jun 14 00:05 C28-140_20X.sff.zip
+-r--r--r-- 1 bach bach  537186774 Jun 14 00:06 FRA-257_20X.sff.zip
+-r--r--r-- 1 bach bach         91 Mar  7 20:05 LMP_Linkers.fasta.gz</screen>
+    <para>
+      Quickly unpack the tiny linkers file:
+    </para>
+    <screen>
+<prompt>arcadia:origdata$</prompt> <userinput>gunzip LMP_Linkers.fasta.gz</userinput>
+<prompt>arcadia:origdata$</prompt> <userinput>ls -l</userinput>
+-r--r--r-- 1 bach bach 1826508536 Jun 14 00:04 C11-127_40X.sff.zip
+-r--r--r-- 1 bach bach  681739117 Jun 14 00:05 C28-140_20X.sff.zip
+-r--r--r-- 1 bach bach  537186774 Jun 14 00:06 FRA-257_20X.sff.zip
+-r--r--r-- 1 bach bach         89 Mar  7 20:05 LMP_Linkers.fasta</screen>
+    </sect2>
+    <sect2 id="sect_iontor_walkthrough_paired_prepdata">
+      <title>
+	Preparing the Ion Torrent data for MIRA
+      </title>
+      <para>
+	We will unzip all three sets with <command>unzip</command> and then
+	extract with <command>sff_extract</command> into different data files,
+	for the paired-end sets we will ask <command>sff_extract</command> to
+	split the paired sequences in the SFF into single, but paired reads:
+      </para>
+      <para>
+	Unzip the data:
+      </para>
+      <screen><prompt>arcadia:origdata$</prompt> <userinput>cd ../data</userinput>
+<prompt>arcadia:data$</prompt> <userinput>cd ../data</userinput>
+<prompt>arcadia:data$</prompt> <userinput>unzip '../origdata/*zip'</userinput>
+Archive:  ../origdata/C11-127_40X.sff.zip
+  inflating: C11-127_40X.sff
+
+Archive:  ../origdata/C28-140_20X.sff.zip
+  inflating: C28-140_20X.sff
+
+Archive:  ../origdata/FRA-257_20X.sff.zip
+  inflating: FRA-257_20X.sff
+
+3 archives were successfully processed.
+<prompt>arcadia:data$</prompt> <userinput>ls -l</userinput>
+-rw-r--r-- 1 bach bach 3617626646 Feb 10 00:32 C11-127_40X.sff
+-rw-rw-r-- 1 bach bach 1320383792 Dec 21 18:21 C28-140_20X.sff
+-rw-rw-r-- 1 bach bach 1159612116 Dec 16 20:48 FRA-257_20X.sff</screen>
+      <para>
+	Extract unpaired reads (will take ~2.5 minutes):
+      </para>
+      <screen><prompt>arcadia:data$</prompt> <userinput>sff_extract C11-127_40X.sff</userinput>
+Working on 'C11-127_40X.sff':
+Converting 'C11-127_40X.sff' ... date
+ done.
+Converted 1111060 reads into 1111060 sequences.</screen>
+      <para>
+	Extract 3.5kb paired reads (will take ~8 minutes):
+      </para>
+      <screen><prompt>arcadia:data$</prompt> <userinput>sff_extract C28-140_20X.sff</userinput>
+Testing whether SSAHA2 is installed and can be launched ...  ok.
+Working on 'C28-140_20X.sff':
+Creating temporary sequences from reads in 'C28-140_20X.sff' ...  done.
+Searching linker sequences with SSAHA2 (this may take a while) ...  ok.
+Parsing SSAHA2 result file ...  done.
+Converting 'C28-140_20X.sff' ...  done.
+Converted 792280 reads into 1567302 sequences.</screen>
+      <para>
+	Extract 8.9kb paired reads (will take ~6.5 minutes):
+      </para>
+      <screen><prompt>arcadia:data$</prompt> <userinput>sff_extract C28-140_20X.sff</userinput>
+Testing whether SSAHA2 is installed and can be launched ...  ok.
+Working on 'FRA-257_20X.sff':
+Creating temporary sequences from reads in 'FRA-257_20X.sff' ...  done.
+Searching linker sequences with SSAHA2 (this may take a while) ...  ok.
+Parsing SSAHA2 result file ...  done.
+Converting 'FRA-257_20X.sff' ...  done.
+Converted 618621 reads into 1224056 sequences.</screen>
+      <para>
+	Remove SFF files which are not needed anymore:
+      </para>
+      <screen><prompt>arcadia:data$</prompt> <userinput>rm *.sff</userinput>
+<prompt>arcadia:data$</prompt> <userinput>ls -l</userinput>
+-rw-rw-r-- 1 bach bach 1000477444 Jun 14 00:35 C11-127_40X.fastq
+-rw-rw-r-- 1 bach bach  246427864 Jun 14 00:35 C11-127_40X.xml
+-rw-rw-r-- 1 bach bach  355981807 Jun 14 00:44 C28-140_20X.fastq
+-rw-rw-r-- 1 bach bach  354995399 Jun 14 00:44 C28-140_20X.xml
+-rw-rw-r-- 1 bach bach  300577380 Jun 14 00:51 FRA-257_20X.fastq
+-rw-rw-r-- 1 bach bach  281069580 Jun 14 00:51 FRA-257_20X.xml</screen>
+      <para>
+	We're done here.
+      </para>
+    </sect2>
+    <sect2 id="sect_iontor_walkthrough_paired_manifest">
+      <title>
+	Writing a manifest configuration file
+      </title>
+      <para>
+	Switch to the <filename>assemblies</filename> directory and create a
+	subdirectory for our first assembly test.
+      </para>
+      <screen>
+<prompt>arcadia:data$</prompt> <userinput>cd ../assemblies/</userinput>
+<prompt>arcadia:assemblies$</prompt> <userinput>mkdir 1sttest</userinput>
+<prompt>arcadia:assemblies$</prompt> <userinput>cd 1sttest</userinput></screen>
+      <para>
+	The manifest file itself should be pretty much self-explanatory,
+	except perhaps the segment placement line, please look that up in the
+	MIRA reference manual.
+      </para>
+      <screen><userinput>project = <replaceable>mg1655</replaceable>
+job = <replaceable>genome,denovo,accurate</replaceable>
+parameters = <replaceable>-GE:not=4</replaceable></userinput>
+
+<userinput>readgroup = <replaceable>TheShotgunReads</replaceable>
+technology = <replaceable>iontor</replaceable>
+data = <replaceable>../../data/C11-127_40X.*</replaceable>
+
+readgroup = <replaceable>ThePE3.5kbLib</replaceable>
+technology = <replaceable>iontor</replaceable>
+data = <replaceable>../../data/FRA-257_20X.*</replaceable>
+template_size = <replaceable>2600 4400</replaceable>
+segment_placement = <replaceable>samedir backward</replaceable>
+
+readgroup = <replaceable>ThePE8.9kbLib</replaceable>
+technology = <replaceable>iontor</replaceable>
+data = <replaceable>../../data/C28-140_20X.*</replaceable>
+template_size = <replaceable>7800 10300</replaceable>
+segment_placement = <replaceable>samedir backward</replaceable></userinput>
+
+# note the wildcard "*" in the 'data' lines above:
+#  if you followed the walkthrough and have the FASTQ and XML files,
+#  this will automatically load both files for each data set
+#  (which is what we want)</screen>
+    <para>
+      Save the above lines into a file, we'll use <filename>manifest.conf</filename> in this example.
+    </para>
+    <screen>
+<prompt>arcadia:/path/to/myProject$</prompt> <userinput>ls -l</userinput>
+-rw-r--r-- 1 bach users        756 2011-11-05 17:57 manifest.conf</screen>
+    </sect2>
+    <sect2 id="sect_iontor_walkthrough_paired_starting">
+      <title>
+	Starting the assembly
+      </title>
+      <para>
+	Starting the assembly is now just a matter of one line:
+      </para>
+      <screen>
+<prompt>arcadia:1sttest$</prompt> <userinput>mira manifest.conf &gt;&amp;log_assembly.txt </userinput></screen>
+    </sect2>
+  </sect1>
+  <sect1 id="sect_iontor_what_to_do_with_the_mira_result_files?">
+    <title>
+      What to do with the MIRA result files?
+    </title>
+    <note>
+      Please consult the corresponding section in the
+      <emphasis>mira</emphasis> <emphasis>usage</emphasis> document, it
+      contains much more information than this stub.
+    </note>
+    <para>
+      But basically, after the assembly has finished, you will find four
+      directories. The <filename>tmp</filename> directory can be deleted
+      without remorse as it contains logs and some tremendous amount of
+      temporary data (dozens of gigabytes for bigger
+      projects). The <filename>info</filename> directory has some text files
+      with basic statistics and other informative files. Start by having a
+      look at the <filename>*_info_assembly.txt</filename>, it'll give you a
+      first idea on how the assembly went.
+    </para>
+    <para>
+      The <filename>results</filename> directory finally contains the assembly
+      files in different formats, ready to be used for further processing with
+      other tools.
+    </para>
+    <para>
+      If you used the uniform read distribution option, you will inevitably
+      need to filter your results as this option produces larger and better
+      alignments, but also more "debris contigs". For this, use the
+      miraconvert which is distributed together with the MIRA package.
+    </para>
+    <para>
+      Also very important when analysing Ion Torrent assemblies: screen the
+      small contigs ( &lt; 1000 bases) for abnormal behaviour. You wouldn't be
+      the first to have some human DNA contamination in a bacterial
+      sequencing. Or some herpes virus sequence in a bacterial project. Or
+      some bacterial DNA in a human data set. Or ...
+    </para>
+    <para>
+      Look whether these small contigs
+    </para>
+    <itemizedlist>
+      <listitem>
+	<para>
+	  have a different GC content than the large contigs
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  whether a BLAST of these sequences against some selected databases
+	  brings up hits in other organisms that you certainly were not
+	  sequencing.
+	</para>
+      </listitem>
+    </itemizedlist>
+  </sect1>
+</chapter>

@@ -1,0 +1,814 @@
+5.0rc1
+------
+- digital normalisation is now prioritising "good" reads in pairs over pairs
+  where one read might have sequencing errors. Also prioritises read-pairs
+  over unpaired reads --> it's probably a good idea to put merged reads into
+  own readgroups in your manifest now.
+- changed -CL:pec default to on for EST/RNASeq assemblies with Illumina, Ion
+  and 454 data
+- added -CL:pecc (pec continuous)
+- parameter change. New -FM section with new parameters, moved -AL:shme to
+  -FM:mte
+- new parameter -NW:cijie:npec to prevent myself doing something foolish
+- the feature coverage file got a new column "PseudoReadCount"
+- speed improvement: RNASeq data sets with insane depth (>10k) and using
+  merged reads are now faster when the results are written to disk.
+- speed improvement: last phase of contig building (when probably only in junk
+  anyway) is now noticeably faster for projects with dozens of millions of
+  reads
+- clustering now uses job definition "accurate" for stringent clustering and
+  "normal" for less stringent clustering
+- documented "-r r" for miraconvert
+- file change: the consensus tag list has a new column "size of padded contig"
+- improvement: homopolymers in mappings are now clipped at end of reads to
+  improve true homopolymer length estimation (currently only at right side of
+  alignments)
+- improvement: in mappings resulting in IUPAC bases, the reference base is
+  preferred for the "AllStrains" result file if it is part of the
+  possibilities.
+- improvement: mapping qualities of main CER read now accurately reflects
+  presence forward and reverse direction
+- improvement: low quality MiSeq data does not get tagged as possible SNP as
+  easily during mappings and does not lead as easily to IUPAC codes in de-novo
+- added check for Transparent Huge Pages and a warning if found.
+- mirabait: parameter change, -c now takes a character argument
+- bugfix: in rare cases, reads from highly repetitive areas were mapped to the
+  wrong place
+- bugfix: installation of SLS files went always to /usr/... instead of chosen
+  destination directory
+- bugfix: miraconvert filter to readgroups (-F) was slow as hell on large MAF
+  files.
+- bugfix: silent SNPs in a CDS were not correctly accounted for in SNP
+  analysis and summary (e.g. in: "miraconvert bla.maf .asnp")
+- bugfix: quality values in mapping projects with multiple strains were
+  sometimes too high in areas with no or too low coverage
+
+
+4.9.6
+-----
+- major behavioural change: assemblies for EST/fragments do not write IUPAC
+  bases in consensus per default now. Use -CO:fnic=no to switch back to IUPAC.
+- new assembly mode: clustering
+- improvement: MIRA becomes more tolerant toward PCR artefact in genome denovo
+  assemblies with high coverages. Also helps to drive down spurious IUPAC
+  codes. New parameter: -CO:mcp
+- improvement: automatic determination of kmer sizes now chooses better
+  adapted size for last pass.
+- improvement: MIRA can now automatically filter out rRNA sequences. Done per
+  default in EST/RNASeq assemblies. New parameters: -CL:frrna:frrnap:frrnank
+- change in working mode of -OUT:sssip=yes: reads which survive clipping but
+  do not have overlaps are now saved as singlets and not in debris anymore
+- improvement: MIRA now detects if it was killed (either by OS or user) and
+  will give a warning.
+- change: temporary assemblies not written as CAF anymore, but as MAF and
+  FASTA
+- change: -KS:mtu replaces by -KS:mbpb
+- change: MIRA now automatically enforces slightly higher kmer sizes in
+  mapping projects with somewhat larger reference sequences (11 for >16MB, 12
+  for >20, 13 for >25 MB) or higher read numbers (11 for >10M, 12 for >15M, 13
+  for >20M).
+- change: -SB:abnc definitively removed from codebase and documentation
+- compatibility: some files in tsv format in info directory: blank after hash
+  signs (comment line = header line) removed to make files compatible to
+  "column -t" output
+- scripts removed from distribution: fixACE4consed.tcl, fastaselect.tcl and
+  fasta2frag.tcl
+- bugfix: consensus tags were sometimes not added correctly. Introduced in
+  4.9.5
+- bugfix: de-novo assembly with >8 strains led to an error message. 255
+  strains now possible in de-novo, still 8 strains "only" in mapping.
+- bugfix in install target of MIRA
+- bugfix: ./configure accepted all versions of gcc >= 4.0 where it needed to
+  have 4.8 (now 4.9)
+- bugfix: consensus base of columns entirely made out of N/IUPAC bases is now
+  N and not X.
+- modernisation of the C++ codebase, uplifting many areas to C++11 or C++14
+
+
+miraconvert:
+- improvement: concurrent miraconvert programs reading MAF files now do not
+  trash the disk while reading anymore
+- improvement: -l now also allows to set line length of FASTA files
+- bugfix: -Y did not work for values >2^32-1
+
+
+mirabait:
+- major command line changes with incompatibilities to the old one. I'm sorry,
+  but this was needed to accomodate new functionalities.
+- new / renamed / changed parameters:
+   -b: defines file with baits (multiple allowed)
+   -B: Load baits from existing kmer statistics file (renamed from -L)
+   -d: do not use kmers with microrepeats (DUST like filter)
+   -D: set length of microrepeat part within kmer
+   -j: job.
+   -K: save final kmer statistics to given file
+   -m: memory usage during bait kmer statistics generation
+   -t: number of threads
+   -T: Use 'dir' as directory for temporary files instead of current working
+       directory
+- improvement: mirabait now comes with a database for rRNA kmers, allowing
+  simple filtering of rRNA / rDNA reads (option -j)
+- improvement: single thread baiting step performance 40% faster (faster
+  loading, faster baiting)
+- improvement: new multithread ability, increasing speed again both for kmer
+  statistics generation and for the baiting step.
+- improvement: memory usage during kmer statistics generation now not
+  dependent of amount of bait sequences anymore. Can be adjusted via -m
+  (memory/time tradeoff)
+- improvement: read length limitation now 2^31 instead of 2^15
+- improvement: reads names and comments preserved and not mangled to MIRA
+  naming scheme
+- improvement: mirabait now understands EMBOSS-like file type definition
+  (e.g. fastq::somefile.dat)
+- improvement: now well behaved on ctrl-C, cleans up temporary files /
+  directories
+- bugfix: now possible to start mirabait more than once at the same time in the
+  same working directory.
+
+
+4.9.5
+-----
+- bugfix: ion, sanger, 454 & Pacbio consensus had been inadvertantly switched
+  off in 4.9.4
+- improvement: runtime of consensus calculation reduced by ~30-45% (depending
+  on project)
+- change: format of SNP list info file now carries counters for fwd/rev
+  directions of every base (and gaps)
+
+
+4.9.4
+-----
+- new routines to detect and eliminate extremely high levels of chimeric reads
+  as they occur in some widely used libraries.
+  New parameters: -CL:gbcdc:kjd:kjck (which need proper documentation)
+- new assembly mode: "fragments". Similar to "est", but all safety features
+  like digital normalisation, repeat masking etc. are switched off.
+- new routines to pre-correct reads
+- new routines to spot and deal with fishy reads having survived until late in
+  the assembly process.
+- improvement: automatic settings for kmer size fine-tuned and now also work
+  when user sets an own number of passes for MIRA.
+- improvement: when resuming, data from existing kmer statistics are now
+  resumed, too, instead of being recalculated.
+- improvement: mapping projects with several tens of thousands of reference
+  sequences are now much faster in the setup phase
+- improvement: info files for SNPs and feature analysis in mapping experiments
+  expanded and improved
+- change: in EST/RNASeq, digital normalisation only applied once
+- change: IUPAC consensus generation has changed. Subsequently, -CO:fnicpst
+  has been exchanged with -CO:fnic
+- FASTA/FASTQ output of contigs now has basic values like length, average
+  coverage and number of sequences added as comments.
+- miraconvert: stabilised implemention of -F
+- miraconvert: new parameter -Y to cap the number of bases converted.
+- MIRA does not link per default to TCMalloc library anymore. Tests with the
+  4.9.x versions showed 40% more max memory usage and 80% more overall memory
+  need when using default kmer series going from short (17-32bp) to very long
+  (>128bp) kmers.
+- various smaller and larger bugfixes in mira and miraconvert which were
+  spotted since 4.9.3
+- change: MIRA now needs GCC >=4.9; clang >= 3.5
+
+DOCUMENT -AL:ece:ced:cema + changed egpl !
+
+
+4.9.3
+-----
+- fixed two bugs that could lead to segfaults
+- fixed bug that could lead to premature stop of assemblies
+
+
+4.9.2
+-----
+- fixed bug that led EST assemblies to often stop
+
+
+4.9.1
+-----
+MIRABAIT
+- all new mirabait functionality: work on read pairs; multiple bait files;
+  simultaneous filtering of matches and non matches; safety checks on -L data
+- change: mirabait lowercases all sequences, uppercasing just kmers hitting
+  bait sequences. Use -c if not wanted.
+- improvement: mirabait can now use kmer sizes up to 256 bases
+- improvement: mirabait now understands .fa, .fq, .gbk, .gbff and .gb
+  file endings.
+
+MIRACONVERT
+- change: miraconvert, old -A parameter renamed to -P
+- change: miraconvert new behaviour. Adjust sequence case for data containing
+  clipping information when output is in format which has no clipping
+  information. Use -A to prevent if not wanted.
+- improvement: miraconvert now has again the possibility to mask
+  coverages. Use -V
+- change: miraconvert -q and -Q have switched meaning (to better fit -V)
+- improvement: miraconvert -T to trim ends.
+
+MIRA
+- improvement: better overall assemblies.
+- improvement: mira can now use kmer sizes up to 256 bases
+- improvement: new functionality to automatically determine optimal number of
+  passes and different kmer sizes in a denovo assembly (see -AS:nop=0 below)
+- improvement: new parameter -AS:kms as one-stop-shop to configure number of
+  passes and used kmer sizes. E.g.: -AS:kms=17,31,63,127,127
+- improvement: better assembly of data with self-hybridising read chimeras
+  (seen in Illumina 300bp data). Not perfect yet, but an improvement.
+
+- improvement: mira now understands .fa, .fq, .gbk, .gbff and .gb file
+  endings.
+- improvement: in manifest, new segment_naming scheme "SRA" for reads comming
+  from the short read archive. New attribute 'rollcomment'.
+- implemented "nostatistics" keyword in readgroups: reads of that readgroup
+  not used for calculating kmer statistics
+- improvement: new MIRA parameters: better control of megahub reporting via
+  -SK:fmh:mhc
+- improvement: new MIRA parameter -CO:cmrs for better control on reads
+  incorporated in contigs
+- improvement: debris list now contains additional reasons MASKEDNASTYREPEAT,
+  MASKEDHAF7REPEAT and MASKEDHAF6REPEAT to help finding out why certain reads
+  land in debris file.
+- improvement: faster mapping of long Illumina reads with lots of differences
+- improvement: MIRA now uses the SIOc tag also in mapping. Allows finding
+  ploidy differences in multiploid genomes.
+- improvement: -CL:pec now works a bit less harsh, better for Illumina high GC
+  organsisms.
+- improvement: old and time consuming routines to search for vector now
+  restricted to Sanger sequences.
+- improvement: new info file "*_readgroups.txt"
+- improvement: some temporary files compressed to minimise impact on disk
+  space.
+- improvement: MIRA now compiles with clang (test phase, currently tested only
+  on OSX)
+- improvement: MIRA now compiles on Cygwin out of the box
+- change: MIRA now needs GCC >=4.8; clang >= 3.5
+
+- change: parameter section -HASHSTATISTICS was renamed to
+  -KMERSTATISTICS. This move adapts MIRA from SSAHA terminology to nowadays
+  prevalent terminology.
+- change: renamed a lot of parameters containing 'bases_per_hash' (bph) to now
+  be named with 'kmer_size' (kms). The same apllies to 'hash', replaced by
+  'kmer'.
+- change: -AS:nop=0 now interpreted differently. Instead of doing only
+  -pre-processing, it automatically lets MIRA choose 'optimal' number of
+  passes and used kmer sizes in each pass depending on sequencing technology
+  -and read lengths present. See also: -GE:ppo
+- change: new parameter -GE:ppo to preprocess only the data without assembling
+  it. Replaces -AS:nop=0 of earlier versions.
+
+- bugfix: Smith-Waterman could lead to memory corruption in very rare cases.
+- bugfix: -HS:mhpb did not work as intended when Solexa data was present.
+- bugfix: -CO:amgb did not work as intended
+- bugfix: -AS:shme did not always work
+- bugfix: -SB:bnb parameter not displayed correctly in parameters
+- bugfix: projects which end up with 0 usable bases now do not lead to a
+  crash.
+- lots of smaller fixes and improvements.
+
+
+4.0.2
+-----
+- fix: mirabait did not recognise output format to use in situations where
+  unknown formats comflicted with specified formats like the following:
+   mirabait -f fastq bait.fasta in.dat outfile
+
+
+4.0.1
+-----
+- improvement: drastically improved mapping speed of reads belonging to
+  strains which are far away from reference
+- improvement: RNA sequences (having U instead of T) can now be read
+  natively. U bases are automatically converted to T.
+- improvement: mirabait can now work with multiple input files
+- improvement: functionality to change prefix of reads on the fly while
+  loading data. Keyword: 'rename_prefix' in the manifest file
+- improvement: build on OSX now does not delete OSXstatlibs directory
+- bugfix: in mapping assemblies, bases of the reference could be edited away
+  on very rare occasions.
+- bugfix: GFF3 files with phase information could result in wrong exon
+  boundaries
+- bugfix: MIRA can now be installed in filesystem paths which contain a space
+- other small improvements and changes, mainly in error reporting and file
+  conversion
+
+
+MIRA 4.0
+--------
+
+MIRA 4.0 is the result of a bit more than two years of work since MIRA 3.4
+came out and much has changed. A lot behind the scenes, but also interesting
+things for everyone, most notably in speed and quality terms.
+
+The most important change for users: the interface. Please absolutely do
+consult the section on manifest files in the documentation! Users who have not
+used the MIRA 3.9 development series ABSOLUTELY MUST read the
+documentation. Read at least, in the MIRA Definitive Guide, the sections
+describing the new assembly description files ("manifest files"); and have a
+look at the chapters describing the results of MIRA; and the utilities in the
+package:
+
+     3.5. Configuring an assembly: files and parameters
+          3.5.1. The manifest file: introduction
+          3.5.2. The manifest file: basics
+          3.5.3. The manifest file: defining the data to load
+       9. Working with the results of MIRA
+      10. Utilities in the MIRA package
+
+Furthermore, you might want to skim through the following chapters:
+
+       4. Preparing data
+       5. De-novo assemblies
+       6. Mapping assemblies
+       7. EST / RNASeq assemblies
+       8. Parameters for special situations
+
+
+Main improvements made to simplify life:
+- flexibilised parametrisation to easily define input data and assembly job:
+  the "manifest" configuration files allow using concepts of read groups as
+  well as segment orientation & segment placement
+- new "fire & forget" mode of MIRA which basically should reduce misassemblies
+  in result files to zero: earlier version of MIRA would dump out
+  misassemblied contigs (with markers pointing at the misassembly), now
+  contigs dumped out do not contain any misassembly (at least none which MIRA
+  could discover).
+- possibility to have MIRA determine automatically paired library parameters
+  (size & orientation)
+- new automatic extraction of "large contigs" at the end of a genome de-novo
+  assembly.
+- SAM output via "miraconvert", simplifies interaction with outside world
+  (gap5, tablet etc.pp)
+- full GFF3 input and output compatibility, using Sequence Ontology,
+  translation to and from gap4/gap5
+- CASAVA 1.8 read naming for the new Illumina read name scheme
+- new sequencing "technology" TEXT for unspecified data, i.e., from databases
+  like NCBI etc.
+- new companion program "mirabait", which is a "grep" like utility for
+  retrieving sequences by in-silico baiting
+- automatic estimation of parameters for paired libraries
+- lots of other improvements left and right which add up ;-)
+
+Main speed improvements:
+- faster contig handling routines, improves de-novo assembly times with Ion
+  Torrent or 454 / Solexa hybrid by 30%
+- faster mapping routines, allows MIRA to more or less gracefully handle
+  projects with several thousand reference sequences. Useful for mapping
+  against EST / RNASeq assemblies.
+- faster handling of deep coverage RNASeq and genome data (to be improved
+  still)
+- faster kmer counting & smaller footprint in RAM and on disk
+- faster checking of template restrictions
+- optimized: faster data reading, does not need to count reads beforehand
+  anymore
+- lots of other improvements left and right which add up ;-)
+
+Main assembly quality improvements:
+- improved assembly quality for ultra-high coverage Solexa RNASeq data contigs
+  (new parameter -CL:rkm)
+- better handling of sequencing libraries with uneven coverage (Nextera)
+- lots of other improvements left and right which add up, like, handling of
+  newer MiSeq and Ion data, lossless digital normalisation etc.pp ;-)
+
+Documentation
+- rewritten in large parts for manifest files
+- started to update walkthrough for newer public data sets.
+
+Other internal changes:
+- lots of reshuffled/reworked code
+- improved gcc warnings
+- improved build environment, now out-of-the box building on more Linux
+  distros and Mac OSX
+- better and simplified code due to transitioning to C++11
+- new MAF format v2
+
+
+
+Changes for the 3.9.x development line since MIRA 3.4.0:
+========================================================
+4.0
+---
+- improvement: missing or additional backslashes in "parameters=" manifest
+  lines are diagnosed a bit better.
+- increased max length of reads allowed in mapping to 32kb
+- fine-tuning of standard parameters for PCBIOHQ reads
+- fine-tuning of contig building in low-coverage areas of a contig
+- fine-tuning of standard parameters for 3' polybase clipping
+- bugfix: SAM output for mapping assemblies was sometimes broken (bug
+  uncovered by new parameter -SB:tor=yes)
+- bugfix: the term "exclusion_criterion" for "segment_placement" in manifest
+  files was parsed wrongly.
+- bugfix: miraconvert now does not munch away part of filenames separated by
+  dots.
+- bugfix: using digital normalisation on genome assemblies led to an error,
+  fixed.
+
+
+4.0rc5
+------
+- major improvements in contig building for genomes with really nasty repeats,
+  leading to more accurate contigs especially with paired data
+- interface change: the "--highlyrepetitive" keyword has been replace by
+  "--hirep_something", "--hirep_good" and "--hirep_best"
+- improvement: the proposal for "large contigs" in de-novo assemblies extracts
+  a better subset of contigs to represent the "true" genome, especially in
+  hybrid assemblies.
+- improvement: automatic estimation of parameters for paired libraries,
+  switched on via "autopairing" keyword in manifest files
+- improvement: in mapping assemblies better alignment in cases where the
+  mapped data contains non-clonal sequencing data or data which has more indels.
+- improvement: the automatic sequencing error editor for "trivial" errors now
+  corrects more cases
+- improvement: new command line parameter -t for setting number of threads
+  (overwriting -GE:not if set in manifest)
+- improvement: new command line parameter -m and -M for checking manifest
+  files without performing an assembly
+- improvement: poly-A stretches in EST / RNASeq assemblies are kept by default
+  in the sequences to differentiate between different 3' UTR endings
+- improvement: the routines searching for chimeras were made more resistant to
+  finding wrong chimeras in "low" coverage data
+- improvement: skim now filtering hits saved on disk a bit faster for de-novo
+  assemblies
+- improvement: the misassembly detector for libraries with paired reads is on
+  by default (temporary parameter: -MI:ef3)
+- improvement: detection (and warning) if de-novo assembly shows signs of a
+  skewed coverage over a genome like it occurs, e.g., in sequencing data
+  sampled from exponential growth phase of bacteria.
+- improvement: started to log warnings to separate info files
+- bugfix: extraction of large contigs only done for genome de-novo assemblies
+- bugfix: poly-A stretches were annotated as polyA_signal_sequence instead of
+  polyA_sequence in GFF3 files.
+- bugfix: non-repetitive overlaps in reads with masked stretches (-SK:mnr=yes)
+  are less likely to be dismissed, leading to better assembly of heavy
+  repeats.
+- new parameters -ED:mace:eks:ehpo for more fine grained control of automatic
+  editor
+- new parameters -NW:cac:acv to catch and warn early about assemblies
+  performed with overly large coverage
+- new parameter -SB:bnb to allow mapping without bootstrapping
+- minor: mirabait can no re-use precalculated kmer statistics via -L parameter
+- minor: command line -v for mirabait & miramem
+- minor; when compiling, the build script for MIRA now honours $CC and $CXX if
+  set
+- minor: updated GTAGDB file for compatibility to Staden gap4 / gap5 package
+  (support directory)
+
+
+4.0rc4
+------
+- improvement: simple variations in coverage which are not repeats are now
+  handled gratiously, i.e., these do not break contig building. Seems to be
+  extremely important for some Nextera libraries which can have some terribly
+  uneven coverage.
+- improvement: the automatic adaptor clipping was a tad too overzealous
+  for some genome data and clip perfectly valid data in very rare cases.
+- major bugfix: segment placements were not checked rigorously enough. E.g.,
+  paired-end Illumina would also accept a mate-pair placement of its reads.
+- major bugfix: paired-reads libraries were essentially broken since 3.9.11
+  and reads were often assigned a wrong partner.
+- improvement: the automatic overcall editor is now configurable and defaults
+  to correct only 454 and Ion data.
+- bugfix: some coverage values in the assembly info file contained temporary
+  values from during the assembly, not from the end result.
+- bugfix: when MIRA was started from a location not in path, it would not
+  always automatically find "miraconvert" and fail at the extraction of large
+  contigs in de-novo genome assemblies.
+
+
+4.0rc3
+------
+- binaries now recognise themselves when run as "mira4", "mira4bait" and
+  "mira4convert". Note: the canonical name should be those without "4" in the
+  name though.
+- small bugfix: error code was not >0 in certain situations
+- mira now searches the binaries for itself and miraconvert in the directory
+  the called binary was installed, then in the $PATH environment.
+- change: gap4da result type now always turned off by default
+- new parameters: -HK:mhpb:rkrk
+- loading of files in the manifest: a file type can now be explicitely given
+  via the EMBOSS-like double colon scheme. E.g.: data = fastq::file.dat
+- bugfix: miraconvert -A did not work
+- building: m4 configuration files now in the "m4" directory, not "config/m4"
+- bugfix: the shell script to show how to extract large contigs now always
+  written for genome assembly projects even if automatic extraction failed.
+- data checks: MIRA now halts if it does not correctly recognise read pairs
+  due to unknown read naming schemes.
+
+
+4.0rc2
+------
+- speed improvement: extracting the consensus of an assembly via miraconvert
+  is now faster by a factor between 1.3 and 4.5 (depending on number of
+  strains present and a couple of other things)
+- improvement: determination of "large contigs" did not handle well projects
+  with corrected PacBio reads, fixed.
+- convenience: when using -DI:trt, MIRA now creates temporary dir names for
+  the target directory so that several runs of MIRA can be started in parallel
+  using the same manifest file but the temporary data of these runs do not
+  interfere with eachother
+- bugfix: Smith-Waterman alignments entered an infinite loop in rare cases
+- bugfix: "miraconvert -r C" produced IUPACs
+- bugfix: miraconvert did not evalute the complete path of the result file but
+  always wrote to current directory
+- bugfix: target install missed a && in progs/Makefile.am
+- bugfix: loading of assemblies (in mira and miraconvert) could fail
+- bugfix: saved diginorm multiplier values in MAF files led sometimes to
+  MAF parsing errors.
+- bugfix: contig coverage statistics did not always correctly account for
+  diginorm reads
+- fix for OSX: better binaries which should behave like Unix binaries
+- small fix for compiling on Cygwin
+
+
+4.0rc1
+------
+- for de-novo assemblies, MIRA now automatically extracts 'large contigs' into
+  additional result files
+- new info file: "largecontigs". Only written for genome denovo.
+- saving of "AllStrains" FASTA or FASTAQ now happens only if more than one
+  strain is present in the assembly (mira and convert_project)
+- new behaviour in mapping assemblies: reads overhanging the reference
+  sequence left and right are trimmed back by default to the boundaries of the
+  reference sequence. Can be controlled via new parameter -SB:tor
+- added new file type in manifest: .exp for loading single EXP files (compare
+  to "fofnexp")
+- added new file type in manifest: ".fa". Behaves like ".fna"
+- fix segfault when read access to /tmp directory is denied
+- bugfix: merging of reads did sometimes not work as intended (introduced in
+  3.9.2)
+- bugfix: convert_project does not stop anymore on template problems
+- bugfix: MAF output for projects with several strains now immediately
+  convertable to SAM
+- bugfix: FASTQ files in MS-DOS format led to parsing problems
+- bugfix: possible endless loop in mapping projects with -AS:nop>1
+- bugfix: miraconvert -n with an empty file selected all contigs/reads, now
+  selects none (as one would expect)
+- renaming of all major MIRA binaries to have "mira" as prefix. Most important
+  change: "convert_project" is now "miraconvert"
+- renamed and changed behaviour of all NAG_AND_WARN parameters. Now three
+  options: stop, warn, no
+
+
+dev3.9.18
+---------
+- improved lossless digital normalisation
+- fixed bug leading to wrong acceptance of SW alignments of sequences on
+  recognized repeat/SNP sites
+- workaround for bug of Apple standard C libraries leading to wrong MIRA
+  assemblies on OSX
+- fixed bug which led MIRA 3.9.x to stop if no SCF files were found for Sanger
+  data
+- new parameters: -NW:sodnr:sote for more fine grained nagging/warning
+  messages
+- added patches from Debian Med
+
+
+dev3.9.17
+---------
+- improvement: mira now increases stack size to allow for full length
+  alignments of reads >= 15kb
+- change: results in FASTA format now splitted into strain specific result
+  files
+- bugfix: cause for rare premature stop of assembly found and fixed
+- bugfix: calculation of number of strains now corrrect
+- bugfix: calculation of digital normalisation coverage estimates could be
+  wrong for reads lateron determined to be chimeric
+
+
+dev3.9.16
+---------
+- change of parameter parsing: "1" and "0" are not allowed anymore for boolean
+  parameters. To make up for it, "y", "n", "t", "f" are now allowed shortcuts
+- change of parameter parsing: -MI:somrnl:sonfs moved to new section
+  -NAG_AND_WARN section: -NW:somrnl:sonfs
+- change of parameter parsing: new section -HASHSTATISTICS. Moved several
+  parameters from -SKIM to -HASHSTATISTICS
+- new parameter: -CL:search_phix174:filter_phix174 to automatically search for
+  and filter PhiX174 from Illumina data. Defaults: search only in genome mode,
+  search and filter in EST mode
+- new parameter -SK:fcem for EST/RNASeq assembly of very skewed distributions
+- output: debris file in info directory now contains reason for read being
+  pushed to debris
+- new functionality: lossless digital normalisaton
+- mira: slightly adapted contig naming scheming when using digital
+  normalisation
+- mira: computation of hash statistics a bit faster
+- mira: hash statistics analysis now partly multithreaded
+- mira: uses less memory for high-coverage genes in EST/RNASeq projects
+- mira: now knows about Nextera adaptors
+- mira: increased speed on very large projects with tens of millions of reads
+- mira: improved output of parameters, now does not output "san" if sanger is
+  not used.
+- convert_project: new option -Q for default read quality. Also does not stop
+  when missing quality files
+- convert_project: new to-target "samnbb". In reference assemblies, leaves out
+  the backbone (reference) sequence. Enhances compatibility for conversion to
+  BAM.
+- convert_project: SAM output now uses "255" as mapping quality instead of
+  "50"
+- convert_project: bugfix for correctly guessing to and from filetypes from
+  filenames
+- bugfix: annotations in GenBank files were sometimes garbled
+- bugfix: parsing of -AS:mrpc did not work in the long version
+- bugfix: repeat resolving of very deep repeats involving indels sometimes did
+  not resolve repeats correctly
+- bugfix: writing MAF checkpoint files for mapping assemblies
+- bugfix: fixed "*sigh*" error in mapping assemblies which struck especially
+  in deep mappings and when the reference was very different from mapped
+  reads.
+- bugfix: erroneous overcall editing in mapping assemblies
+- potential bugfix for "would extend AS_skim_edges" error
+- more readable error messages
+
+
+dev3.9.15
+---------
+- further improvement of EST/RNASeq assembly: more probably reconstructs the
+  most frequent splice variant as full transcript and less frequent variants
+  as partial transcripts. Further reduction of intron assembly.
+- bugfix of problem which led to abort of assembly process.
+
+
+dev3.9.14
+---------
+- preprocessing and assembly algorithm improvement for MiSeq data
+- improvement: avoidance of intron sequence improved for EST / RNASeq assembly
+- improvement: adjustments to default parametrisation for EST / RNASeq
+  assemblies lead to better results
+- improvement: hybrid assembly of long and short reads (e.g. 454 & Illumina)
+  now finds more contig joins
+- mirabait: new output type "txt" for list of matching read names
+- workaround: convert_project & mirabait now also work (like mira) when
+  computer locale is broken.
+- bugfix: dump of replay data did not work as intended for mapping
+  assemblies.
+
+dev3.9.13
+---------
+- ooops, forgot to include new file in source
+
+dev3.9.12
+---------
+- fixed bug which led to stops of the assembly process
+- fixed bug which led to segmentation faults in rare cases when mapping
+  against a single, short backbone sequence.
+
+
+dev3.9.11
+---------
+- several bugfixes in the assembly engine which previously led to an abort of
+  the assembly process.
+- changes in configure script to ensure better build compatibility on GenToo
+
+
+dev3.9.10
+---------
+- improvement: major speed improvement for mapping projects with hybrid
+  technologies where one of the technologies is Illumina
+- improvement: preprocessing of read now fully multi-threaded
+- improvement: now reads faulty GenBank files written by CloneManager
+- convert_project: comfort functions. Parameters -f and -t now not mandatory
+  anymore but deduced from given file names
+- convert_project: now also understands .gbk as filetype for GenBank data
+- new/old functionality: reactivated, MAF & CAF files can now be used as again
+  as input in manifest files
+- change: some warnings caused by internal errors now cause a full MIRA stop
+  to hunt down the cause of the problems.
+- change: in mapping assemblies, template_size and segment_placement now use
+  "infoonly" as default if not given.
+- change: MIRA version written to assembly info file
+- several internal changes to loading system for future enhancements
+- several internal code cleanups
+- bugfix: mira -c did not work as described
+- bugfix: some reads could sometimes not be correctly aligned, problem
+  triggered by many indels in reads (Ion Torrent, 454) of high coverage
+  contigs.
+- bugfix: -highlyrepetitive in manifest parameters caused a parsing error
+- documentation: added "default_qual" in documentation for manifest files
+
+dev3.9.9
+--------
+- bugfix: MIRA sometimes stopped when building low coverage contigs
+
+
+dev3.9.8
+--------
+- bugfix: on machines with heavy load, some files and directories sometimes
+  failed to be deleted. Fixed.
+- bugfix: mapping of Illumina at contig ends sometimes failed (since 3.9.6)
+- bugfix: error causing "gaaah, had doubles" in de-novo assemblies of genomes
+  fixed.
+- small runtime improvement: some unnecessary steps in the overlap graph
+  traversal are now dynamically left out.
+- convert_project: new option -S (currently only for Illumina data)
+- convert_project: reactivated -i
+- unnecessary debug files are now not written anymore to the tmp directory
+- new -MI:ef2 flag for switching off experimental code
+
+
+dev3.9.7
+--------
+- bugfix: -MI:ef1 did not work
+
+
+dev3.9.6
+--------
+- improvement: mapping assemblies with greatly improved alignments for
+  non-perfect matches, especially in larger indel regions
+- improvement: assembly of repetitive areas in de-novo assemblies, no more
+  "repeat coverage peaks"
+- improvement: parsing of sequence identifiers in NCBI gi format automatically
+  chooses the simple sequence name as read name
+- improvement: can now load GFF3 files without sequences (as provided by the
+  NCBI)
+- improvement: data loading consistency checks added to catch illegal quality
+  values >100.
+- convert_project: "-t stats" now also outputs consensus tags info file
+- slight change in output of info file of consensus tags (added length of tag)
+- change: output of wiggle files is now always for the full, padded contig
+- change: output of alignments as text or HTML now has lowercase alignments,
+  uppercase for bases which do not match the consensus
+- documentation: using Illumina data from the SRA
+- bugfix: possible segmentation faults removed
+- bugfix: -SB:abnc=true led to a problem since 3.9.5, fixed.
+- bugfix: MAF parsing got phase information wrong in GFF3 tags
+- bugfix: CAF writing phase info from GFF3 tags was not ASCII
+- bugfix: creation of SAM files failed when libraries with FR or RF
+  orientation were present.
+- bugfix: coverage equivalent reads were created too short for coverages >1.
+
+
+dev3.9.5
+--------
+- better handling of failing disk operations when memory is tight
+- improved assembly of repetitive regions in genome assemblies: faster and
+  non-heuristic.
+- improved assembly of EST / RNASeq of eukaryotic data: intronic sequences
+  should be less frequent.
+- major speed improvement in de-novo assemblies higher coverages of Illumina,
+  Ion Torrent and 454 data
+- better clipping of degenerated Ion Torrent adaptors
+- new 454 adaptor clipped
+- rename -CL:mkfr to -CL:pmkfr and added automatic adjustments for high
+  coverage data.
+- better error handling on OSX: user now always gets a specific MIRA error
+  message.
+- better semantic checking of manifest files (missing reference, no data,
+  etc.)
+- manifest files: allowing LEFTIES and RIGHTIES in segment placement
+- the 3.9.x line now recognises if it was called with parameters from the
+  3.4.x line and stops
+- parameter -CL:lcc was split into -CL:lccf:lccb
+- bugfix: parsing MAF files with Illumina and / or Ion data leads to less used
+  memory like as if loaded anew (important for resumed assemblies).
+- bugfix: FASTQ loader now stops on illegal FASTQ files
+- bugfix: some alignments did don get propper flags, leading to suboptimal
+  assembly graphs.
+
+
+dev3.9.4
+--------
+- bugfix: FASTQ input in Illumina-64 format was broken
+- bugfix & improvement: SAM format from convert_project now more compatible to
+  SAM specification
+- bugfix: bugs leading to error message trackingunused != countingunused
+- bugfix: loading of gzip packed FASTQ with a name ending in .gz did not work
+- first speed improvements in contig cleanup routines when mapping Ion data,
+  more to come in next versions
+- further improvements for binary compatibility to older Linux kernels, errors
+  of BOOST induced problems with locale settings should now be a thing of the
+  past
+- minor updates to the documentation
+- new ./configure option "--enable-native" for processor specific optimised
+  code
+
+
+dev3.9.3
+--------
+- fixed ./configure to produce a fully statically linked binary on OSX
+- bugfix: CAF files were not read correctly (bug due to MIRA now also saving
+  placement code in CAF)
+- fixed segfault for some projects when doing "convert_project -t asnp"
+- fix: building without EdIt broke on some systems
+- mira now advertises the resume option in "mira -h"
+- improvement: distributed binary packages now compatible again to older
+  kernels (down to 2.6.15)
+- improvement: saving of snapshots is now much more error resistant, a working
+  snapshot should always be present on disk
+- improvement: SNP and feature analysis now only writes "X" as amino acid if a
+  SNP leads to a codon change which resolves to a different AA.
+- improvement: quicker SNP and feature analysis in intergenic regions
+- improvement: parsing of MAF files with lots of tags a lot faster (50% and
+  more)
+- change: *_info_featuresequences.txt and *_info_featureanalysis.txt now
+  include an additional column "FType" (FeatureType)
+
+
+dev3.9.2
+--------
+- fixed possible segfault (only hit when assembling de-novo with more than one
+  strain)
+- fixed parsing error in manifest files when loading data from pacbio
+- improved configure script for compiling on a wider variety of platforms and
+  with different versions of gcc and BOOST libraries
+- MIRA resume: added "-r"
+- binary package for Linux: fixed issue where older Linux kernels needed to
+  have 'export LC_ALL=C' or else they would not start.

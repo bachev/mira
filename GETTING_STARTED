@@ -1,0 +1,12 @@
+Install MIRA and documentation according to the section "Installation" in the
+"Definitive Manual". Once that is done, read the chapter which takes care of
+the sequencing technology you want to use. Follow the walk-throughs given
+there as template for your own projects.
+
+For viewing/editing assemblies, an assembly editor is recommended. Have a look
+at GAP4 (from the Staden package, see
+http://www.sourceforge.net/projects/staden/), MIRA generates output suited for
+import into gap4 (by using caf2gap)
+
+James Bonfield released a working version of gap5. Import into gap5 is done
+with SAM or CAF files and the "tg_index" tool supplied in the gap5 package.

@@ -1,0 +1,79 @@
+
+# These tag definitions are set and used by mira, miraEST and EdIt
+#
+# Add these lines to the file $STADENROOT/tables/GTAGDB
+#  so that GAP4 also knows them the next time you start
+
+
+# --------------- Read tags, set only in reads
+
+# one additional feature (non-GenBank, I admit)
+"FEATURE: polyA_sequence":          id="Fpas": bg="#04AC80"
+
+
+"Strong Repeat Marker in Read":id="SRMr":bg=OrangeRed
+"Weak Repeat Marker in Read":id="WRMr":bg=Orange
+"Old Repeat Marker Base":id="ORMB":bg=orange1
+"Carbon Copy Repeat Marker in Read":id="CRMr":bg=palegoldenrod
+
+"Unsure in read":id="UNSr":bg=Yellow
+
+"SNP inteR Organism on Read":id="SROr":bg=DarkTurquoise
+"SNP intrA Organism on Read":id="SAOr":bg=SeaGreen
+"SNP Intra- and inter Organism on Read":id="SIOr":bg=PaleGreen
+
+"EdIt: insertion":id="ED_I":bg=pink
+"EdIt: deletion":id="ED_D":bg=pink
+"EdIt: base change":id="ED_C":bg=pink
+
+"454 read edit, tricky":id="R454":bg=green
+"Edit single discr., no HAF tag":id="ESDN":bg=green
+"Pyrosequencing Suspicious HomoPolymer":id="PSHP":bg=orange1
+
+# HAsh Frequency tags
+"HAF no info":id="HAF0":bg=grey
+"HAF singlet":id="HAF1":bg=white
+"HAF below avg":id="HAF2":bg=palegreen1
+"HAF avg":id="HAF3":bg=Green
+"HAF above avg":id="HAF4":bg=yellow2
+"HAF rept":id="HAF5":bg=red
+"HAF heavy rept":id="HAF6":bg=indianred4
+"HAF crazy rept":id="HAF7":bg=red4
+"Masked Nasty Repeat":id="MNRr":bg=black:fg=white
+
+"KMer Fork":id="KMRF":bg=pink
+
+# other tags, mostly for development & debugging
+"454 edit, qual too high":id="Q454":bg=yellow
+"454 cons calc: problem":id="P454":bg=yellow
+"454 test tag":id="T454":bg=yellow
+"454 hypothesis tag":id="H454":bg=green
+
+# MIRA info tags
+"MIRA info":id="MINF":bg=gray
+"MIRA info 2":id="MIT2":bg=gray
+
+
+"RLE 1":id="RLE1":bg=Green
+"RLE 2":id="RLE2":bg=palegreen1
+"RLE 3":id="RLE3":bg=yellow2
+"RLE 4":id="RLE4":bg=orange
+"RLE 5":id="RLE5":bg=red
+"RLE 6":id="RLE6":bg=indianred4
+"RLE 7":id="RLE7":bg=red4:fg=white
+"RLE 8+":id="RLE8":bg=grey:fg=white
+
+
+# --------------- Consensus tags, set only in consensus
+
+"Strong Repeat Marker in Consensus":id="SRMc":bg=OrangeRed
+"Weak Repeat Marker in Consensus":id="WRMc":bg=Orange
+"Unsure in consensus":id="UNSc":bg=Yellow
+"IUPAC code consensus":id="IUPc":bg=royalblue3
+"Missing coverage in consensus":id="MCVc":bg=firebrick3
+"SNP inteR Organism on Consensus":id="SROc":bg=DarkTurquoise
+"SNP intrA Organism on Consensus":id="SAOc":bg=SeaGreen
+"SNP Intra- and inter Organism on Consensus":id="SIOc":bg=PaleGreen
+"SNP involving a gap":id="SGPc":bg=black:fg=white
+"Sequencing Type Mismatch Solved":id="STMS":bg=lightblue
+"Sequencing Type Mismatch Unresolved":id="STMU":bg=lightblue

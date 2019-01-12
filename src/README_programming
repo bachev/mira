@@ -1,0 +1,80 @@
+
+MIRA is built around a few main classes that contain all necessary logic and
+check to make an assembler work.
+
+Started in 1997 at a time where C++ was still quite a fluid standard (at least
+when it came to implementation on a number of different compilers), the code
+does contain a sizeable number of oddities ... some of them also due to bad
+design decisions *cough*. E.g., the SGI C++ compiler did not know the "string"
+class at that time, which resulted into some very interesting constructions
+with vector<char>. As time progresses, the code gets adapted bit by bit.
+
+This file gives just a brief overview on what is present in MIRA to give an
+idea what might be available in which class. Please also consult the Thesis on
+MIRA: while some parts are now outdated, the overall working mechanism is still
+more or less well described.
+
+The directory "examples_programming" contains examples on how to use the
+different classes.
+
+
+Overview
+========
+
+Class MIRAParameters
+--------------------
+
+This class is a somewhat glorified parser and container for all the possible
+parameters that can be set from the command line (and then some). Usually, a
+program creates one instance of this class which is then used (passed through
+by pointer) within almost all other classes of MIRA.
+
+Classes Read, Contig & Assembly
+-------------------------------
+
+Apart from the MIRAParameters class, these are robably the three most
+important classes in MIRA. "Read" contains all algorithms needed to manipulate
+sequences together with the attached ancillary data like qualities, clip
+positions etc. "Contig" is the class responsible for incorporating and then
+managing reads that get added to it. It also has functions that search and tag
+discrepancies (SNPs or possible misassemblies). The "Assembly" class contains
+the main glue logic needed to make all other classes and algorithms work
+together. It loads the data, determines potential overlaps with the fast
+all-against-all read comparison routine (SKIM), checks each potential
+alignment with Smith-Waterman, build an internal graph of all passed overlaps,
+coordinates the Pathfinder class (see below) and finally writes out the result
+to disk.
+
+
+Class ReadPool
+--------------
+
+As the name suggests, "manages" a pool of reads. Routines to load sequences
+and ancillary data from different file formats are also included.
+
+
+Class Skim
+----------
+
+The fast all-against-all read comparison routine. For each two sequences that
+could "perhaps" align, writes to disk an approximate offset and identity
+percentage.
+
+
+Classes Dynamic, Align, AlignedDualSequence & ADSFacts
+------------------------------------------------------
+
+"Dynamic" computes a banded Smith-Waterman matrix which is picked up by
+"Align" which traces it back and passes the result to
+"AlignedDualSequence". To save memory, only the most important facts on two
+aligned sequences are stored in an instance of the "ADSFacts" class.
+
+
+Class Pathfinder (in newpathfinder.C/.H)
+----------------------------------------
+
+When a new contig is to be built or extended, the "Assembly" class initialises
+a "Contig" object and call the "Pathfinder" class with it (and some more data
+like the graph of all SW checked overlaps). The pathfinder searches for the
+next "best" read to add to a contig and presents it to the contig for
+incorporation.

@@ -1,0 +1,12 @@
+<?xml version="1.0" ?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.docbook.org/xml/4.5/docbookx.dtd">
+<warning>
+  <para>
+  The documentation of MIRA 3.9.x has not completely caught up yet with the changes introduced by MIRA now using manifest files. Quite a number of recipes still show the old command-line style, e.g.:
+  </para>
+  <screen>
+mira --project=... --job=... ...</screen>
+  <para>
+    For those cases, please refer to chapter 3 (the reference) for how to write manifest files.
+  </para>
+</warning>

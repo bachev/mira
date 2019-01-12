@@ -1,0 +1,604 @@
+<?xml version="1.0" ?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.docbook.org/xml/4.5/docbookx.dtd">
+<chapter id="chap_maf">
+  <chapterinfo>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="versionfile"/>
+    <author>
+      <firstname>Bastien</firstname>
+      <surname>Chevreux</surname>
+      <email>bach@chevreux.org</email>
+    </author>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="copyrightfile"/>
+  </chapterinfo>
+  <blockquote>
+    <attribution>Solomon Short</attribution>
+    <para>
+      <emphasis><quote>Design flaws travel in herds.
+      </quote></emphasis>
+    </para>
+  </blockquote>
+  <title>The MAF format</title>
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="warning_frontofchapter.xml"/>
+  <para>
+    This documents describes purpose and format of the MAF format, version
+    1. Which has been superceeded by version 2 but is not described here
+    (yet). But as v1 and v2 are very similar only the notion of readgroups is
+    a big change, I'll let this description live until I have time to update
+    this section.
+  </para>
+  <sect1 id="sect1_introduction:_why_an_own_assembly_format?">
+    <title>
+      Introduction: why an own assembly format?
+    </title>
+    <para>
+      I had been on the hunt for some time for a file format that allow MIRA to
+      quickly save and load reads and full assemblies. There are currently a number
+      of alignment format files on the market and MIRA can read and/or write most of
+      them. Why not take one of these? It turned out that all (well, the ones I
+      know: ACE, BAF, CAF, CALF, EXP, FRG) have some kind of no-go 'feature' (or problem
+      or bug) that makes one life pretty difficult if one wants to write or parse
+      that given file format.
+    </para>
+    <para>
+      What I needed for MIRA was a format that:
+    </para>
+    <orderedlist>
+      <listitem>
+	<para>
+	  is easy to parse
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  is quick to parse
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  contains all needed information of an assembly that MIRA and many
+	  finishing programs use: reads (with sequence and qualities) and contigs,
+	  tags etc.pp
+	</para>
+      </listitem>
+    </orderedlist>
+    <para>
+    </para>
+    <para>
+      MAF is not a format with the smallest possible footprint though it fares quite
+      well in comparison to ACE, CAF and EXP), but as it's meant as interchange format,
+      it'll do. It can be easily indexed and does not need string lookups during
+      parsing.
+    </para>
+    <para>
+      I took the liberty to combine many good ideas from EXP, BAF, CAF and FASTQ
+      while defining the format and if anything is badly designed, it's all my
+      fault.
+    </para>
+  </sect1>
+  <sect1 id="sect1_the_maf_format">
+    <title>
+      The MAF format
+    </title>
+    <para>
+      This describes version 1 of the MAF format. If the need arises, enhancements
+      like meta-data about total number of contigs and reads will be implemented in the
+      next version.
+    </para>
+    <sect2 id="sect2_basics">
+      <title>
+	Basics
+      </title>
+      <para>
+	MAF ...
+      </para>
+      <orderedlist>
+	<listitem>
+	  <para>
+	    ... has for each record a keyword at the beginning of the line, followed
+	    by exactly one blank (a space or a tab), then followed by the values for
+	    this record. At the moment keywords are two character keywords, but keywords
+	    with other lengths might appear in the future
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    ... is strictly line oriented. Each record is terminated by a newline,
+	    no record spans across lines.
+	  </para>
+	</listitem>
+      </orderedlist>
+      <para>
+      </para>
+      <para>
+	All coordinates start at 1, i.e., there is no 0 value for coordinates.
+      </para>
+    </sect2>
+    <sect2 id="sect2_reads">
+      <title>
+	Reads
+      </title>
+      <para>
+      </para>
+      <sect3 id="sect3_simple_example">
+	<title>
+	  Simple example
+	</title>
+	<para>
+	  Here's an example for a simple read, just the read name and the sequence:
+	</para>
+	<screen>
+	  RD      U13a05e07.t1
+	  RS      CTTGCATGCCTGCAGGTCGACTCTAGAAGGACCCCGATCA
+	  ER
+	</screen>
+	<para>
+	</para>
+	<para>
+	  Reads start with RD and end with ER, the RD keyword is always followed by the
+	  name of the read, ER stands on its own. Reads also should contain a sequence
+	  (RS). Everything else is optional. In the following example, the read has
+	  additional quality values (RQ), template definitions (name in TN, minimum and
+	  maximum insert size in TF and TT), a pointer to the file with the raw data (SF),
+	  a left clip which covers sequencing vector or adaptor sequence (SL), a left
+	  clip covering low quality (QL), a right clip covering low quality (QR), a
+	  right clip covering sequencing vector or adaptor sequence (SR), alignment to
+	  original sequence (AO), a tag (RT) and the sequencing technology it was
+	  generated with (ST).
+	</para>
+	<screen>
+	  RD      U13a05e07.t1
+	  RS      CTTGCATGCCTGCAGGTCGACTCTAGAAGGACCCCGATCA
+	  RQ      ,-+*,1-+/,36;:6&le;3327&lt;7A1/,,).(&apos;..7=@E8:
+	  TN      U13a05e07
+	  DI      F
+	  TF      1200
+	  TT      1800
+	  SF      U13a05e07.t1.scf
+	  SL      4
+	  QL      7
+	  QR      30
+	  SR      32
+	  AO      1 40 1 40
+	  RT      ALUS 10 15 Some comment to this read tag.
+	  ST      Sanger
+	  ER
+	</screen>
+	<para>
+	</para>
+      </sect3>
+      <sect3 id="sect3_list_of_records_for_reads">
+	<title>
+	  List of records for reads
+	</title>
+	<para>
+	</para>
+	<itemizedlist>
+	  <listitem>
+	    <para>
+	      RD <emphasis>string: readname</emphasis>
+	    </para>
+	    <para> RD followed by the read name starts a read.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      LR <emphasis>integer: read length</emphasis>
+	    </para>
+	    <para>
+	      The length of the read can be given optionally in LR. This is
+	      meant to help the parser perform sanity checks and eventually
+	      pre-allocate memory for sequence and quality.
+	    </para>
+	    <para>
+	      MIRA at the moment only writes LR lines for reads with more than
+	      2000 bases.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      RS <emphasis>string: DNA sequence</emphasis>
+	    </para>
+	    <para> Sequence of a read is stored in RS.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      RQ <emphasis>string: qualities</emphasis>
+	    </para>
+	    <para> Qualities are stored in FASTQ format, i.e., each quality
+	    value + 33 is written as single as ASCII character.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      SV <emphasis>string: sequencing vector</emphasis>
+	    </para>
+	    <para> Name of the sequencing vector or
+	    adaptor used in this read.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      TN <emphasis>string: template name</emphasis>
+	    </para>
+	    <para> Template name. This defines the DNA template a sequence
+	    comes from. In it's simplest form, a DNA template is sequenced
+	    only once. In paired-end sequencing, a DNA template is sequenced
+	    once in forward and once in reverse direction (Sanger, 454,
+	    Solexa). In Sanger sequencing, several forward and/or reverse
+	    reads can be sequenced from a DNA template. In PacBio sequencing,
+	    a DNA template can be sequenced in several "strobes", leading to
+	    multiple reads on a DNA template.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      DI <emphasis>character: F or R</emphasis>
+	    </para>
+	    <para> Direction of the read with respect to the
+	    template. F for forward, R for reverse.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      TF <emphasis>integer: template size from</emphasis>
+	    </para>
+	    <para> Minimum estimated
+	    size of a sequencing template. In paired-end sequencing, this is the minimum
+	    distance of the read pair.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      TT <emphasis>integer: template size to</emphasis>
+	    </para>
+	    <para> Maximum estimated
+	    size of a sequencing template. In paired-end sequencing, this is the maximum
+	    distance of the read pair.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      SF <emphasis>string: sequencing file</emphasis>
+	    </para>
+	    <para> Name of the sequencing file which
+	    contains raw data for this read.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      SL <emphasis>integer: seqvec left</emphasis>
+	    </para>
+	    <para>
+	      Clip left due to sequencing vector. Assumed to be 1 if not
+	      present. Note that left clip values are excluding, e.g.: a value
+	      of '7' clips off the left 6 bases.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      QL <emphasis>integer: qual left</emphasis>
+	    </para>
+	    <para>
+	      Clip left due to low quality. Assumed to be 1 if not
+	      present. Note that left clip values are excluding, e.g.: a value
+	      off '7' clips of the left 6 bases.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      CL <emphasis>integer: clip left</emphasis>
+	    </para>
+	    <para>
+	      Clip left (any reason). Assumed to be 1 if not present. Note
+	      that left clip values are excluding, e.g.: a value of '7' clips
+	      off the left 6 bases.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      SR <emphasis>integer: seqvec right</emphasis>
+	    </para>
+	    <para> Clip right due to sequencing
+	    vector. Assumed to be the length of the sequence if not present. Note that
+	    right clip values are including, e.g., a value of '10' leaves the bases 1 to
+	    9 and clips at and including base 10 and higher.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      QR <emphasis>integer: qual right</emphasis>
+	    </para>
+	    <para> Clip right due to low quality. Assumed
+	    to be the length of the sequence if not present. Note that right clip values
+	    are including, e.g., a value of '10' leaves the bases 1 to 9 and clips at
+	    and including base 10 and higher.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      CR <emphasis>integer: clip right</emphasis>
+	    </para>
+	    <para> Clip right (any reason). Assumed to be
+	    the length of the sequence if not present. Note that
+	    right clip values are including, e.g., a value of '10' leaves the bases 1 to
+	    9 and clips at and including base 10 and higher.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      AO <emphasis>four integers: x1 y1 x2 y2</emphasis>
+	    </para>
+	    <para> AO stands for "Align to
+	    Original". The interval [x1 y1] in the read as stored in the MAF file aligns
+	    with [x2 y2] in the original, unedited read sequence. This allows to model
+	    insertions and deletions in the read and still be able to find the correct
+	    position in the original, base-called sequence data.
+	    </para>
+	    <para> A read can have
+	    several AO lines which together define all the edits performed to this
+	    read.
+	    </para>
+	    <para> Assumed to be "1 x 1 x" if not present, where 'x' is the length of
+	    the unclipped sequence.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      RT <emphasis>string + 2 integers + optional string: type x1 y1 comment</emphasis>
+	    </para>
+	    <para> Read tags are given by naming the tag type, which positions
+	    in the read the tag spans in the interval [x1 y1] and afterwards
+	    optionally a comment. As MAF is strictly line oriented, newline
+	    characters in the comment are encoded
+	    as <literal>\n</literal>.
+	    </para>
+	    <para> If x1 &gt; y1, the tag is in reverse direction.
+	    </para>
+	    <para>
+	      The tag type can be a free form string, though MIRA will
+	      recognise and work with tag types used by the Staden gap4
+	      package (and of course the MIRA tags as described in the main
+	      documentation of MIRA).
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      ST <emphasis>string: sequencing technology</emphasis>
+	    </para>
+	    <para> The current technologies
+	    can be defined: Sanger, 454, Solexa, SOLiD.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      SN <emphasis>string: strain name</emphasis>
+	    </para>
+	    <para> Strain name of the sample that was
+	    sequenced, this is a free form string.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      MT <emphasis>string: machine type</emphasis>
+	    </para>
+	    <para> Machine type which generated the data,
+	    this is a free form string.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      BC <emphasis>string: base caller</emphasis>
+	    </para>
+	    <para>
+	      Base calling program used to call bases
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      IB <emphasis>boolean (0 or 1): is backbone</emphasis>
+	    </para>
+	    <para> Whether the read is a backbone. Reads used as reference
+	    (backbones) in mapping assemblies get this attribute.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      IC <emphasis>boolean (0 or 1)</emphasis>
+	    </para>
+	    <para> Whether the read is a coverage equivalent
+	    read (e.g. from mapping Solexa). This is internal to MIRA.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      IR <emphasis>boolean (0 or 1)</emphasis>
+	    </para>
+	    <para> Whether the read is a rail. This also is
+	    internal to MIRA.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      ER
+	    </para>
+	    <para> This ends a read and is mandatory.
+	    </para>
+	  </listitem>
+	</itemizedlist>
+	<para>
+	</para>
+      </sect3>
+      <sect3 id="sect3_interpreting_clipping_values">
+	<title>
+	  Interpreting clipping values
+	</title>
+	<para>
+	  Every left and right clipping pair (SL &amp; SR, QL &amp; QR, CL &amp; CR) forms a clear
+	  range in the interval [left right[ in the sequence of a read. E.g. a read with
+	  SL=4 and SR=10 has the bases 1,2,3 clipped away on the left side, the bases
+	  4,5,6,7,8,9 as clear range and the bases 10 and following clipped away on the
+	  right side.
+	</para>
+	<para>
+	  The left clip of a read is determined as max(SL,QL,CL) (the rightmost left
+	  clip) whereas the right clip is min(SR,QR,CR).
+	</para>
+      </sect3>
+    </sect2>
+    <sect2 id="sect2_contigs">
+      <title>
+	Contigs
+      </title>
+      <para>
+	Contigs are not much more than containers containing reads with some
+	additional information. Contrary to CAF or ACE, MAF does not first store all reads in
+	single containers and then define the contigs. In MAF, contigs are defined as
+	outer container and within those, the reads are stored like normal reads.
+      </para>
+      <sect3 id="sect3_simple_example_2">
+	<title>
+	  Simple example 2
+	</title>
+	<para>
+	  The above example for a read can be encased in a contig like this (with two
+	  consensus tags gratuitously added in):
+	</para>
+	<screen>
+	  CO      contigname_s1
+	  NR      1
+	  LC      24
+	  CS      TGCCTGCAGGTCGACTCTAGAAGG
+	  CQ      -+/,36;:6&le;3327&lt;7A1/,,).
+	  CT      COMM 5 8 Some comment to this consensus tag.
+	  CT      COMM 7 12 Another comment to this consensus tag.
+	  \\
+	  RD      U13a05e07.t1
+	  RS      CTTGCATGCCTGCAGGTCGACTCTAGAAGGACCCCGATCA
+	  RQ      ,-+*,1-+/,36;:6&le;3327&lt;7A1/,,).(&apos;..7=@E8:
+	  TN      U13a05e07
+	  TF      1200
+	  TT      1800
+	  SF      U13a05e07.t1.scf
+	  SL      4
+	  SR      32
+	  QL      7
+	  QR      30
+	  AO      1 40 1 40
+	  RT      ALUS 10 15 Some comment to this read tag.
+	  ST      Sanger
+	  ER
+	  AT      1 24 7 30
+	  //
+	  EC
+	</screen>
+	<para>
+	</para>
+	<para>
+	  Note that the read shown previously (and now encased in a contig) is
+	  absolutely unchanged. It has just been complemented with a bit of data which
+	  describes the contig as well as with a one liner which places the read into
+	  the contig.
+	</para>
+      </sect3>
+      <sect3 id="sect3_list_of_records_for_contigs">
+	<title>
+	  List of records for contigs
+	</title>
+	<para>
+	</para>
+	<itemizedlist>
+	  <listitem>
+	    <para>
+	      CO <emphasis>string: contig name</emphasis>
+	    </para>
+	    <para> CO starts a contig, the contig name
+	    behind is mandatory but can be any string, including numbers.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      NR <emphasis>integer: num reads in contig</emphasis>
+	    </para>
+	    <para> This is optional but highly
+	    recommended.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      LC <emphasis>integer: contig length</emphasis>
+	    </para>
+	    <para> Note that this length defines the length of the 'clear
+	    range' of the consensus. It is 100% equal to the length of the CS
+	    (sequence) and CQ (quality) strings below.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      CT <emphasis>string + 2 integers + optional string: identifier
+	      x1 y1 comment</emphasis>
+	    </para>
+	    <para> Consensus tags are defined like read tags but apply to the
+	    consensus. Here too, the interval [x1 y1] is including and if x1 &gt; y1, the tag
+	    is in reverse direction.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      CS <emphasis>string: consensus sequence</emphasis>
+	    </para>
+	    <para> Sequence of a consensus is stored in RS.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      CQ <emphasis>string: qualities</emphasis>
+	    </para>
+	    <para> Consensus Qualities are stored in FASTQ
+	    format, i.e., each quality value + 33 is written as single as ASCII character.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      \\
+	    </para>
+	    <para> This marks the start of read data of this contig. After
+	    this, all reads are stored one after the other, just separated by
+	    an "AT" line (see below).
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      AT <emphasis>Four integers: x1 y1 x2 y2</emphasis>
+	    </para>
+	    <para> The AT (Assemble_To) line defines the placement of the read
+	    in the contig and follows immediately the closing "ER" of a read
+	    so that parsers do not need to perform time consuming string
+	    lookups. Every read in a contig has exactly one AT line.
+	    </para>
+	    <para> The interval
+	    [x2 y2] of the read (i.e., the unclipped data, also called the 'clear range')
+	    aligns with the interval [x1 y1] of the contig. If x1 &gt; y1 (the contig
+	    positions), then the reverse complement of the read is aligned to the
+	    contig. For the read positions, x2 is always &lt; y2.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      //
+	    </para>
+	    <para> This marks the end of read data
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      EC
+	    </para>
+	    <para> This ends a contig and is mandatory
+	    </para>
+	  </listitem>
+	</itemizedlist>
+      </sect3>
+    </sect2>
+  </sect1>
+</chapter>

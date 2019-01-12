@@ -1,0 +1,13 @@
+projectname = U13_manifest
+job = denovo,genome,accurate
+parameters = \
+	   -GE:not=4\
+	   --noclipping\
+	   SANGER_SETTINGS -AS:epoq=no
+
+
+readgroup = bla
+file fastanoqual = mini.fasta
+technology = sanger
+
+

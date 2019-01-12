@@ -1,0 +1,28 @@
+<?xml version="1.0" ?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.docbook.org/xml/4.5/docbookx.dtd">
+<book>
+ 
+<bookinfo>
+<title>3rd party documentation to MIRA 4</title>
+<subtitle>
+  Things "The Definitive Guide" missed and other people kindly contributed
+</subtitle>
+<titleabbrev>3rd party</titleabbrev>
+<legalnotice>
+<para>
+This documentation is licensed under the Creative Commons
+Attribution-NonCommercial-ShareAlike 3.0 Unported License. To view a copy of
+this license, visit <ulink
+url="http://creativecommons.org/licenses/by-nc-sa/3.0/"/> or send a letter to
+Creative Commons, 171 Second Street, Suite 300, San Francisco, California,
+94105, USA.
+</para>
+</legalnotice>
+
+</bookinfo>
+
+
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="chap_3p_ghbambus_part.xml"/>
+
+</book>
+

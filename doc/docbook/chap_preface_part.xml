@@ -1,0 +1,90 @@
+<?xml version="1.0" ?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.docbook.org/xml/4.5/docbookx.dtd">
+
+<preface><title>Preface</title>
+<blockquote>
+  <attribution>Solomon Short</attribution>
+  <para>
+    <emphasis><quote>How much intelligence does one need to sneak upon lettuce?
+    </quote></emphasis>
+  </para>
+</blockquote>
+<note>
+  <para>
+    A quick note at the start: I am scaling back the scope I recommend MIRA
+    for. For genome de-novo assemblies or mapping projects, haploid organisms
+    up to 20 to 40 megabases should be the limit.
+  </para>
+  <para>
+    Do not use MIRA if you have PacBio or Oxford Nanopore reads. Then again,
+    for polishing those assemblies with Illumina data, MIRA is really good.
+  </para>
+  <para>
+    For mapping projects, do not use MIRA if you expect splicing like, e.g., RNASeq
+    against an eukaryotic genome.
+  </para>
+  <para>
+    Lastly, Illumina projects with more than 40 to 60 million reads start to
+    be so resource intensive that you might be better served with other
+    assemblers or mapping programs. I know some people use MIRA for de-novo
+    RNASeq with 300 million reads because they think it's worth it, but they
+    wait more than a month then for the calculation to finish.
+  </para>
+</note>
+<para>
+  This "book" is actually the result of an exercise in self-defense. It
+  contains texts from several years of help files, mails, postings, questions,
+  answers etc.pp concerning MIRA and assembly projects one can do with it.
+</para>
+<para>
+  I never really intended to push MIRA. It started out as a PhD thesis and I
+  subsequently continued development when I needed something to be done which
+  other programs couldn't do at the time. But MIRA has always been available
+  as binary on the Internet since 1999 ... and as Open Source since
+  2007. Somehow, MIRA seems to have caught the attention of more than just a
+  few specialised sequencing labs and over the years I've seen an ever growing
+  number of mails in my inbox and on the MIRA mailing list. Both from people
+  having been "since ever" in the sequencing business as well as from labs or
+  people just getting their feet wet in the area.
+</para>
+<para>
+  The help files -- and through them this book -- sort of reflect this
+  development. Most of the chapters<footnote><para>Avid readers of David
+  Gerrold will certainly recognise the quotes from his books at the beginning
+  of each chapter</para></footnote> contain both very specialised
+  topics as well as step-by-step walk-throughs intended to help people to get
+  their assembly projects going. Some parts of the documentation are written
+  in a decidedly non-scientific way. Please excuse, time for rewriting mails
+  somewhat lacking, some texts were re-used almost verbatim.
+</para>
+<para>
+  The last few years have seen tremendous change in the sequencing
+  technologies and MIRA 5 reflects that: core data structures and
+  routines had to be thrown overboard and replaced with faster and/or more
+  versatile versions suited for the broad range of technologies and use-cases
+  I am currently running MIRA with.
+</para>
+<para>
+  While other programs are nowadays better suited for many assembly tasks --
+  think SPADES for larger Illumina data sets or Falcon / Canu for PacBio -- I
+  still regularly come back to MIRA when accuracy is important or catch the
+  above mentioned programs doing something silly.
+</para>
+<para>
+  Nothing is perfect, and both MIRA and this documentation (even if it is
+  rather pompously called <emphasis>Definitive Guide</emphasis>) are far from
+  it. If you spot an error either in MIRA or this manual, feel free to report
+  it. Or, even better, correct it if you can. At least with the manual files
+  it should be easy: they're basically just some decorated text files.
+</para>
+<para>
+  I hope that MIRA will be as useful to you as it has been to me. Have a lot
+  of fun with it.
+</para>
+<para>
+  Berlin, Feb 2019
+</para>
+<para>
+  Bastien Chevreux
+</para>
+</preface>

@@ -1,0 +1,499 @@
+      <para>
+	We're going to use data published by Richard Lenski in his great paper
+	<emphasis>"Genome evolution and adaptation in a long-term experiment
+	with Escherichia coli"</emphasis>. This shows how MIRA finds all
+	mutations between two strains and how one would need just a few
+	minutes to know which genes are affected.
+      </para>
+      <note>
+	All steps described in this walkthrough are present in ready-to-be-run
+	scripts in the <literal>solexa3_lenski</literal> demo directory of the
+	MIRA package.
+      </note>
+      <note>
+	This walkthrough takes a few detours which are not really necessary,
+	but show how things can be done: it reduces the number of reads, it
+	creates a strain data file etc. Actually, the whole demo could be
+	reduced to two steps: downloading the data (naming it correctly) and
+	starting the assembly with a couple of parameters.
+      </note>
+      <sect3 id="sect_sxa_getting_the_data">
+	<title>
+	  Getting the data
+	</title>
+	<para>
+	  We'll use the reference genome E.coli B REL606 to map one of the
+	  strains from the paper. For mapping, I picked strain REL8593A more
+	  or less at random. All the data needed is fortunately at the NCBI,
+	  let's go and grab it:
+	</para>
+	<orderedlist>
+	  <listitem>
+	    <para>
+	      the NCBI has REL606 named <emphasis>NC_012967</emphasis>. We'll
+	      use the RefSeq version and the GenBank formatted file you can
+	      download from
+	      <ulink url="ftp://ftp.ncbi.nih.gov/genomes/Bacteria/Escherichia_coli_B_REL606/NC_012967.gbk"/>
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      the Solexa re-sequencing data you can get from <ulink
+	      url="ftp://ftp.ncbi.nlm.nih.gov/sra/static/SRX012/SRX012992/"/>. Download
+	      both FASTQ files, <filename>SRR030257_1.fastq.gz</filename> and
+	      <filename>SRR030257_2.fastq.gz</filename>.
+	    </para>
+	    <para>
+	      If you want more info regarding these data sets, have a look at
+	    <ulink url="http://www.ncbi.nlm.nih.gov/sra/?db=sra&amp;term=SRX012992&amp;report=full"/>
+	    </para>
+	  </listitem>
+	</orderedlist>
+      </sect3>
+      <sect3 id="sect_sxa_preparing_the_data_for_an_assembly">
+	<title>
+	  Preparing the data for an assembly
+	</title>
+	<para>
+	  In this section we will setup the directory structure for the
+	  assembly and pre-process the data so that MIRA can start right away.
+	</para>
+	<para>
+	  Let's start with setting up a directory structure. Remember: you can
+	  setup the data almost any way you like, this is just how I do
+	  things.
+	</para>
+	<para>
+	  I normally create a project directory with three sub-directories:
+	  <filename>origdata</filename>, <filename>data</filename>, and
+	  <filename>assemblies</filename>. In <filename>origdata</filename> I
+	  put the files exactly as I got them from the sequencing or data
+	  provider, without touching them and even remowing write permissions
+	  to these files so that they cannot be tampered with. After that, I
+	  pre-process them and put the pre-processed files into
+	  <filename>data</filename>. Pre-processing can be a lot of things,
+	  starting from having to re-format the sequences, or renaming them,
+	  perhaps also doing clips etc. Finally, I use these pre-processed
+	  data in one or more assembly runs in the
+	  <filename>assemblies</filename> directory, perhaps trying out
+	  different assembly options.
+	</para>
+	<screen>
+<prompt>arcadia:/some/path/$</prompt> <userinput>mkdir lenskitest</userinput>
+<prompt>arcadia:/some/path/$</prompt> <userinput>cd lenskitest</userinput>
+<prompt>arcadia:/some/path/lenskitest$</prompt> <userinput>mkdir data origdata assemblies</userinput>
+<prompt>arcadia:/some/path/lenskitest$</prompt> <userinput>ls -l</userinput>
+drwxr-xr-x 2 bach bach 4096 2009-12-06 16:06 assemblies
+drwxr-xr-x 2 bach bach 4096 2009-12-06 16:06 data
+drwxr-xr-x 2 bach bach 4096 2009-12-06 16:06 origdata</screen>
+	<para>
+	  Now copy the files you just downloaded into the directory
+	  <filename>origdata</filename>.
+	</para>
+	<screen>
+<prompt>arcadia:/some/path/lenskitest$</prompt> <userinput>cp /wherever/the/files/are/SRR030257_1.fastq.gz origdata</userinput>
+<prompt>arcadia:/some/path/lenskitest$</prompt> <userinput>cp /wherever/the/files/are/SRR030257_2.fastq.gz origdata</userinput>
+<prompt>arcadia:/some/path/lenskitest$</prompt> <userinput>cp /wherever/the/files/are/NC_012967.gbk origdata</userinput>
+<prompt>arcadia:/some/path/lenskitest$</prompt> <userinput>ls -l origdata</userinput>
+-rw-r--r-- 1 bach bach  10543139 2009-12-06 16:38 NC_012967.gbk
+-rw-r--r-- 1 bach bach 158807975 2009-12-06 15:15 SRR030257_1.fastq.gz
+-rw-r--r-- 1 bach bach 157595587 2009-12-06 15:21 SRR030257_2.fastq.gz
+	</screen>
+	<para>
+	  Great, let's preprocess the data. For this you must know a few things:
+	</para>
+	<itemizedlist>
+	  <listitem>
+	    <para>
+	      the standard Illumina naming scheme for Solexa paired-end reads
+	      is to append forward read names with <literal>/1</literal> and
+	      reverse read names with <literal>/2</literal>. The reads are
+	      normally put into at least two different files (one for forward,
+	      one for reverse). Now, the Solexa data stored in the Short Read
+	      Archive at the NCBI also has forward and reverse files for
+	      paired-end Solexas. That's OK. What's a bit less good is that
+	      the read names there DO NOT have /1 appended to names of forward
+	      read, or /2 to names of reverse reads. The forward and reverse
+	      reads in both files are just named exactly the same.  We'll need
+	      to fix that.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      while Sanger and 454 reads should be preprocessed (clipping
+	      sequencing vectors, perhaps quality clipping etc.), reads from
+	      Solexa present do not. Some people perform quality clipping or
+	      clipping of reads with too many 'N's in the sequence, but this
+	      is not needed when using MIRA. In fact, MIRA will perform
+	      everything needed for Solexa reads itself and will generally do
+	      a much better job as the clipping performed is independent of
+	      Solexa quality values (which are not always the most trustworthy
+	      ones).
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      for a mapping assembly, it's good to give the strain name of the
+	      backbone and the strain name for the reads mapped against. The
+	      former can be done via command line, the later is done for each
+	      read individually in a key-value file (the
+	      <emphasis>straindata</emphasis> file).
+	    </para>
+	  </listitem>
+	</itemizedlist>
+	<para>
+	</para>
+	<para>
+	  So, to pre-process the data, we will need to
+	</para>
+	<itemizedlist>
+	  <listitem>
+	    <para>
+	      put the reads of the NCBI forward and reverse pairs into one
+	      file
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      append <literal>/1</literal> to the names of forward reads, and
+	      <literal>/2</literal> for reverse reads.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      create a straindata file for MIRA
+	    </para>
+	  </listitem>
+	</itemizedlist>
+	<para>
+	</para>
+	<para>
+	  To ease things for you, I've prepared a small script which will do
+	  everything for you: copy and rename the reads as well as creating
+	  strain names. Note that it's a small part of a more general script
+	  which I use to sometimes sample subsets of large data sets, but for
+	  the Lenski data set is small enough so that everything is taken.
+	</para>
+	<para>
+	  Create a file <filename>prepdata.sh</filename> in directory
+	  <filename>data</filename> and copy paste the following into it:
+	</para>
+	<screen>
+######################################################################
+#######
+####### Prepare paired-end Solexa downloaded from NCBI
+#######
+######################################################################
+
+# srrname:    is the SRR name as downloaded form NCBI SRA
+# numreads:   maximum number of forward (and reverse) reads to take from
+#              each file. Just to avoid bacterial projects with a coverage
+#              of 200 or so.
+# strainname: name of the strain which was re-sequenced
+
+srrname=&quot;SRR030257&quot;
+numreads=5000000
+strainname=&quot;REL8593A&quot;
+
+################################
+
+numlines=$((4*${numreads}))
+
+# put &quot;/1&quot; Solexa reads into file
+echo &quot;Copying ${numreads} reads from _1 (forward reads)&quot;
+zcat ../origdata/${srrname}_1.fastq.gz | head -${numlines} | sed -e &apos;s/SRR[0-9.]*/&amp;\/1/&apos; &gt;${strainname}-${numreads}_in.solexa.fastq
+
+# put &quot;/2&quot; Solexa reads into file
+echo &quot;Copying ${numreads} reads from _2 (reverse reads)&quot;
+zcat ../origdata/${srrname}_2.fastq.gz | head -${numlines} | sed -e &apos;s/SRR[0-9.]*/&amp;\/2/&apos; &gt;&gt;${strainname}-${numreads}_in.solexa.fastq
+
+# make file with strainnames
+echo &quot;Creating file with strain names for copied reads (this may take a while).&quot;
+grep &quot;@SRR&quot; ${strainname}-${numreads}_in.solexa.fastq | cut -f 1 -d &apos; &apos; | sed -e &apos;s/@//&apos; -e &quot;s/$/ ${strainname}/&quot; &gt;&gt;${strainname}-${numreads}_straindata_in.txt</screen>
+	<para>
+	  Now, let's create the needed data:
+	</para>
+	<screen>
+arcadia:/some/path/lenskitest$ <userinput>cd data</userinput>
+arcadia:/some/path/lenskitest/data$ <userinput>ls -l</userinput>
+-rw-r--r-- 1 bach bach       1349 2009-12-06 17:05 prepdata.sh
+arcadia:/some/path/lenskitest/data$ <userinput>sh prepdata.sh</userinput>
+Copying 5000000 reads from _1 (forward reads)
+Copying 5000000 reads from _2 (reverse reads)
+Creating file with strain names for copied reads (this may take a while).
+arcadia:/some/path/lenskitest/data$ <userinput>ls -l</userinput>
+-rw-r--r-- 1 bach bach       1349 2009-12-06 17:05 prepdata.sh
+-rw-r--r-- 1 bach bach 1553532192 2009-12-06 15:36 REL8593A-5000000_in.solexa.fastq
+-rw-r--r-- 1 bach bach  218188232 2009-12-06 15:36 REL8593A-5000000_straindata_in.txt</screen>
+	<para>
+	  Last step, just for the sake of completeness, link in the GenBank formatted
+	  file of the reference strain, giving it the same base name so that everything
+	  is nicely set up for MIRA.
+	</para>
+	<screen>
+<prompt>arcadia:/some/path/lenskitest/data$</prompt> <userinput>ln -s ../origdata/NC_012967.gbk REL8593A-5000000_backbone_in.gbf</userinput>
+<prompt>arcadia:/some/path/lenskitest/data$</prompt> <userinput>ls -l</userinput>
+-rw-r--r-- 1 bach bach       1349 2009-12-06 17:05 prepdata.sh
+lrwxrwxrwx 1 bach bach         25 2009-12-06 16:39 REL8593A-5000000_backbone_in.gbf -&gt; ../origdata/NC_012967.gbk
+-rw-r--r-- 1 bach bach 1553532192 2009-12-06 15:36 REL8593A-5000000_in.solexa.fastq
+-rw-r--r-- 1 bach bach  218188232 2009-12-06 15:36 REL8593A-5000000_straindata_in.txt
+<prompt>arcadia:/some/path/lenskitest/data$</prompt> <userinput>cd ..</userinput>
+<prompt>arcadia:/some/path/lenskitest$</prompt></screen>
+	<para>
+	  Perfect, we're ready to start assemblies.
+	</para>
+      </sect3>
+      <sect3 id="sect_sxa_starting_the_mapping_assembly">
+	<title>
+	  Starting the mapping assembly
+	</title>
+	<screen>
+<prompt>arcadia:/some/path/lenskitest$</prompt> <userinput>cd assemblies</userinput>
+<prompt>arcadia:/some/path/lenskitest/assemblies$</prompt> <userinput>mkdir 1sttest</userinput>
+<prompt>arcadia:/some/path/lenskitest/assemblies/1sttest$</prompt> <userinput>lndir ../../data</userinput>
+<prompt>arcadia:/some/path/lenskitest/assemblies/1sttest$</prompt> <userinput>ls -l</userinput>
+lrwxrwxrwx 1 bach bach         22 2009-12-06 17:18 prepdata.sh -&gt; ../../data/prepdata.sh
+lrwxrwxrwx 1 bach bach         43 2009-12-06 16:40 REL8593A-5000000_backbone_in.gbf -&gt; ../../data/REL8593A-5000000_backbone_in.gbf
+lrwxrwxrwx 1 bach bach         43 2009-12-06 15:39 REL8593A-5000000_in.solexa.fastq -&gt; ../../data/REL8593A-5000000_in.solexa.fastq
+lrwxrwxrwx 1 bach bach         45 2009-12-06 15:39 REL8593A-5000000_straindata_in.txt -&gt; ../../data/REL8593A-5000000_straindata_in.txt</screen>
+	<para>
+	  Oooops, we don't need the link <filename>prepdata.sh</filename>
+	  here, just delete it.
+	</para>
+	<screen>
+<prompt>arcadia:/some/path/lenskitest/assemblies/1sttest$</prompt> <userinput>rm prepdata.sh</userinput></screen>
+	<para>
+	  Perfect. Now then, start a simple mapping assembly:
+	</para>
+	<screen>
+<prompt>arcadia:/some/path/lenskitest/assemblies/1sttest$</prompt> <userinput>mira
+  --fastq
+  --project=REL8593A-5000000
+  --job=mapping,genome,accurate,solexa
+  -SB:lsd=yes:bsn=ECO_B_REL606:bft=gbf
+  &gt;&amp;log_assembly.txt</userinput></screen>
+	<note>
+	  <title>Note 1</title>
+	  <para>
+	    The above command has been split in multiple lines for better
+	    overview but should be entered in one line. It basically says:
+	    load all data in FASTQ format; the project name is
+	    <emphasis>REL8593A-5000000</emphasis> (and therefore all input and
+	    output files will have this prefix by default if not chosen
+	    otherwise); we want an accurate mapping of Solexa reads against a
+	    genome; load strain data of a separate strain file
+	    (<arg>-SB:lsd=yes</arg>); the strain name of the reference
+	    sequence is 'ECO_B_REL606' (<arg>-SB:bsn=ECO_B_REL606</arg>) and
+	    the file type containing the reference sequence in a GenBank
+	    format (<arg>-SB:bft=gbf</arg>). Last but not least, redirect the
+	    progress output of the assembler to a file named
+	    <filename>log_assembly.txt</filename>.
+	  </para>
+	</note>
+	<note>
+	  <title>Note 2</title>
+	  <para>
+	    The above assembly takes approximately 35 minutes on my computer
+	    (i7 940 with 12 GB RAM) when using 4 threads (I have '-GE:not=4'
+	    additionally). It may be faster or slower on your computer.
+	  </para>
+	</note>
+	<note>
+	  <title>Note 3</title>
+	  <para>
+	    You will need some 10.5 GB RAM to get through this. You might get
+	    away with a bit less RAM and using swap, but less than 8 GB RAM is
+	    not recommended.
+	  </para>
+	</note>
+	<para>
+	  Let's have a look at the directory now:
+	</para>
+	<screen>
+<prompt>arcadia:/some/path/lenskitest/assemblies/1sttest$</prompt> <userinput>ls -l</userinput>
+-rw-r--r-- 1 bach bach 1463331186 2010-01-27 20:41 log_assembly.txt
+drwxr-xr-x 6 bach bach       4096 2010-01-27 20:04 REL8593A-5000000_assembly
+lrwxrwxrwx 1 bach bach         43 2009-12-06 16:40 REL8593A-5000000_backbone_in.gbf -&gt; ../../data/REL8593A-5000000_backbone_in.gbf
+lrwxrwxrwx 1 bach bach         43 2009-12-06 15:39 REL8593A-5000000_in.solexa.fastq -&gt; ../../data/REL8593A-5000000_in.solexa.fastq
+lrwxrwxrwx 1 bach bach         45 2009-12-06 15:39 REL8593A-5000000_straindata_in.txt -&gt; ../../data/REL8593A-5000000_straindata_in.txt</screen>
+	<para>
+	  Not much which changed. All files created by MIRA will be in the
+	  REL8593A-5000000_assembly directory. Going one level down, you'll see 4
+	  sub-directories:
+	</para>
+	<screen>
+<prompt>arcadia:/some/path/lenskitest/assemblies/1sttest$</prompt> <userinput>cd REL8593A-5000000_assembly</userinput>
+<prompt>arcadia:.../1sttest/REL8593A-5000000_assembly$</prompt> <userinput>ls -l</userinput>
+drwxr-xr-x 2 bach bach 4096 2010-01-27 20:29 REL8593A-5000000_d_chkpt
+drwxr-xr-x 2 bach bach 4096 2010-01-27 20:40 REL8593A-5000000_d_info
+drwxr-xr-x 2 bach bach 4096 2010-01-27 20:30 REL8593A-5000000_d_tmp
+drwxr-xr-x 2 bach bach 4096 2010-01-27 21:19 REL8593A-5000000_d_results</screen>
+	<para>
+	  You can safely delete the tmp and the chkpt directories, in this
+	  walkthrough they are not needed anymore.
+	</para>
+      </sect3>
+      <sect3 id="sect_sxa_looking_at_results">
+	<title>
+	  Looking at results
+	</title>
+	<para>
+	  Results will be in a sub-directories created by MIRA. Let's go there
+	  and have a look.
+	</para>
+	<screen>
+<prompt>arcadia:/some/path/lenskitest/assemblies/1sttest$</prompt> <userinput>cd REL8593A-5000000_assembly</userinput>
+<prompt>arcadia:.../1sttest/REL8593A-5000000_assembly$</prompt> <userinput>cd REL8593A-5000000_d_results</userinput>
+<prompt>arcadia:.../REL8593A-5000000_d_results$</prompt> <userinput>ls -l</userinput>
+-rw-r--r-- 1 bach bach  455087340 2010-01-27 20:40 REL8593A-5000000_out.ace
+-rw-r--r-- 1 bach bach  972479972 2010-01-27 20:38 REL8593A-5000000_out.caf
+-rw-r--r-- 1 bach bach  569619434 2010-01-27 20:38 REL8593A-5000000_out.maf
+-rw-r--r-- 1 bach bach    4708371 2010-01-27 20:39 REL8593A-5000000_out.padded.fasta
+-rw-r--r-- 1 bach bach   14125036 2010-01-27 20:39 REL8593A-5000000_out.padded.fasta.qual
+-rw-r--r-- 1 bach bach  472618709 2010-01-27 20:39 REL8593A-5000000_out.tcs
+-rw-r--r-- 1 bach bach    4707025 2010-01-27 20:39 REL8593A-5000000_out.unpadded.fasta
+-rw-r--r-- 1 bach bach   14120999 2010-01-27 20:39 REL8593A-5000000_out.unpadded.fasta.qual
+-rw-r--r-- 1 bach bach   13862715 2010-01-27 20:39 REL8593A-5000000_out.wig</screen>
+	<para>
+	  You can see that MIRA has created output in many different formats
+	  suited for a number of different applications. Most commonly known
+	  will be ACE and CAF for their use in finishing programs (e.g. gap4
+	  and consed).
+	</para>
+	<para>
+	  In a different directory (the info directory) there are also files
+	  containing all sorts of statistics and useful information.
+	</para>
+	<screen>
+<prompt>arcadia:.../REL8593A-5000000_d_results$</prompt> <userinput>cd ../REL8593A-5000000_d_info/</userinput>
+<prompt>arcadia:.../REL8593A-5000000_d_info$</prompt> <userinput>ls -l</userinput>
+-rw-r--r-- 1 bach bach     2256 2010-01-27 20:40 REL8593A-5000000_info_assembly.txt
+-rw-r--r-- 1 bach bach      124 2010-01-27 20:04 REL8593A-5000000_info_callparameters.txt
+-rw-r--r-- 1 bach bach    37513 2010-01-27 20:37 REL8593A-5000000_info_consensustaglist.txt
+-rw-r--r-- 1 bach bach 28522692 2010-01-27 20:37 REL8593A-5000000_info_contigreadlist.txt
+-rw-r--r-- 1 bach bach      176 2010-01-27 20:37 REL8593A-5000000_info_contigstats.txt
+-rw-r--r-- 1 bach bach 15359354 2010-01-27 20:40 REL8593A-5000000_info_debrislist.txt
+-rw-r--r-- 1 bach bach 45802751 2010-01-27 20:37 REL8593A-5000000_info_readtaglist.txt</screen>
+	<para>
+	  Just have a look at them to get a feeling what they show. You'll
+	  find more information regarding these files in that main manual of
+	  MIRA. At the moment, let's just have a quick assessment of the
+	  differences between the Lenski reference strain and the REL8593A
+	  train by counting how many SNPs MIRA thinks there are (marked with
+	  <emphasis>SROc</emphasis> tags in the consensus):
+	</para>
+	<screen>
+<prompt>arcadia:.../REL8593A-5000000_d_info$</prompt> <userinput>grep -c SROc REL8593A-5000000_info_consensustaglist.txt</userinput>
+102</screen>
+	<para>
+	</para>
+	<para>
+	  102 bases are marked with such a tag. You will later see that this
+	  is an overestimation due to several insert sites and deletions, but
+	  it's a good first approximation.
+	</para>
+	<para>
+	  Let's count how many potential deletion sites REL8593A has in
+	  comparison to the reference strain:
+	</para>
+	<screen>
+<prompt>arcadia:.../REL8593A-5000000_d_info$</prompt> <userinput>grep -c MCVc REL8593A-5000000_info_consensustaglist.txt</userinput>
+48</screen>
+	<para>
+	  This number too is a slight overestimation due to
+	  cross-contamination with sequenced strain which did not have these
+	  deletions, but it's also a first approximate.
+	</para>
+      </sect3>
+      <sect3 id="sect_sxa_postprocessing_with_gap4_and_reexporting_to_mira">
+	<title>
+	  Post-processing with gap4 and re-exporting to MIRA
+	</title>
+	<para>
+	  To have a look at your project in gap4, use the caf2gap program (you
+	  can get it at the Sanger Centre), and then gap4:
+	</para>
+	<screen>
+<prompt>arcadia:.../REL8593A-5000000_d_results$</prompt> <userinput>ls -l</userinput>
+-rw-r--r-- 1 bach bach  455087340 2010-01-27 20:40 REL8593A-5000000_out.ace
+-rw-r--r-- 1 bach bach  972479972 2010-01-27 20:38 REL8593A-5000000_out.caf
+-rw-r--r-- 1 bach bach  569619434 2010-01-27 20:38 REL8593A-5000000_out.maf
+-rw-r--r-- 1 bach bach    4708371 2010-01-27 20:39 REL8593A-5000000_out.padded.fasta
+-rw-r--r-- 1 bach bach   14125036 2010-01-27 20:39 REL8593A-5000000_out.padded.fasta.qual
+-rw-r--r-- 1 bach bach  472618709 2010-01-27 20:39 REL8593A-5000000_out.tcs
+-rw-r--r-- 1 bach bach    4707025 2010-01-27 20:39 REL8593A-5000000_out.unpadded.fasta
+-rw-r--r-- 1 bach bach   14120999 2010-01-27 20:39 REL8593A-5000000_out.unpadded.fasta.qual
+-rw-r--r-- 1 bach bach   13862715 2010-01-27 20:39 REL8593A-5000000_out.wig
+<prompt>arcadia:.../REL8593A-5000000_d_results$</prompt> <userinput>caf2gap -project REL8593A -ace REL8593A-5000000_out.caf &gt;&amp;/dev/null</userinput>
+<prompt>arcadia:.../REL8593A-5000000_d_results$</prompt> <userinput>ls -l</userinput>
+-rw-r--r-- 1 bach bach 1233494048 2010-01-27 20:43 REL8593A.0
+-rw-r--r-- 1 bach bach  233589448 2010-01-27 20:43 REL8593A.0.aux
+-rw-r--r-- 1 bach bach  455087340 2010-01-27 20:40 REL8593A-5000000_out.ace
+-rw-r--r-- 1 bach bach  972479972 2010-01-27 20:38 REL8593A-5000000_out.caf
+-rw-r--r-- 1 bach bach  569619434 2010-01-27 20:38 REL8593A-5000000_out.maf
+-rw-r--r-- 1 bach bach    4708371 2010-01-27 20:39 REL8593A-5000000_out.padded.fasta
+-rw-r--r-- 1 bach bach   14125036 2010-01-27 20:39 REL8593A-5000000_out.padded.fasta.qual
+-rw-r--r-- 1 bach bach  472618709 2010-01-27 20:39 REL8593A-5000000_out.tcs
+-rw-r--r-- 1 bach bach    4707025 2010-01-27 20:39 REL8593A-5000000_out.unpadded.fasta
+-rw-r--r-- 1 bach bach   14120999 2010-01-27 20:39 REL8593A-5000000_out.unpadded.fasta.qual
+-rw-r--r-- 1 bach bach   13862715 2010-01-27 20:39 REL8593A-5000000_out.wig
+
+<prompt>arcadia:.../REL8593A-5000000_d_results$</prompt> <userinput>gap4 REL8593A.0</userinput></screen>
+	<para>
+	  Search for the tags set by MIRA which denoted features or problems (SROc,
+	  WRMc, MCVc, UNSc, IUPc. See main manual for full list) in the assembly, and
+	  edit accordingly. Save your gap4 database as a new version (e.g. REL8593A.1),
+	  then exit gap4.
+	</para>
+	<para>
+	  Then use the gap2caf command (also from the Sanger Centre) to convert
+	  the gap4 database back to CAF.
+	</para>
+	<screen>
+<prompt>arcadia:.../REL8593A-5000000_d_results$</prompt> <userinput>gap2caf -project REL8593A.1 &gt;rel8593a_edited.caf</userinput></screen>
+	<para>
+	  As gap4 jumbled the consensus (it does not know different sequencing
+	  technologies), having convert_project recalculate the consensus
+	  (with the "<literal>-r c</literal>" option) is generally a good
+	  idea.
+	</para>
+	<screen>
+<prompt>arcadia:.../REL8593A-5000000_d_results$</prompt> <userinput>convert_project -f caf -t caf -r c rel8593a_edited.caf rel8593a_edited_recalled</userinput></screen>
+      </sect3>
+      <sect3 id="sect_sxa_converting_mapping_results_into_html_and_simple_spreadsheet_tables_for_biologists">
+	<title>
+	  Converting mapping results into HTML and simple spreadsheet tables
+	  for biologists
+	</title>
+	<para>
+	  You will have to use either CAF or MAF as input, either of which can
+	  be the direct result from the MIRA assembly or an already cleaned
+	  and edited file. For the sake of simplicity, we'll use the file
+	  created by MIRA in the steps above.
+	</para>
+	<para>
+	  Let's start with a HTML file showing all positions of interest:
+	</para>
+	<screen>
+<prompt>arcadia:.../REL8593A-5000000_d_results$</prompt> <userinput>convert_project -f caf -t hsnp REL8593A-5000000_out.caf rel8593a</userinput>
+<prompt>arcadia:.../REL8593A-5000000_d_results$</prompt> <userinput>ls -l *html</userinput>
+-rw-r--r-- 1 bach bach 5198791 2010-01-27 20:49 rel8593a_info_snpenvironment.html</screen>
+	<para>
+	  But MIRA can do even better: create tables ready to be imported in spreadsheet
+	  programs.
+	</para>
+	<screen>
+<prompt>arcadia:.../REL8593A-5000000_d_results$</prompt> <userinput>convert_project -f caf -t asnp REL8593A-5000000_out.caf rel8593a</userinput>
+<prompt>arcadia:.../REL8593A-5000000_d_results$</prompt> <userinput>ls -l rel8593a*</userinput>
+-rw-r--r-- 1 bach bach      25864 2010-01-27 20:48 rel8593a_info_featureanalysis.txt
+-rw-r--r-- 1 bach bach   12402905 2010-01-27 20:48 rel8593a_info_featuresequences.txt
+-rw-r--r-- 1 bach bach     954473 2010-01-27 20:48 rel8593a_info_featuresummary.txt
+-rw-r--r-- 1 bach bach    5198791 2010-01-27 20:49 rel8593a_info_snpenvironment.html
+-rw-r--r-- 1 bach bach      13810 2010-01-27 20:47 rel8593a_info_snplist.txt</screen>
+	<para>
+	  Have a look at all file, perhaps starting with the SNP list, then the feature
+	  analysis, then the feature summary (your biologists will love that one,
+	  especially when combined with filters in the spreadsheet program) and
+	  then the feature sequences.
+	</para>
+      </sect3>

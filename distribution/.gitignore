@@ -1,0 +1,3 @@
+# ignore the directory made by make distrib
+
+mira_*

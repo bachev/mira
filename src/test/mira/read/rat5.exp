@@ -1,0 +1,20 @@
+ID   rat103_020_a14.q1cb
+EN   rat103_020_a14.q1cb
+LN   rat103_020_a14.q1cbSCF
+LT   SCF
+QR   779
+AQ   38.080000
+SQ   
+     NTTCAAAGGC 
+//
+SV   pGEM-T.mod.fas
+SF   /gen/pck/gist/lib/vectordata/pGEM-T.mod.fas
+DT   28-Mar-2001
+OP   bell
+TN   rat103_020_a14
+PR   2
+CH   1
+QL   1
+QR   8
+TG   SVEC = 25..1210
+TG        Found by cross_match

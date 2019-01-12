@@ -1,0 +1,91 @@
+<?xml version="1.0" ?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.docbook.org/xml/4.5/docbookx.dtd">
+<book>
+
+<bookinfo>
+<title>Sequence assembly and mapping with MIRA 5</title>
+<subtitle>
+  The Definitive Guide
+</subtitle>
+<titleabbrev>MIRA 5</titleabbrev>
+<legalnotice>
+<para>
+This documentation is licensed under the Creative Commons
+Attribution-NonCommercial-ShareAlike 3.0 Unported License. To view a copy of
+this license, visit <ulink
+url="http://creativecommons.org/licenses/by-nc-sa/3.0/"/> or send a letter to
+Creative Commons, 171 Second Street, Suite 300, San Francisco, California,
+94105, USA.
+</para>
+</legalnotice>
+
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="versionfile"/>
+
+<author>
+  <firstname>Bastien</firstname>
+  <surname>Chevreux</surname>
+  <email>bach@chevreux.org</email>
+  <contrib>Main author</contrib>
+</author>
+<othercredit>
+  <firstname>Jacqueline</firstname>
+  <surname>Weber</surname>
+  <contrib>Extensive review of early reference manual
+  </contrib>
+</othercredit>
+<othercredit>
+  <firstname>Andrea</firstname>
+  <surname>H&ouml;rster</surname>
+  <contrib>Extensive review of early reference manual
+  </contrib>
+</othercredit>
+<othercredit>
+  <firstname>Katrina</firstname>
+  <surname>Dlugosch</surname>
+  <contrib>Draft for section on preprocessing of ESTs in EST manual
+  </contrib>
+</othercredit>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="copyrightfile"/>
+</bookinfo>
+
+
+<!--
+<dedication>
+</dedication>
+-->
+
+
+
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="chap_preface_part.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="chap_intro_part.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="chap_installation_part.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="chap_dataprep_part.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="chap_denovo_part.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="chap_mapping_part.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="chap_est_part.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="chap_results_part.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="chap_mirautils_part.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="chap_reference_part.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="chap_hard_part.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="chap_seqtechdesc_part.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="chap_seqadvice_part.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="chap_bitsandpieces_part.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="chap_faq_part.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="chap_maf_part.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="chap_logfiles_part.xml"/>
+
+<!--
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="chap_sanger_part.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="chap_bonus_part.xml"/>
+
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="chap_454_part.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="chap_iontor_part.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="chap_solexa_part.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="chap_pacbio_part.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="chap_sra_part.xml"/>
+
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="chap_specialparams_part.xml"/>
+
+-->
+
+</book>

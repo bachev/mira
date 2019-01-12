@@ -1,0 +1,174 @@
+                                                    Burlington, Spring 2016
+
+README for the binary package of MIRA 4.9.x
+===========================================
+
+Table of contents
+-----------------
+
+1. What's new?
+2. What's provided?
+3. Installation
+4. Documentation
+5. Demos
+6. License and Disclaimer
+7. Contact
+
+
+1. What's new?
+==============
+
+For a complete list of changes since a specific version, please consult
+CHANGES.txt, or for older updates, src/mira/CHANGES_old.txt of the source
+package distributions.
+
+Current stable versions will have major.minor.sub-version of 4.0.x while
+development version will have a branch identifier of 4.9.x.
+
+
+2. What's provided?
+===================
+
+You have downloaded the binary package of MIRA. It consists of binaries,
+documentation and support files.
+
+Binaries provided:
+ - mira: for assembly or mapping of sequences
+ - miramem: estimating memory needed to assemble projects. Realised through
+   link to the mira binary.
+ - miraconvert: for converting sequencing related file types into other
+   types. Includes various options for processing, filtering etc.pp. Realised
+   through link to the mira binary.
+ - mirabait: quickly bait sequences from a large set. Realised through link to
+   the mira binary.
+Note: the above is just only one binary ("mira"), the others are just soft
+links pointing to mira.
+
+Database provided:
+An excerpt of the RFAM rRNA database for finding rRNA or rDNA sequences.
+
+
+Documentation provided:
+See section 4 "Documentation"
+
+Support files provided:
+The support directory contains files for the Staden gap4/gap5 assembly viewer
+and finishing tool which teaches the viewer about the tags MIRA uses. These
+files are up-to-date and ready to use. The same files for "consed" should be
+seen as "pointer to how things could be done" as I do not own consed to test
+these files.
+
+
+3. Installation
+===============
+
+The binaries (in directory "bin") are statically linked and self
+contained, they should work with any Linux kernel >=2.6. On Mac OSX, they
+may work on version 10.5 and should work on all versions >= 10.6.
+
+Copy the the distributed package somewhere to your disk (either to one of the
+"standard" places or somewhere in your home directory) and then soft link the
+binaries into a directory which is in your shell PATH. Use "hash -r" or
+"rehash" to have the shell know about the binaries.
+
+Then: there is a directory "dbdata" in the MIRA package. Change to that
+directory and run
+  ./mira-install-sls-rrna.sh rfam_rrna-21-12.sls.gz
+
+This will take a minute or so. Now you're done for MIRA.
+
+Support files for the Staden GAP4 (GAP5) assembly finishing tool and consed
+are in the "support" directory. Please refer to the documentation of the
+respective package on how to integrate them into your environment.
+
+
+4. Documentation
+================
+
+Small man pages can be found in the "man" directory. Copy this any place in
+your system wher man will find them.
+
+More extensive documentation in HTML and PDF format can be found in the 'docs'
+directory.
+
+Provided files:
+ - DefinitiveGuideToMIRA.html
+   Full documentation in HTML format
+ - DefinitiveGuideToMIRA.pdf
+   Full documentation in PDF format
+
+If you are new to MIRA, I suggest you start reading the following chapters in
+the full documentation:
+
+ - Introduction (always)
+ - Installation (eventually)
+ - Preparing data
+ - Then
+    - De-novo assemblies
+    - Mapping assemblies
+    - EST / RNASeq assemblies
+ - Working with the results of MIRA (always)
+ - Utilities in the MIRA package (eventually)
+ - Assembly of hard genome or EST projects (always)
+ - Some advice when going into a sequencing project (eventually)
+
+But it wouldn't hurt if you quickly looked at the table of content of all the
+other chapters to determine whether there might be something interesting for
+you in it.
+
+
+5. Demos
+========
+
+At the moment no demos are provided. However, the step by step documentation
+and example configuration in the manual should get you going in no time.
+
+
+6. Licenses and Disclaimer
+==========================
+
+The MIRA source code is under the GPL licence (currently v2). Permission to
+use this software for any purpose is hereby granted without fee, but make sure
+to stick to the GPL.
+
+The documentation pertaining to MIRA is licensed under the Creative Commons
+Attribution-NonCommercial-ShareAlike 3.0 Unported License. To view a copy of
+this license, visit http://creativecommons.org/licenses/by-nc-sa/3.0/ or send
+a letter to Creative Commons, 171 Second Street, Suite 300, San Francisco,
+California, 94105, USA.
+
+Any version of this software and documentation is provided 'as-is', without
+any express or implied warranty. In no event will the author be held liable
+for any damages arising from the use of this software. Every kind of usage of
+the software is only allowed with the acceptance of this license. 'Using'
+certainly defines installing and running the software, it also includes
+copying or providing the software or a service built upon its functionalities
+for third-parties.
+
+The author disclaims all warranties with regard to this software, in all
+versions. Use it at your own risk.
+
+
+7. Contact
+==========
+
+If you have any question regarding usage of MIRA, please subscribe to the MIRA
+talk mailing list
+
+  http://www.freelists.org/list/mira_talk
+
+and then send your question to:
+
+  mira_talk@freelists.org
+
+To report bugs or ask for features, please use the ticketing system at:
+
+  http://sourceforge.net/p/mira-assembler/tickets/
+
+This ensures that requests don't get lost.
+
+Home of MIRA: http://sourceforge.net/projects/mira-assembler/
+
+
+Have a lot of fun with MIRA,
+  Bastien

@@ -1,0 +1,55 @@
+Dear Debian, SuSE, RedHat and other maintainers
+
+
+Building:
+---------
+The current source packages *should* build (i.e. "make") without problems if
+the prerequisites are met (see chapter 'Installation' of the MIRA manual). If
+not, please contact me directly to get the problem resolved asap.
+
+
+Installation:
+-------------
+A "make install" *should* install binaries, manual pages and additional data
+files in the correct place. If not, please contact me directly.
+
+
+Documentation / manual pages:
+-----------------------------
+
+Some short, basic manual pages are present in the ./man directory for the
+different flavours of the MIRA binary (mira, miraconvert, mirabait, etc.). You
+should never need to rebuild them, but in case you do: have MIRA built
+("make"), then use "make manpages" from the top directory (or "make -C man
+manpages").
+
+The main documentation is present in docbook format (./doc/docbook directory)
+which builds as HTML and PDF. However, the prerequisite dependencies are
+pretty heavy (dblatex etc.). Therefore, a simple "make install" will NOT
+install the full HTML and PDF documentation but just the manpages.
+
+To build and install the full HTML and PDF documentation, please use "make
+docinstall" from the top directory (or "make -C doc/docbook install").
+
+At minimum, xsltproc need to be present for HTML files. If dblatex is present
+and functional, PDFs will also be built.
+
+
+Database files:
+---------------
+Since 4.9.6, both the MIRA source and binary packages come with a gzip
+compressed database extract of the RFAM rRNA database. This file is located
+in src/other/sls/rfam_rrna-21-1.sls.gz in the source code release and in
+"dbdata" in the binary releases.
+
+This file is approximately 14 megabytea in size and will change every once
+in a while to reflect new releases of RFAM. Depending on how the rules are for
+adding that file to source code repositories in use by your project (CVS,
+subversion, git, etc), you may or may not want to add this file to your system.
+
+If it is of any help to you: I haven't added that file to my git (which holds
+MIRA), but it is kept outside and gets copied in while building source and
+binary releases of the package.
+
+
+Bastien

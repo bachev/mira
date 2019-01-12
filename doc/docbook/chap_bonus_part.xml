@@ -1,0 +1,479 @@
+<?xml version="1.0" ?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.docbook.org/xml/4.5/docbookx.dtd">
+<chapter id="chap_bonus">
+  <chapterinfo>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="versionfile"/>
+    <author>
+      <firstname>Bastien</firstname>
+      <surname>Chevreux</surname>
+      <email>bach@chevreux.org</email>
+    </author>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="copyrightfile"/>
+  </chapterinfo>
+
+  <blockquote>
+    <attribution>Solomon Short</attribution>
+    <para>
+      <emphasis><quote>I'm all in favour of keeping dangerous weapons out of the hand of fools. Let's
+      start with typewriters.</quote></emphasis>
+    </para>
+  </blockquote>
+
+
+  <title>Bonus material</title>
+  <subtitle>The ups and downs of writing an Open Source sequence assembler</subtitle>
+
+  <sect1 id="sect_bonus_atinseq">
+    <title>
+      Death of the ATINSEQ "bug"
+    </title>
+    <sidebar>
+      <para>
+	My warmest thanks to Bob Bruccoleri, Lionel Guy, Arun Rawat, Nestor
+	Zaburannyi and numerous other people - who either declined being
+	thanked publicly or could not respond before I wrote this (you still
+	can, just drop me a mail) - who all donated time and computing power
+	to hunt down a "bug" (see <ulink
+	url="http://www.freelists.org/post/mira_talk/Call-for-help-bughunting"/>)
+	which, in the end, turned out to be a RAM defect on my development
+	machine.
+      </para>
+      <para>
+	Because I haven't much apart some words to thank them, and because I
+	felt like it ... this is the story on how the problem got nailed. It
+	involves lots of hot electrons, a lot less electrons without spin
+	which keel over, the end of a hunt for invisibugs of the imaginary
+	sort, 454, mutants (but no zombies), Illumina, some spider monkeys,
+	PacBio, a chat with Sherlock and, of course, an anthropomorphed star.
+      </para>
+      <para>
+	In short: don't read if you've got more interesting things to do on a
+	Friday morning or afternoon.
+      </para>
+    </sidebar>
+    <para>
+      ...
+    </para>
+    <para>
+      Life's a rollercoaster and there are days - or weeks - where moral is on
+      a pretty hefty ride: ups and downs in fast succession ... and the
+      occasional looping here and there.
+    </para>
+    <para>
+      Today was a day where I had - the first time ever - ups and downs
+      occurring absolutely simultaneously. Something which is physically
+      impossible, I know, but don't tell any physicist or astronomist about
+      that or else they'll embark you on a lengthy discussion on how
+      isochronicity is a myth by telling you stories on lightning, thunder and
+      two poor sobs at the ends of a 300,000 km long train. But I digress ...
+    </para>
+    <para>
+      So, my lowest low and highest high today were at 09:17 this morning when
+      I prepared leaving for work (hey, it's vacation time, almost everyone
+      else is out and I can go a bit later than usual, right?). A few minutes
+      earlier I had just told MIRA to run on the very same PacBio test set she
+      had successfully worked on the night before to see how stable assemblies
+      with this kind of data are (quite well so far, thank you for asking).
+    </para>
+    <para>
+      Reaching out to switch off the monitor and leave, MIRA suddenly came
+      back with a warm and cosy little error message which she's taken the
+      habit lately to have a mischievous pleasure to present. This time, she
+      claimed there had been an illegal base in the FASTQ file.
+    </para>
+    <para>
+      <emphasis><quote>Hey, MIRA, wait a minute!</quote></emphasis> I
+      thought. <emphasis><quote>Yesterday and tonight you ran on the very same
+      data file with the very same parameters for two times three hours and
+      even gave me back some nice assembly results. And now you claim that the
+      INPUT data has errors?! Come on, you're not serious, are you?</quote></emphasis>
+    </para>
+    <para>
+      As a side note: she then just gave me back <emphasis>that
+      look</emphasis>, you know, the one with those big open eyes almost
+      hidden behind by long, dark lashes ... and slightly flushed cheeks
+      accompanied by pointed lips. As if she wanted to say <emphasis><quote>I
+      *am* innocent and *I* did no nothing wrong, you
+      disbeliever!</quote></emphasis> (<ulink
+      url="http://24.media.tumblr.com/tumblr_lj3efmmDL01qasfhmo1_400.png"/>). This
+      usually announces a major pouting round of hers, something which I'm not
+      looking forward to, I can tell you.
+    </para>
+    <para>
+      Two restarts later with the same negative result (MIRA can be quite
+      stubborn at times) I had to give in and decided to sit down again and
+      investigate the problem.
+    </para>
+    <para>
+      <emphasis><quote>So ... read number 317301 at base position 246, eh?
+      Let's have a look."</quote></emphasis>
+    </para>
+    <para>
+      *clickedyclick* 
+    </para>
+    <para>
+      <emphasis><quote>Read 317299, 317300 ... 317301 ... there we are.</quote></emphasis>
+    </para>
+    <para>
+      *hackedyhack* 
+    </para>
+    <para>
+      <emphasis><quote>Base position 239, 240 ... now: <literal>C G G G T C F
+      A A</literal> ... wait! What? 'F' ... <emphasis>'F'</emphasis>?!? That's
+      not even an IUPAC code. What's a frakking 'F' doing in the FASTQ input
+      file?!</quote></emphasis> (see <ulink
+      url="http://www.youtube.com/watch?v=r7KcpgQKo2I"/>, conditionally safe
+      for work).
+    </para>
+    <para>
+      Indeed, 'F' is not IUPAC. Even more mysterious to me was the fact that
+      just the night before it apparently had not been there. Or had it? I now
+      was pretty unsure where this path would lead me, as if I had unlocked a
+      door with the key of imagination. Beyond it: another dimension - a
+      dimension of sound, a dimension of sight, a dimension of mind. I was
+      moving into a land of both shadow and substance, of things and ideas. I
+      just crossed over into ... the Twilight Zone ("G#-A-G#-E-G#-A-G#-E" at
+      128 bpm, for more info see <ulink
+      url="http://www.youtube.com/watch?v=zi6wNGwd84g"/>).
+    </para>
+    <para>
+      Where was I? Ah, yes, the 'F'.
+    </para>
+    <para>
+      So, how did that 'F' appear in the FASTQ, and where had it been the
+      night before? Out to town, ashamed of not being a nucleotide and getting
+      a hangover without telling anyone up-front? Or did it subreptitiously
+      sneak in from the outside, murdering an innnocent base and taking its
+      place in hope no one would note? I didn't have the slightest clue, but I
+      was determined to find that out.
+    </para>
+    <para>
+      First thing to check: the log files of the successful runs the previous
+      night. MIRA's very chatty at times and tidying up after her has always
+      been a chore (there, I'm feeling <emphasis>that look</emphasis> again in
+      my back), but now was one of those occasions where not gagging her paid
+      out as poking around the files she left behind proved to be
+      interesting. Read 317301 showed the following at the position in doubt:
+      "C G G G T C ___G___ A A" Without question: a 'G', and no 'F' in sight!
+    </para>
+    <para>
+      So MIRA had been right and the 'G' in the sequence of the file
+      mysteriously mutated into an 'F' overnight. I must admit that I had
+      grown suspicious of her in the past few weeks as she had seemed to
+      become uncooperative at times. In particular she had been screaming at
+      me a couple of times during rehearsal of combined 454 and Illumina
+      assemblies for the premiere of her new 3.4.0 show. She claimed that some
+      uninvited spider monkeys (see <ulink
+      url="http://dict.leo.org/ende?search=Klammeraffe"/>) had frightened her
+      so much she refused to continue to work and simply scribbled the '@'
+      sign all over her error messages. I had not been able to find out how
+      those critters entered MIRA's data and had even enrolled a few
+      volunteers to rehearse different assemblies with MIRA ... to no avail as
+      she'd performed without flaws there.
+    </para>
+    <para>
+      While reconsidering all these things, something suddenly made *click*.
+    </para>
+    <para>
+      The character 'G' has the hexadecimal ASCII table code 0x47 (or in 8-bit
+      binary: 01000111). 'F', as preceding character of 'G' and the table
+      having some logic behind it, has the hex code 0x46, which is 01000110 in
+      8-bit binary.
+    </para>
+    <para>
+      The ATINSEQ-bug (@-in-seq) I had been desperately hunting in the past
+      few weeks (and which had held up the release of MIRA 3.4.0) was due to
+      the "@" character sometimes mysteriously appearing in sequences during
+      the assembly of MIRA. The '@' sign in the ASCII table has the hex code
+      0x40 (binary: 01000000). In the ASCII table, there is one important
+      character for DNA assembly which is very near to the '@' character ...,
+      so near that it is the successor of it: the 'A' character. Hexadecimal
+      0x41, binary 01000001.
+    </para>
+    <para>
+      I had always thought that a bug in MIRA somehow corrupted the sequence,
+      but what if ... what if MIRA was actually really innocent?! I had never
+      taken this possibility into account as any other explanation attempt
+      would have seemed too far stretched.
+    </para>
+    <para>
+      But now I had a similar effect *outside* of MIRA, in the Linux filesystem!
+    </para>
+    <table tocentry="0" frame="none" rowheader="firstcol">
+      <tgroup cols='5' align='left' colsep='1' rowsep='1'>
+	<colspec colname='c1'/>
+	<colspec colname='c2'/>
+	<colspec colname='c3'/>
+	<colspec colname='c4'/>
+	<colspec colname='c5'/>
+	<thead>
+	  <row>
+	    <entry colsep='0' rowsep='0'/>
+	    <entry namest="c2" nameend="c3" align="center">Filesystem</entry>
+	    <entry namest="c4" nameend="c5" align="center">MIRA</entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry>before</entry>
+	    <entry>G</entry>
+	    <entry>01000111</entry>
+	    <entry>A</entry>
+	    <entry>01000001</entry>
+	  </row>
+	  <row>
+	    <entry>after</entry>
+	    <entry>F</entry>
+	    <entry>01000110</entry>
+	    <entry>@</entry>
+	    <entry>01000000</entry>
+	  </row>
+	</tbody>
+      </tgroup>
+    </table>
+    <para>
+      The difference between the characters is in both cases exactly 1 bit
+      which changes, and it's even at the same position (last one in a byte)
+      and changing into the same direction (from '1' to '0').
+    </para>
+    <para>
+      I was now sure I was on to something: bit decay (see <ulink url="http://en.wikipedia.org/wiki/Bit_rot"/>)
+    </para>
+    <para>
+      But how could I prove it? Well, elementary my dear Watson: When you have
+      eliminated the impossible, whatever remains, however improbable, must be
+      the truth.
+    </para>
+    <para>
+      Suspects:
+    </para>
+    <itemizedlist>
+      <listitem>
+	the problem is caused either by MIRA or one of the components of the
+	comeputer: CPU, disk, disk/dma controller, RAM.
+      </listitem>
+    </itemizedlist>
+    <para>
+      Facts:
+    </para>
+    <itemizedlist>
+      <listitem>
+	an artefact was very sporadically observed during MIRA runs where sequences
+	(containing lot's of 'A') suddenly contained at least one '@'. This occurred
+	after several passes, i.e., not on loading.
+      </listitem>
+      <listitem>
+	an artefact was observed in the Linux filesystem where a 'G' mutated
+	suddenly and overnight to a 'F'.
+      </listitem>
+      <listitem>
+	both artefacts are based on one bit flipping, perhaps even to the same
+	direction all the time.
+      </listitem>
+      <listitem>
+	when loading data, MIRA does not use mmap() to mirror data from disk, but
+	physically creates a copy of that data.
+      </listitem>
+      <listitem>
+	MIRA loaded the data twice flawlessly before the artefact in the filesystem
+	occurred.
+      </listitem>
+    </itemizedlist>
+    <para>
+      Deduction 1:
+    </para>
+    <itemizedlist>
+      <listitem>
+	MIRA is innocent. The artefact in the filesystem happened outside of the
+	address space of MIRA and therefore outside her control. MIRA cannot be
+	responsible as the Linux kernel would have prevented her from writing to
+	some memory she was not allowed to.
+      </listitem>
+    </itemizedlist>
+    <para>
+      Further facts:
+    </para>
+    <itemizedlist>
+      <listitem>
+	the system MIRA ran on had 24 GiB RAM
+      </listitem>
+      <listitem>
+	even with a KDE desktop, KMail, Firefox, Emacs and a bunch of terminals
+	open, there is still a lot of free RAM (some 22 to 23 GiB).
+      </listitem>
+      <listitem>
+	Linux uses free RAM to cache files
+      </listitem>
+    </itemizedlist>
+    <para>
+      Deduction 2:
+    </para>
+    <itemizedlist>
+      <listitem>
+	when loading the small FASTQ input file in the morning, Linux put it into
+	the file cache in RAM. As MIRA almost immediately stopped without taking
+	much memory, the file stayed in cache.
+      </listitem>
+    </itemizedlist>
+    <para>
+      Further facts:
+    </para>
+    <itemizedlist>
+      <listitem>
+	the drive with the FASTQ file is run in udma6 mode. That is, when loading
+	data the controller moves the data directly from disk to RAM without going
+	via the processor
+      </listitem>
+      <listitem>
+	subsequent "loading" of the same FASTQ into MIRA or text viewer like 'less'
+	showed the 'F' character always appearing at the same place.
+      </listitem>
+    </itemizedlist>
+    <para>
+      Deduction 3:
+    </para>
+    <itemizedlist>
+      <listitem>
+	the CPU is innocent! It did not touch the data while it was transferred from
+	disk to RAM and it afterwards shows always the same data.
+      </listitem>
+      <listitem>
+	the disk controllers and UDMA controller are innocent! Some of the glitches observed in
+	previous weeks occurred during runs of MIRA, inside the MIRA address space,
+	long after initial loading, when UDMA had already finished their job.
+      </listitem>
+    </itemizedlist>
+    <para>
+      From deductions 1, 2 &amp; 3 follows:
+    </para>
+    <itemizedlist>
+      <listitem>
+	it's not MIRA, not the CPU, nor the disk &amp; UDMA controller
+      </listitem>
+    </itemizedlist>
+    <para>
+      Suspects left:
+    </para>
+    <itemizedlist>
+      <listitem>
+	RAM
+      </listitem>
+      <listitem>
+	Disk
+      </listitem>
+    </itemizedlist>
+    <para>
+      Well, that can be easily tested: shut down the computer, restart it and
+      subsequently look at the file again. No file cache in RAM can survive
+      that procedure. Yes, I know, there are some magic incantations one can
+      chant to force Linux to flush all buffers and clear all caches, but in
+      that situation I was somehow feeling conservative.
+    </para>
+    <para>
+      Lo and behold, after the above procedure the FASTQ file showed an all
+      regular, good old nucleic acid 'G' in the file again. No 'F' to be seen
+      anywhere.
+    </para>
+    <para>
+      Deduction 4:
+    </para>
+    <itemizedlist>
+      <listitem>
+	the disk is innocent.
+      </listitem>
+    </itemizedlist>
+    <para>
+      Deduction 5:
+    </para>
+    <itemizedlist>
+      <listitem>
+	as all other components have been ruled out, the RAM is faulty.
+      </listitem>
+    </itemizedlist>
+    <para>
+      As I wrote: life's a rollercoaster.
+    </para>
+    <variablelist>
+      <varlistentry>
+	<term>
+	  Up:
+	</term>
+	<listitem>
+	  MIRA is innocent! There, she's giving me "that look" again and one would
+	  have to be blind to oversee the "told you so" she's sending over with
+	  it.
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  Down:
+	</term>
+	<listitem>
+	  My RAM's broken and I need to replace it. Bought it only last March,
+	  should still be under guarantee, but still ... time and effort.
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  Up:
+	</term>
+	<listitem>
+	  I did not sell my old RAMs, so I can continue to work
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  Down:
+	</term>
+	<listitem>
+	  12 GiB feels soooooo tight after having had 24.
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  Up:
+	</term>
+	<listitem>
+	  I can wrap up 3.4.0 end of this week with good conscience!
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  Down:
+	</term>
+	<listitem>
+	  How the hell am I gonna tie all loose bits and pieces in the
+	  documentation in the next 24 to 48 hours?
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  Looping:
+	</term>
+	<listitem>
+	  later that morning MIRA again helped me at work to locate in a
+	  couple of minutes a mutation in an eukaryotic strain important for
+	  one of our Biotech groups. Oh boy, do I love sequencing and MIRA.
+	</listitem>
+      </varlistentry>
+    </variablelist>
+    <para>
+      Have a nice Friday and a good week-end,
+    </para>
+    <para>
+      Bastien
+    </para>
+    <para>
+      <emphasis role="bold">PS:</emphasis> while celebrating with MIRA
+      tonight, I expressed my fear that some people might find it strange that
+      I anthropomorphise her. They could think I went totally nuts or that I
+      needed an extended vacation (which I do btw). She assured me that no
+      one would dare thinking I were insane ... and if so, she would come over
+      to their place and give them <emphasis>that look</emphasis>.
+    </para>
+    <para>
+      How utterly reassuring.
+    </para>
+  </sect1>
+</chapter>
+

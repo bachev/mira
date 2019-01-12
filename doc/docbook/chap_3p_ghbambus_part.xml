@@ -1,0 +1,409 @@
+<?xml version="1.0" ?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.docbook.org/xml/4.5/docbookx.dtd">
+<chapter id="chap_3p_ghbambus">
+  <chapterinfo>
+    <author>
+      <personname>
+	<firstname>Gregory</firstname>
+	<surname>Harhay</surname>
+      </personname>
+      <email>gregory.harhay@ars.usda.gov</email>
+      <affiliation>
+	<orgdiv>
+	  Animal Health Research Unit
+	</orgdiv>
+	<orgname>
+	  USDA-ARS-Meat Animal Research Center
+	</orgname>
+	<street>
+	  Clay Center, NE 6890
+	</street>
+      </affiliation>
+    </author>
+    <copyright><year>2010</year><holder>Gregory Harhay</holder></copyright>
+  </chapterinfo>
+
+  <title>Scaffolding MIRA 454 contigs using 454 paired-end data and BAMBUS</title>
+  <sect1 id="sect_3p_installbambus">
+    <title>Installing BAMBUS</title>
+    <para>
+      Note that you'll have to do this only once.
+    </para>
+    <sect2 id="sect_3p_ibinstallamos">
+    <title>Installing AMOS</title>
+    <note>
+      Download and use <ulink
+      url="http://sourceforge.net/projects/amos/files/amos/2.0.8/">amos-2.0.8</ulink>,
+      because the <command>ace2contig</command> script created by the
+      installer is necessary to convert MIRA <filename>.ace</filename> file
+      into a contig file that can be used by BAMBUS; later AMOS-short-tgz
+      versions of AMOS don’t create this script.
+    </note>
+    <para>
+      Follow directions for installing amos 2.0.8. I am installing on a 64-bit
+      Redhat Enterprise Linux 5. The configure script complains that Qt
+      doesn’t work correctly and GUI apps won’t run properly. I ignore this
+      because I’m really only interested in the ace2contig script. For BAMBUS
+      to run correctly, the BAMBUS team recommends you should pre-install:
+    </para>
+    <itemizedlist>
+      <listitem>XML::Parser perl module from <ulink url="http://www.cpan.org/"/></listitem>
+      <listitem>Config::IniFiles perl module from <ulink url="http://www.cpan.org/"/></listitem>
+      <listitem>GraphViz package from <ulink url="http://www.graphviz.org/"/></listitem>
+    </itemizedlist>
+    <para>
+      Just to be safe I also pre-installed
+    </para>
+    <itemizedlist>
+      <listitem>GraphViz perl module from <ulink url="http://www.graphviz.org/"/></listitem>
+    </itemizedlist>
+    </sect2>
+    <sect2 id="sect_3p_ibinstallbabmbus">
+    <title>Installing BAMBUS</title>
+    <para>
+      Download bambus-2.33 and decompress. Edit Makefile file to set
+      environment variables (within script) for BASEDIR &amp; PERL.
+    </para>
+    <warning>
+      <para>
+	There is a bug in the installation source scripts goBabmus.pl
+      </para>
+      <literal>
+	bambus-2.33/src/goBabmus.pl line 22 $ENV{PERLLIB} .= ":$BAMBUS_BASE/lib";
+      </literal>
+      <para>
+	should change PERLLIB to PERL5LIB
+      </para>
+      <literal>
+	$ENV{PERL5LIB} = ":$BAMBUS_BASE/lib";
+      </literal>
+    </warning>
+    <para>
+      Follow the directions for BAMBUS installation, don’t forget to edit the
+      Makefile BASEDIR variable and to set the environmental variable PERL as
+      directed in <ulink url="http://sourceforge.net/apps/mediawiki/amos/index.php?title=Bambus_Manual"/>.
+    </para>
+    <para>
+      Run the test case as directed in the manual to make sure BAMBUS is
+      installed properly.
+    </para>
+    </sect2>
+    <sect2 id="sect_3p_ibtroubleshooting">
+      <title>Troubleshooting</title>
+      <sect3 id="sect_3p_ibtsubuntu9">
+	<title>For Ubuntu 9 users</title>
+	<para>(anonymous user contribution, added 3/10)</para>
+	<para>
+	  There are problems making the grommit executable. They are remedied by
+	  the following procedure: in the <filename>bambus-2.33/src/TIGR_Foundation_CC</filename>
+	  directory apply the following changes
+	</para>
+	<variablelist>
+	  <varlistentry>
+	    <term>
+	      ConfigFile.hh
+	    </term>
+	    <listitem>
+	      add the line: <literal>#include &lt;string.h&gt;</literal>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term>
+	      Logger.hh
+	    </term>
+	    <listitem>
+	      add the line: <literal>#include &lt;stdlib.h&gt;</literal>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term>
+	      OptionResult.hh
+	    </term>
+	    <listitem>
+	      add the line: <literal>#include &lt;stdlib.h&gt;</literal>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term>
+	      Options.hh
+	    </term>
+	    <listitem>
+	      add the line: <literal>#include &lt;string.h&gt;</literal>
+	    </listitem>
+	  </varlistentry>
+	</variablelist>
+	<para>
+	  After changes, remake bambus from the the
+	  bambus-2.33 directory run
+	</para>
+	<screen>make clean
+make all
+make install</screen>
+      </sect3>
+      <sect3 id="sect_3p_ibtssuse11.2">
+	<title>For SUSE 11.2 users</title>
+	<para>(from Lionel Guy <email>guy.lionel@gmail.com</email>, added 7/27/10)</para>
+	<para>
+	  To be able to compile, had to further modify the following files in
+	  the <filename>bambus-2.33/src/TIGR_Foundation_CC</filename> directory:
+	</para>
+	<variablelist>
+	  <varlistentry>
+	    <term>
+	      FileSystem.cc
+	    </term>
+	    <listitem>
+	      <para>
+		in function FileSystem::isCreatableFile (line 58), changed
+	      </para>
+	      <literal>
+		char * end_of_path = strrchr(filename, PATH_DELIMINATOR);
+	      </literal>
+	      <para>to</para>
+	      <literal>
+		const char * end_of_path = strrchr(filename, PATH_DELIMINATOR);
+	      </literal>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term>
+	      Options.cc
+	    </term>
+	    <listitem>
+	      add the line: <literal>#include &lt;cstdio&gt;</literal>
+	    </listitem>
+	  </varlistentry>
+	</variablelist>
+      </sect3>
+      <sect3 id="sect_3p_ibtsuntangle">
+	<title>Problem with untangle.pl</title>
+	<para>
+	  It has been reported that in some installations that the untangle
+	  script doesn’t run properly and generates the following error:
+	</para>
+	<literal>
+	  Can't locate TIGR/Foundation.pm in @INC
+	</literal>
+	<para>
+	  to locate Foundation.pm type:
+	</para>
+	<screen><userinput>locate Foundation.pm</userinput></screen>
+       <para>
+	 the output of which will be the path to your Foundation.pm. In my
+	 case, it is
+       </para>
+       <screen>/usr/local/share/apps/bambus-2.33/lib/TIGR/Foundation.pm</screen>
+       <para>
+	 Include this path at the beginning of the <filename>untangle.pl</filename> script as in
+       </para>
+       <screen>use lib “/usr/local/share/apps/bambus-2.33/lib/TIGR/Foundation.pm”;</screen>
+      </sect3>
+    </sect2>
+  </sect1>
+  <sect1 id="sect_3p_miraassembly">
+    <title>Assemble with MIRA</title>
+    <para>
+      Before you begin you should have a fasta file of the paired-end (PE)
+      adaptor sequence, the PE and shotgun SFF files, and know the mean and
+      standard deviation of PE construct (get from lab, likely a sizing
+      gel). Then follow the <ulink url="http://mira-assembler.sourceforge.net/docs/DefinitiveGuideToMIRA.html#sect_454_walkthrough:_combined_unpaired_and_pairedend_assembly_of_brucella_ceti">instructions</ulink> of the MIRA manual for combined
+      paired-end /shotgun MIRA assembly, of which a simplified version is
+      summarized below.
+    </para>
+    <sect2 id="sect_3p_mapreppe">
+      <title>Prepare paired-end data for assembly</title>
+      <para>
+	Issue something the something like the following command:
+      </para>
+      <screen><userinput>sff_extract  -l ../paired_end_adaptor.fasta  F04Y2AI01.sff -i "insert_size:25000,insert_stdev:9000" -o non_0157</userinput></screen>
+      <para>
+	to create the following files:
+      </para>
+      <screen>-rw-rw-r-- 1 greg greg 125438250 Aug 24 16:59 non_0157.xml
+-rw-rw-r-- 1 greg greg 136943770 Aug 24 16:59 non_0157.fastq</screen>
+      <para>
+	To check if everything went well, type
+      </para>
+      <screen>><userinput>less non_0157.xml</userinput></screen>
+      <para>
+	to get something like:
+      </para>
+      <screen>&lt;?xml version="1.0"?&gt;
+&lt;trace_volume&gt;
+    &lt;trace&gt;
+        &lt;trace_name&gt;F04Y2AI01AIS9Z.fn&lt;/trace_name&gt;
+        &lt;insert_stdev&gt;9000&lt;/insert_stdev&gt;
+        &lt;insert_size&gt;25000&lt;/insert_size&gt;
+        &lt;clip_vector_left&gt;5&lt;/clip_vector_left&gt;
+        &lt;clip_vector_right&gt;58&lt;/clip_vector_right&gt;
+    &lt;/trace&gt;
+    &lt;trace&gt;
+        &lt;trace_name&gt;F04Y2AI01AJLJM.r&lt;/trace_name&gt;
+        &lt;insert_stdev&gt;9000&lt;/insert_stdev&gt;
+        &lt;insert_size&gt;25000&lt;/insert_size&gt;
+        &lt;clip_vector_right&gt;2&lt;/clip_vector_right&gt;
+        &lt;template_id&gt;F04Y2AI01AJLJM&lt;/template_id&gt;
+        &lt;trace_end&gt;r&lt;/trace_end&gt;
+    &lt;/trace&gt;
+    &lt;trace&gt;
+        &lt;trace_name&gt;F04Y2AI01AJLJM.f&lt;/trace_name&gt;
+        &lt;insert_stdev&gt;9000&lt;/insert_stdev&gt;
+        &lt;insert_size&gt;25000&lt;/insert_size&gt;
+        &lt;clip_vector_right&gt;130&lt;/clip_vector_right&gt;
+        &lt;template_id&gt;F04Y2AI01AJLJM&lt;/template_id&gt;
+        &lt;trace_end&gt;f&lt;/trace_end&gt;
+    &lt;/trace&gt;</screen>
+      <para>
+	Looks good, PE data in the XML file.
+      </para>
+    </sect2>
+    <sect2 id="sect_3p_maprepshotgun">
+      <title>Prepare shotgun data for assembly</title>
+      <para>
+	Now, work on shotgun SFF files and append (use -a) to PE data in fasta, qual, xml files:
+      </para>
+      <screen><userinput>sff_extract -Q -a  FAPPU2401.sff FA79DFG01.sff E95K6EU01.sff  -o non_0157</userinput></screen>
+      <para>
+	to get something like
+      </para>
+      <screen>-rw-rw-r-- 1 greg greg 230827474 Aug 24 17:06 non_0157.xml
+-rw-rw-r-- 1 greg greg 322941190 Aug 24 17:06 non_0157.fastq</screen>
+      <para>
+	Notice how the file sizes have changed to accommodate the shotgun
+	seqs? Now change file names to make them MIRA friendly:
+      </para>
+      <screen>><userinput>mv non_0157.xml   non_0157_traceinfo_in.454.xml</userinput>
+><userinput>mv non_0157.fastq non_0157_in.454.fastq</userinput></screen>
+    </sect2>
+    <sect2 id="sect_3p_maassemble">
+      <title>Assemble</title>
+      <para>
+	Fire off MIRA with something like this:
+      </para>
+      <screen><userinput>mira --project=non_0157 --job=denovo,genome,accurate,454 >&amp;log_assembly &amp;</userinput></screen>
+      <para>
+	which generates - amongst others - result files like these:
+      </para>
+      <screen>-rw-rw-r-- 1 greg greg 1612330844 Aug 25 04:49 non_0157_out.caf
+-rw-rw-r-- 1 greg greg   19702684 Aug 25 04:49 non_0157_out.wig
+-rw-rw-r-- 1 greg greg   20298482 Aug 25 04:49 non_0157_out.unpadded.fasta.qual
+-rw-rw-r-- 1 greg greg    6820644 Aug 25 04:49 non_0157_out.unpadded.fasta
+-rw-rw-r-- 1 greg greg   20342658 Aug 25 04:49 non_0157_out.padded.fasta.qual
+-rw-rw-r-- 1 greg greg    6841175 Aug 25 04:49 non_0157_out.padded.fasta
+-rw-rw-r-- 1 greg greg  708184237 Aug 25 04:50 non_0157_out.ace</screen>
+      <para>
+	You'll be using the <filename>.ace</filename> file with BAMBUS.
+      </para>
+    </sect2>
+  </sect1>
+  <sect1 id="sect_3p_runbambus">
+    <title>Scaffolding MIRA results with BAMBUS</title>
+    <sect2 id="sect_3p_rbgenerateamoscontigs">
+      <title>Generate AMOS contigs</title>
+      <para>
+	Convert MIRA <filename>.ace</filename> file to contig file for BAMBUS
+	using AMOS’s ace2contig:
+      </para>
+      <screen><userinput>ace2contig -i non_0157_out.ace -o non_0157_out.contig</userinput></screen>
+      <para>
+	to produce contig file <filename>non_0157_out.contig</filename>
+      </para>
+    </sect2>
+    <sect2 id="sect_3p_rbsetupbambusconfig">
+      <title>Setup BAMBUS configuration file</title>
+      <para>
+	Read the BAMBUS <ulink
+	url="http://sourceforge.net/apps/mediawiki/amos/index.php?title=Bambus_Manual#The_configuration_file">configuration
+	file help</ulink>.
+      </para>
+      <note>
+	The mingroupsize switch/parameter doesn’t
+	appear to work. This switch is supposed to control the minimum size
+	scaffold the application returns. Currently, it returns all scaffolds
+	with lots of cruft. Bug report is in about this.
+      </note>
+      <para>
+	The configuration file is <filename>non_O157_out.conf</filename>, contents
+	below:
+      </para>
+      <screen># Priorities
+priority ALL 1
+
+# The following lines can be un-commented to specify certain
+# per-library settings
+
+# Redundancies
+# redundancy lib_some 1
+
+# allowed error
+# error MUMmer 0.5
+
+# min group size
+mingroupsize 50000
+
+# Global redundancy
+redundancy 2
+
+# overlaps allowed
+# overlaps MUMmer Y</screen>
+    </sect2>
+    <sect2 id="sect_3p_rbsetupmatesfile">
+      <title>Setup mates file</title>
+      <para>
+	Follow <ulink
+	url="http://sourceforge.net/apps/mediawiki/amos/index.php?title=Bambus_Manual#Mate-pair_Information">directions</ulink>
+	for generating mates file. Mates file is non_0157_out.mates (tab
+	delimited!), contents below
+      </para>
+      <screen>library twentyfiveKB    9000    40000   (.........).*
+pair    (.*)\.f$</screen>
+    </sect2>
+    <sect2 id="sect_3p_rbrunbambus">
+      <title>Run BAMBUS</title>
+<screen><userinput>goBambus -c non_0157_out.contig -m non_0157_out.mates -C non_O157_out.conf -o non_O157_bambus</userinput></screen>
+      <para>
+	Once this has completed, BAMBUS will have produce a bunch of files
+	looking similar to this:
+      </para>
+<screen>-rw-rw-r-- 1 greg greg  91717540 Aug 26 18:18 non_O157_bambus.detective.xml
+-rw-rw-r-- 1 greg greg 103560781 Aug 26 18:19 non_O157_bambus.evidence.xml
+-rw-rw-r-- 1 greg greg        19 Aug 26 18:19 non_O157_bambus.lib
+-rw-rw-r-- 1 greg greg   4036295 Aug 26 18:19 non_O157_bambus.inp
+-rw-rw-r-- 1 greg greg        47 Aug 26 18:19 non_O157_bambus.grommit.conf
+-rw-rw-r-- 1 greg greg       315 Aug 26 18:19 non_O157_bambus.default.conf
+-rw-rw-r-- 1 greg greg   3570691 Aug 26 18:20 non_O157_bambus.out.xml
+-rw-rw-r-- 1 greg greg     79516 Aug 26 18:20 non_O157_bambus.sum
+-rw-rw-r-- 1 greg greg       633 Aug 26 18:20 non_O157_bambus.stats
+-rw-rw-r-- 1 greg greg    197215 Aug 26 18:20 non_O157_bambus.oo
+-rw-rw-r-- 1 greg greg   1217009 Aug 26 18:20 non_O157_bambus.dot
+-rw-rw-r-- 1 greg greg   4213072 Aug 26 18:20 non_O157_bambus.details
+-rw-rw-r-- 1 greg greg      3221 Aug 26 18:20 goBambus.log</screen>
+      <para>
+	If you want a fasta file produced of the scaffolds, read <ulink
+	url="http://sourceforge.net/apps/mediawiki/amos/index.php?title=Bambus_Manual#Getting_more_.28or_less.29_information_from_the_output"/>. A
+	fasta file of the contig sequences (unpadded) generated by MIRA is
+	required. This file is <filename>non_0157_out.unpadded.fasta</filename>, and is used in the
+	command below:
+      </para>
+    <screen><userinput>printScaff
+  -e non_O157_bambus.evidence.xml
+  -s non_O157_bambus.out.xml
+  -l non_O157_bambus.lib
+  -f non_0157_out.unpadded.fasta
+  -merge -o non_O157_bambus_scaffold -page -dot</userinput></screen>
+      <para>
+	which gives you this
+      </para>
+      <screen>-rw-rw-r-- 1 greg greg       633 Aug 27 08:31 non_O157_bambus_scaffold.stats
+-rw-rw-r-- 1 greg greg   6837159 Aug 27 08:31 non_O157_bambus_scaffold.fasta
+-rw-rw-r-- 1 greg greg   1217042 Aug 27 08:31 non_O157_bambus_scaffold.dot</screen>
+      <para>
+	You can edit the fasta and dot files to keep the desired scaffolds and
+	get rid of the cruft. In this case, 1 giant 5.4 MB scaffold was
+	produced (this is what we want ) and hundreds sub-1 KB less desirable
+	shorter scaffolds of little interest. You can use GraphVis’s dot and
+	dotty to visualize the scaffolding dot plots.
+      </para>
+    </sect2>
+  </sect1>
+</chapter>

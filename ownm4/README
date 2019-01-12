@@ -1,0 +1,128 @@
+Autoconf Macro Archive
+======================
+
+-----------------------------------------------------------------
+
+:Macro Index:     `By Category <macros-by-category.html>`_
+:Latest Release:  autoconf-archive-2006-10-15.tar.bz2_
+
+-----------------------------------------------------------------
+
+Synopsis
+--------
+
+ The `Autoconf Macro Archive <http://autoconf-archive.cryp.to/>`_
+ aims to provide a collection of reusable Autoconf_ macros as
+ free software. The archive currently features more than 300
+ macros which perform portability tests ranging from compiler
+ support for weird language extensions to automatic generation of
+ sophisticated Automake_ rules. All these macros have been
+ contributed by friendly supporters of the cause from all over
+ the Internet; this archive is merely a distribution of other
+ people's efforts.
+
+How To Contribute
+-----------------
+
+ Have you written a macro and would like to share it? Great! Just
+ write up a brief explanation how to use it, send it off to
+ <simons@cryp.to>, and wait for me to get back to you with either
+ an report of success or lots of questions.
+
+ If you feel like being particularly helpful, you can do me the
+ favor and format the macro in the archive's internal markup
+ before submitting it::
+
+  dnl @synopsis AX_MY_MACRO(param1 [, param1])
+  dnl
+  dnl Describe what test the macro performs,
+  dnl what the parameters do, and how the
+  dnl result of running the macro can be used.
+  dnl
+  dnl An empty "dnl" line separates paragraphs.
+  dnl
+  dnl   An indented line is a block quote,
+  dnl   which is nice for distinguishing
+  dnl   examples from other text.
+  dnl
+  dnl @author Joe Doe <joe@example.org>
+  dnl @version 2006-10-15
+  dnl @license AllPermissive
+
+  AC_DEFUN([AX_MY_MACRO],[
+  ...
+  ])
+
+ Please submit *one file per macro*. If you have a family of
+ macros that depend on each other, denote that by calling
+ ``AC_REQUIRE``; then ``aclocal(1)`` will collect all of them
+ automatically no matter over how many files they are spread.
+
+ The comprehensive list of all keywords understood by the
+ formatting engine is:
+
+ ``@category keyword``
+
+     The keyword may be any of ``Automake``, ``C``,
+     ``CrossCompilation``, ``Cxx``, ``Fortran``,
+     ``InstalledPackages``, ``Java``, ``LaTeX``, or ``Misc``. You
+     can assign a macro into more than one category by specifying
+     multiple ``@category`` lines::
+
+      dnl @category C
+      dnl @category Cxx
+
+ ``@synopsis a line of free text``
+
+     The synopsis line should provide the usual specification of
+     the macro's arguments. If you think it's useful, you can
+     provide more than one ``@synopsis``.
+
+ ``@summary a line of free text``
+
+     Give a one-sentence explanation of what the macro does. This
+     short summary will be displayed on the generated index
+     pages.
+
+ ``@version yyyy-mm-dd``
+
+     Every macro in the archive is versioned with the date of the
+     its last modification. For most macros, that is the day of
+     submission.
+
+ ``@author My Name <my.address@example.net>``
+
+     This tag accepts free text, actually, so you can write
+     whatever you want, but it's good practice to use the common
+     format shown above. Multiple ``@author`` lines are
+     permitted.
+
+ ``@license keyword``
+
+     The keyword may be any of ``AllPermissive``, ``GPL2``,
+     ``GPLWithACException``, or ``BSD``. The Free Software
+     Foundation recommends_ the all-permissive license for
+     Autoconf macros.
+
+Copyleft
+--------
+
+ Compilation Copyright (c) 2006 by Peter Simons
+ <simons@cryp.to>. The Autoconf Macro Archive is
+ licensed according to the terms of the `GNU General Public
+ License <http://www.gnu.org/licenses/gpl.html>`_.
+
+ All macros are copyrighted by their respective authors.
+ Please refer to the individual files for details.
+
+
+.. References used in the text above
+.. .................................
+
+.. _Autoconf: http://www.gnu.org/software/autoconf/
+
+.. _Automake: http://sources.redhat.com/automake/
+
+.. _autoconf-archive-2006-10-15.tar.bz2: http://autoconf-archive.cryp.to/autoconf-archive-2006-10-15.tar.bz2
+
+.. _recommends: http://www.gnu.org/prep/maintain/html_node/License-Notices.html

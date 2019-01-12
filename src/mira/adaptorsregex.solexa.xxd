@@ -1,0 +1,26 @@
+# first a master regexp (with ">" as first character which will be cut away
+# from RE) which triggers checking of subsequent regexes
+# then one regex per line until next master RE (or eof)
+>GATCGGAAG
+GATCGGAAGAGCGGTT.*
+GATCGGAAGAGCGGT$
+GATCGGAAGAGCGG$
+GATCGGAAGAGCG$
+GATCGGAAGAGC$
+GATCGGAAGAG$
+GATCGGAAGA$
+GATCGGAAG$
+GATCGGAAGAGCGTCG.*
+GATCGGAAGAGCGTC$
+GATCGGAAGAGCGT$
+#seen in RNASeq Dec 2015, seems to be rev_Illumina_Multiplexing_PCR_Primer_2.01/rev_Illumina_Multiplexing_Read2_Sequencing_Primer
+>AGATCGGAAG
+AGATCGGAAGAGCACAC.*
+AGATCGGAAGAGCACA$
+AGATCGGAAGAGCAC$
+AGATCGGAAGAGCA$
+AGATCGGAAGAGC$
+AGATCGGAAGAG$
+AGATCGGAAGA$
+AGATCGGAAG$
+AGATCGGAA$

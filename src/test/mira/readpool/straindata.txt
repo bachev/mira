@@ -1,0 +1,8 @@
+# some comment
+
+U13a03f07.t1 bla
+U13a01g08.t1 bla
+not_an_EXP ble
+U13a05h03.t1 blubb
+U13a03f09.t1 blubb
+U13a08c07.t1 ble

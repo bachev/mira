@@ -1,0 +1,140 @@
+#############################################################################################
+# 
+# MIRA EST assembler
+#
+# Step 2 parameter file
+#
+#
+#############################################################################################
+
+
+-GENERAL
+use_template_information   = no
+
+
+-STRAIN/BACKBONE
+load_straindata		   = yes
+load_backbone		   = no
+
+
+#
+# Skim is the fast all reads against all reads check
+#
+
+-SKIM
+bases_per_hash		  = 16
+hash_save_stepping	  = 4
+percent_required	  = 25
+
+
+
+#
+# Assembly options control basic behaviour 
+#  (number of iterations, resolve repeats etc.)
+#
+
+-ASSEMBLY
+
+rmb_break_loops            = 30             # 
+spoiler_detection	   = no		    # only useful for genomic assemblies
+use_emergency_blacklist    = yes            # 
+use_emergency_search_stop  = yes            # 
+ess_partnerdepth           = 500            # 
+
+			   	     
+-DATAPROCESSING
+
+use_read_extension         = no             # nope
+tag_polyat_at_ends         = no             # reads from step 1
+					    #  already have the tags
+
+
+
+-CLIPPING		   	     
+			   	     
+possible_vector_clip       = yes      # 
+pvc_maxlenallowed	   = 12       #  but only if <=12 bases, else
+				      #  might be splice form 
+quality_clip               = yes      # 
+qc_minimum_quality         = 20       # 
+qc_window_length           = 30       # 
+maskedbase_clip            = yes      # 
+mbc_gap_size               = 15       # 
+mbc_max_front_gap          = 30       # 
+mbc_max_end_gap            = 60       # 
+ensure_minimum_left_clip   = Yes
+minimum_left_clip_required = 25
+set_minimum_left_clip_to   = 30			   
+
+#
+# Align options for controlling the Smith-Waterman (banded) alignment
+#  and the alignment post-processing
+
+# Values are higher: we don't want "weak joins" and completely
+#  different splice forms here
+
+-ALIGN
+
+min_score                  = 30  	    # 
+min_overlap                = 30  	    # 
+min_relative_score         = 75  	    # 
+extra_gap_penalty          = yes  	    # 
+egp_level		   = low
+
+
+#
+# Contig options
+#  Contigs are implemented as intelligent objects who fully control which
+#  sequences they choose to add and which they reject.
+#  They also have routines to recognize misassemblies due to possible
+#  repeats and mark important repeat discerning bases (PRMB = Possible
+#  Repeat Marker Base) or SNPs when running in EST assembly mode
+#
+
+-CONTIG
+
+rej_on_dropinrelscore             = 15      # 
+danger_max_error_rate             = 1       # 
+mark_repeats                      = yes     # 
+min_reads_per_group               = 2       # Min. reads in a group to tag alias: 'mrpg'
+min_groupqual_for_rmb_tagging     = 30      # 
+endread_mark_exclusion_area       = 15      # 
+
+
+#
+# EdIt parameters for controling the integrated automatic editor
+#  which uses available SCF data to resolve conflicts
+#
+
+-EDIT
+
+automatic_contig_editing   = no             # edit contigs using scf data? alias: 'ace'
+
+
+#
+# Options for controling which results to write and to which type of files
+#
+
+-OUTPUT			   
+
+output_result_caf          = yes      # output in caf format;       alias: 'orc'
+output_result_gap4da       = yes      # output as gap4 dir.ass.for. alias: 'orf'
+output_result_fasta        = yes      # output in fasta format      alias: 'org'
+output_result_ace          = no       # output in ace format        alias: 'ora'
+output_result_text         = no       # output in text format       alias: 'ort'
+output_result_html         = no       # output in html format       alias: 'orh'
+output_result_tcs          = no       # output in html format       alias: 'orh'
+			         				   
+output_tmpresult_caf       = no       # temporary resultsare        alias: 'otc'
+output_tmpresult_gap4da    = no       #  results after each         alias: 'otg'
+output_tmpresult_fasta     = no       #  main loop.		    alias: 'otf'
+output_tmpresult_ace       = no       # 			    alias: 'ota'
+output_tmpresult_text      = no       # 			    alias: 'ott'
+output_tmpresult_html      = no       # 			    alias: 'oth'
+
+output_exttmpresult_caf    = no       # extra temporary results     alias: 'oetc'
+output_exttmpresult_gap4da = no       #  can happen inbetween a     alias: 'oetg'
+output_exttmpresult_fasta  = no       #  loop if, e.g., a contig    alias: 'oetf'
+output_exttmpresult_ace    = no       #  must be rebuilt because    alias: 'oeta'
+output_exttmpresult_html   = no       #  of clashes in repeats      alias: 'oeth'
+

@@ -1,0 +1,53 @@
+Testing error in fofn  operations
+############ 1-0
+Testing fofnerror.txt
+------------------------------------------------
+Loading file of filenames: fofnerror.txt
+File U13a03f09.t1 is present more than once.
+done.
+
+Warning: "Some reads lead to unrecoverable error: duplicate names. Aborting, see stderr for further information."
+->Thrown: void ReadPool::loadEXPs(const char * fofn)  
+->Caught: main()
+
+
+Testing normal EXP load operations
+############ 2-0
+Testing fofn.txt
+------------------------------------------------
+Loading file of filenames: fofn.txt
+done.
+Loading EXP files: 
+ [0%] .......... [10%] .......... [20%] .......... [30%] .......... [40%] .......... [50%] .......... [60%] .......... [70%] .......... [80%] .......... [90%] .......... [100%] 
+Done.
+There haven been 5 files given, 5 of which have loaded ok.
+Adjusting sequencing vector clips from tags:
+ [0%] .......... [10%] .......... [20%] .......... [30%] .......... [40%] .......... [50%] .......... [60%] .......... [70%] .......... [80%] .......... [90%] .......... [100%] Done.Readpool contains 5 reads.
+
+
+Testing straindata load operations
+############ 3-0
+Testing fofn.txt
+------------------------------------------------
+Loading file of filenames: fofn.txt
+done.
+Loading EXP files: 
+ [0%] .......... [10%] .......... [20%] .......... [30%] .......... [40%] .......... [50%] .......... [60%] .......... [70%] .......... [80%] .......... [90%] .......... [100%] 
+Done.
+There haven been 5 files given, 5 of which have loaded ok.
+Adjusting sequencing vector clips from tags:
+ [0%] .......... [10%] .......... [20%] .......... [30%] .......... [40%] .......... [50%] .......... [60%] .......... [70%] .......... [80%] .......... [90%] .......... [100%] Building hash table ... done.
+U13a03f07.t1 has id 1 in readpool, setting strain to bla
+U13a01g08.t1 has id 0 in readpool, setting strain to bla
+not_an_EXP from straindata not found in readpool.
+U13a05h03.t1 has id 3 in readpool, setting strain to blubb
+U13a03f09.t1 has id 2 in readpool, setting strain to blubb
+U13a08c07.t1 has id 4 in readpool, setting strain to ble
+
+Read 6 straindata lines.
+Done.Readpool contains 5 reads.
+
+
+
+
+Tests ended.
