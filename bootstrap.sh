@@ -4,6 +4,11 @@ rm -rf Makefile Makefile.in aclocal.m4 config.status config.h config.h.in config
 rm -rf compile depcomp install-sh ltmain.sh
 rm -rf config m4
 
+# Gaaaaaaaaaaaaah. Something in the auto* system breaks if
+#  the 'required' README file is missing
+
+touch README
+
 if [ -n "`which glibtoolize 2>/dev/null`" ]
 then
   GLIBTOOLIZE="glibtoolize"
