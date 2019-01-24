@@ -7,6 +7,9 @@ SUBDIRS = \
 
 MHSDIR=$(prefix)/share/mira/mhs
 
+download-sls:
+	./mira-download-sls-rrna.sh rfam_rrna-21-1.sls.gz
+
 install-exec-hook:
 	cp mira-install-sls-rrna.sh $(DESTDIR)$(bindir) && \
 	mkdir -p $(MHSDIR) && \
@@ -17,3 +20,5 @@ install-exec-hook:
 uninstall-hook:
 	rm $(DESTDIR)$(bindir)/mira-install-sls-rrna.sh && \
 	rm -f $(prefix)/share/mira
+
+all: download-sls
