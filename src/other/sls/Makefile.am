@@ -1,5 +1,5 @@
 
-EXTRA_DIST = mira-install-sls-rrna.sh README.txt rfam_rrna-21-1.sls.gz
+EXTRA_DIST = mira-install-sls-rrna.sh README.txt
 
 
 SUBDIRS = \
@@ -7,7 +7,7 @@ SUBDIRS = \
 
 MHSDIR=$(prefix)/share/mira/mhs
 
-download-sls:
+rfam_rrna-21-1.sls.gz:
 	./mira-download-sls-rrna.sh rfam_rrna-21-1.sls.gz
 
 install-exec-hook:
@@ -21,4 +21,4 @@ uninstall-hook:
 	rm $(DESTDIR)$(bindir)/mira-install-sls-rrna.sh && \
 	rm -f $(prefix)/share/mira
 
-all: download-sls
+all: rfam_rrna-21-1.sls.gz
