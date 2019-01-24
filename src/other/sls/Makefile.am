@@ -1,5 +1,5 @@
 
-EXTRA_DIST = mira-install-sls-rrna.sh README.txt
+EXTRA_DIST = mira-install-sls-rrna.sh README.txt rfam_rrna-21-1.sls.gz
 
 
 SUBDIRS = \

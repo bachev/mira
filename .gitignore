@@ -25,6 +25,7 @@ config.status
 libtool
 compile
 depcomp
+ylwrap
 
 .deps
 
@@ -33,6 +34,8 @@ depcomp
 
 # Files and directories from make
 
+*.o
+*.a
 *.cc
 *.itxt
 *.itxt.H
