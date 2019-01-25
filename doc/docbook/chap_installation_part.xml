@@ -23,9 +23,62 @@
     <title>
       Where to fetch MIRA
     </title>
+    <sect2 id="sect_install_package_naming">
+      <title>
+	Package naming and versioning scheme
+      </title>
+      <para>
+	Source packages are usually named
+      </para>
+      <para>
+	<filename>mira-<replaceable>miraversion</replaceable>.tar.bz2</filename>
+      </para>
+      <note>
+	<para>
+	  For <filename><replaceable>miraversion</replaceable></filename>, the
+	  stable versions of MIRA with the general public as audience usually
+	  have a version number in three parts, like
+	  <filename>3.0.5</filename>, sometimes also followed by some postfix
+	  like in <filename>3.2.0rc1</filename> to denote release candidate 1
+	  of the 3.2.0 version of MIRA. On very rare occasions, stable
+	  versions of MIRA can have four part like in, e.g.,
+	  <filename>3.4.0_1</filename>: these versions create identical
+	  binaries to their parent version (in this case:
+	  <filename>3.4.0</filename>) and just contains fixes to the source
+	  build machinery or documentation.
+	</para>
+	<para>
+	  The version string sometimes can have a different format:
+	  <filename><emphasis>sometext</emphasis>_somenumber+g<emphasis>somehexnumber</emphasis></filename>
+	  like in, e.g.,
+	  <filename>ft_fastercontig_10+g4a27c91</filename>. These versions of
+	  MIRA are snapshots from the development tree of MIRA and usually
+	  contain new functionality which may not be as well tested as the
+	  rest of MIRA, hence contains more checks and more debugging output
+	  to catch potential errors
+	</para>
+      </note>
+      <para>
+	Precompiled binary packages are named in the following way:
+      </para>
+      <para>
+	<filename>mira_<replaceable>miraversion</replaceable>_<replaceable>OS-and-binarytype</replaceable>.tar.bz2</filename>
+      </para>
+      <note>
+	<para>
+	  The
+	  <filename><replaceable>OS-and-binarytype</replaceable></filename>
+	  part defines for which operating system and which processor class
+	  the package is destined. E.g.,
+	  <filename>linux-gnu_x86_64_static</filename> contains static
+	  binaries for Linux running a X86 64 bit processor (most Intel/AMD
+	  nowadays).
+	</para>
+      </note>
+    </sect2>
     <sect2 id="sect_install_where_binaries">
       <title>
-	Source package and precompiled binaries: SourceForge
+	SourceForge: source package and precompiled binaries
       </title>
       <para>
 	SourceForge: <ulink url="https://sourceforge.net/projects/mira-assembler/files/MIRA/"/>
@@ -36,81 +89,38 @@
 	OSX -- or the source package for compiling yourself.
       </para>
       <para>
-	Precompiled binary packages are named in the following way:
-      </para>
-      <para>
-	<filename>mira_<replaceable>miraversion</replaceable>_<replaceable>OS-and-binarytype</replaceable>.tar.bz2</filename>
-      </para>
-      <para>
-	where
-      </para>
-      <itemizedlist>
-	<listitem>
-	  <para>
-	    For <filename><replaceable>miraversion</replaceable></filename>, the
-	    stable versions of MIRA with the general public as audience usually
-	    have a version number in three parts, like
-	    <filename>3.0.5</filename>, sometimes also followed by some postfix
-	    like in <filename>3.2.0rc1</filename> to denote release candidate 1
-	    of the 3.2.0 version of MIRA. On very rare occasions, stable
-	    versions of MIRA can have four part like in, e.g.,
-	    <filename>3.4.0.1</filename>: these versions create identical
-	    binaries to their parent version (<filename>3.4.0</filename>) and
-	    just contains fixes to the source build machinery.
-	  </para>
-	  <para>
-	    The version string sometimes can have a different format:
-	    <filename><emphasis>sometext</emphasis>-0-g<emphasis>somehexnumber</emphasis></filename>
-	    like in, e.g.,
-	    <filename>ft_fastercontig-0-g4a27c91</filename>. These versions of
-	    MIRA are snapshots from the development tree of MIRA and usually
-	    contain new functionality which may not be as well tested as the
-	    rest of MIRA, hence contains more checks and more debugging output
-	    to catch potential errors
-	  </para>
-	</listitem>
-	<listitem>
-	  <para>
-	    <filename><replaceable>OS-and-binarytype</replaceable></filename>
-	    finally defines for which operating system and which processor class
-	    the package is destined. E.g.,
-	    <filename>linux-gnu_x86_64_static</filename> contains static
-	    binaries for Linux running a 64 bit processor.
-	  </para>
-	</listitem>
-      </itemizedlist>
-      <para>
-	Source packages are usually named
-      </para>
-      <para>
-	<filename>mira-<replaceable>miraversion</replaceable>.tar.bz2</filename>
-      </para>
-      <para>
 	Examples for packages at SourceForge:
       </para>
       <itemizedlist>
 	<listitem>
-	  <filename>mira_3.0.5_prod_linux-gnu_x86_64_static.tar.bz2</filename>
+	  <filename>mira_4.9.8_linux-gnu_x86_64_static.tar.bz2</filename>
 	</listitem>
 	<listitem>
-	  <filename>mira_3.0.5_prod_OSX_snowleopard_x86_64_static.tar.bz2</filename>
+	  <filename>mira_4.9.8_OSX_snowleopard_x86_64_static.tar.bz2</filename>
 	</listitem>
 	<listitem>
-	  <filename>mira-3.0.5.tar.bz2</filename>
+	  <filename>mira-4.9.8.tar.bz2</filename>
 	</listitem>
       </itemizedlist>
     </sect2>
     <sect2 id="sect_install_where_github">
       <title>
-	Git repository: GitHub
+	GitHub: git repository, source, and binary packages
       </title>
       <para>
-	GitHub: <ulink url="https://github.com/bachev/mira"/>
+	GitHub main page: <ulink url="https://github.com/bachev/mira"/>
       </para>
       <para>
-	GitHub contains the live source of MIRA. Two main branches are
-	generally interesting to the public: "master" and "development". To
-	get the content from GitHub, do:
+	GitHub releases (go here for binary packages): <ulink
+	url="https://github.com/bachev/mira/releases"/>
+      </para>
+      <para>
+	GitHub contains the live source of MIRA as well as source packages and
+	binary packages for selected versions. Two main branches are generally
+	interesting to the public: "master" and "development".
+      </para>
+      <para>
+	To get a clone of the repository on on GitHub, do:
       </para>
       <screen>
 <userinput>git clone https://github.com/bachev/mira.git
@@ -220,14 +230,14 @@ lrwxrwxrwx 1 bach bach 10421035 2016-03-18 14:28 rfam_rrna-21-12.sls.gz
     <title>
       Compiling MIRA yourself
     </title>
+    <note>
+      As a general rule of thumb, you do NOT want to compile MIRA
+      yourself. Fetch a precompiled binary if possible.
+    </note>
     <sect2 id="sect_install_comp_prereq">
       <title>
 	Prerequisites
       </title>
-      <note>
-	As a general rule of thumb, you do NOT want to compile MIRA yourself. Fetch a
-	precompiled binary if possible.
-      </note>
       <para>
 	Compiling the 5.x series of MIRA needs a C++14 compatible tool chain, i.e.,
 	systems starting from 2013/2014 should be OK. The
@@ -291,9 +301,12 @@ lrwxrwxrwx 1 bach bach 10421035 2016-03-18 14:28 rfam_rrna-21-12.sls.gz
       </itemizedlist>
       <para>
 	For <emphasis>building the documentation</emphasis>, additional
-	prerequisites are from the DocBook tool chain:
+	prerequisites are:
       </para>
       <itemizedlist>
+	<listitem>
+	  help2man for manual pages
+	</listitem>
 	<listitem>
 	  xsltproc + docbook-xsl for HTML output
 	</listitem>
