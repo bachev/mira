@@ -46,7 +46,7 @@ copydocs:
 	cp -R -L ../man/*.1 ${MIRADIR}/man/man1
 
 distribin: clean copybin libbundle-${BUNDLETARGET}
-	strip ${MIRADIR}/bin/mira[a-z]*
+#	strip ${MIRADIR}/bin/mira[a-z]*
 	tar cvjf ${PACKAGE_TARNAME}_binonly_${MIRAVERSION}.tar.bz2 ${MIRADIR}
 
 distridbg: clean copybin libbundle-${BUNDLETARGET}
@@ -61,8 +61,8 @@ distrib: clean dbdata copybin libbundle-${BUNDLETARGET} copydocs
 	cp ../src/mira/CHANGES.txt ${MIRADIR}
 	cp ../src/mira/CHANGES_old.txt ${MIRADIR}
 
-	tar cvjf ${PACKAGE_TARNAME}_${MIRAVERSION}_fullsymbols.tar.bz2 ${MIRADIR}
-	strip ${MIRADIR}/bin/mira[a-z]*
+#	tar cvjf ${PACKAGE_TARNAME}_${MIRAVERSION}_fullsymbols.tar.bz2 ${MIRADIR}
+#	strip ${MIRADIR}/bin/mira[a-z]*
 	tar cvjf ${PACKAGE_TARNAME}_${MIRAVERSION}.tar.bz2 ${MIRADIR}
 
 
