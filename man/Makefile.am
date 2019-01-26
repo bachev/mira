@@ -17,9 +17,9 @@ pkgdatadir=$(prefix)/share/man/man1
 #    Rationale: have valid manpages included by default in the source package
 #     when building from a git checkout directly from a tagged version
 %.1:
-	help2man --no-info $(top_srcdir)/src/progs/$* >ttt
-	sed -e 's/\(MIRA[^ ]* V[0-9.]\{1,\}\)_0+g[0-9a-f]\{1,\}/\1/g' ttt >$@
-	-rm ttt
+	help2man --no-info $(top_srcdir)/src/progs/$* >$(@).ttt
+	sed -e 's/\(MIRA[^ ]* V[0-9.]\{1,\}\)_0+g[0-9a-f]\{1,\}/\1/g' $(@).ttt >$@
+	-rm $(@).ttt
 
 mclean:
 	-rm -f ttt $(dist_pkgdata_DATA)
