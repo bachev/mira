@@ -42,7 +42,7 @@ using std::cerr;
 using std::endl;
 
 
-extern const char * compileinfo;
+extern const unsigned char * compileinfo;
 
 
 void dumpStdMsg()

@@ -28,10 +28,10 @@ compileinfo-debian:
 
 compileinfo.itxt: ciclean compileinfo-$(CITARGET)
 	@echo "Making .C out of .xxd" $@
-	@echo "const char compileinfo2[] = {" >compileinfo.itxt.xxd.C
+	@echo "const unsigned char compileinfo2[] = {" >compileinfo.itxt.xxd.C
 	@$(SHELL) -ec 'grep -v "^#" compileinfo.itxt.xxd | xxd -i >>compileinfo.itxt.xxd.C'
 	@echo ",0 };" >>compileinfo.itxt.xxd.C
-	@echo "const char * compileinfo=compileinfo2;" >>compileinfo.itxt.xxd.C
+	@echo "const unsigned char * compileinfo=compileinfo2;" >>compileinfo.itxt.xxd.C
 	@rm compileinfo.itxt.xxd
 
 compileinfo.itxt.xxd.C: ciclean compileinfo.itxt
