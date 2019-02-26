@@ -1020,8 +1020,13 @@ int MiraBait::mainMiraBait(int argc, char ** argv)
   catch(Flow f){
     cerr << "Unexpected exception: Flow()\n";
   }
+  catch (const std::exception& e) { // reference to the base of a polymorphic object
+    std::cerr << "Std exception caught. Message: " << e.what() << std::endl; // information from length_error printed
+    exit(10);
+  }
   catch(...){
     cerr << "Unknown exception caught, aborting the process.\n\nPlease contact: bach@chevreux.org\n\n";
+    exit(10);
   }
 
   int retvalue=0;
@@ -1034,14 +1039,14 @@ int MiraBait::mainMiraBait(int argc, char ** argv)
       }
 
       cout << "\nBaiting process finished.\n\n";
-      if(MB_baitpoolsize>0){
-	cout << "Number of bait sequences:   " << MB_baitpoolsize << endl;
-      }
+      cout << "Number of bait sequences:   " << MB_baitpoolsize << endl;
       cout << "Total number of sequences read: " << MB_numreadsread << endl;
-      cout << "Pairs baited: " << MB_numpairsbaited << " (" << std::fixed << std::setprecision(2) << 100.0f/MB_numreadsread*MB_numpairsbaited*2 << "%)\n";
-      cout << "Pairs missed: " << MB_numpairsmissed << " (" << std::fixed << std::setprecision(2) << 100.0f/MB_numreadsread*MB_numpairsmissed*2 << "%)\n";
-      cout << "Unpaired baited: " << MB_numunpairedbaited << " (" << std::fixed << std::setprecision(2) << 100.0f/MB_numreadsread*MB_numunpairedbaited << "%)\n";
-      cout << "Unpaired missed: " << MB_numunpairedmissed << " (" << std::fixed << std::setprecision(2) << 100.0f/MB_numreadsread*MB_numunpairedmissed << "%)\n";
+      if (MB_numreadsread) {
+	cout << "Pairs baited: " << MB_numpairsbaited << " (" << std::fixed << std::setprecision(2) << 100.0f/MB_numreadsread*MB_numpairsbaited*2 << "%)\n";
+	cout << "Pairs missed: " << MB_numpairsmissed << " (" << std::fixed << std::setprecision(2) << 100.0f/MB_numreadsread*MB_numpairsmissed*2 << "%)\n";
+	cout << "Unpaired baited: " << MB_numunpairedbaited << " (" << std::fixed << std::setprecision(2) << 100.0f/MB_numreadsread*MB_numunpairedbaited << "%)\n";
+	cout << "Unpaired missed: " << MB_numunpairedmissed << " (" << std::fixed << std::setprecision(2) << 100.0f/MB_numreadsread*MB_numunpairedmissed << "%)\n";
+      }
     }
 
     if(!MB_savehashstatfname.empty()){
