@@ -1,6 +1,6 @@
-MIRA - The Genome and Transcriptome Assembler and Mapper
+# MIRA - The Genome and Transcriptome Assembler and Mapper
 
-For de-novo assemblies, MIRA contains integrated editors for all supported sequence technologies which iteratively remove many sequencing errors from the assembly project and improve the overal alignment quality.
+For de-novo assemblies, MIRA contains integrated editors for all supported sequence technologies which iteratively remove many sequencing errors from the assembly project and improve the overall alignment quality.
 
 MIRA can also be used for mapping assemblies and automatic tagging of difference site (SNPs, insertions or deletions) of mutant strains against a reference sequence.
 For organisms where annotated files in GFF3 format are available (or for GenBank files without intron/exon structures), MIRA can generate tables which are ready to use for biologists as they show exactly which genes are hit and give a first estimate whether the function of the protein is perturbed by the change.
